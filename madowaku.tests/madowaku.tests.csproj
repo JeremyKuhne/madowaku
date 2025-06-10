@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+      Multitarget .NET 9 and .NET Framework 4.72 on Windows 11 or higher.
+      https://learn.microsoft.com/dotnet/standard/frameworks
+
+      Because we're multitargeting, we need to specify SupportedPlatform
+      to get proper platform compatibility warnings.
+      https://learn.microsoft.com/dotnet/standard/analyzers/platform-compat-analyzer
+    -->
+    <TargetFrameworks>net9.0-windows10.0.22000.0;net481</TargetFrameworks>
+    <SupportedPlatform>windows10.0.22000.0</SupportedPlatform>
+
+    <DependencyTargetFramework>$(TargetFramework)</DependencyTargetFramework>
+
+    <!-- Main project builds against 4.72 -->
+    <DependencyTargetFramework Condition="'$(TargetFramework)' == 'net481'">net472</DependencyTargetFramework>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="FluentAssertions" Version="6.12.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\madowaku\madowaku.csproj" AdditionalProperties="TargetFramework=$(DependencyTargetFramework)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>
