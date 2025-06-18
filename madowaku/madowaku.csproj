@@ -10,9 +10,14 @@
       Because we're multitargeting, we need to specify SupportedPlatform
       to get proper platform compatibility warnings.
       https://learn.microsoft.com/dotnet/standard/analyzers/platform-compat-analyzer
+
+      Including just net9.0 f users want to build for .NET 9 and do a runtime check.
     -->
-    <TargetFrameworks>net9.0-windows10.0.22000.0;$(_FrameworkVersion)</TargetFrameworks>
+    <TargetFrameworks>net9.0-windows10.0.22000.0;net9.0;$(_FrameworkVersion)</TargetFrameworks>
     <SupportedPlatform>windows10.0.22000.0</SupportedPlatform>
+
+    <!-- Ignore checking for compatibilty when targetting .NET 9 without the windows qualifier -->
+    <NoWarn Condition="'$(TargetFramework)' == 'net9.0'">$(NoWarn);CA1416</NoWarn>
 
     <!--
      We don't want to have implicit usings as we're retargeting System.IO to Microsoft.IO
@@ -72,7 +77,7 @@
     <!-- This gets us Span. -->
     <PackageReference Include="System.Memory" Version="4.6.3" />
     <!-- This provides Range and Index support downlevel -->
-    <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.6" />
   </ItemGroup>
 
 </Project>
