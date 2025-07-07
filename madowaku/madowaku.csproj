@@ -11,7 +11,7 @@
       to get proper platform compatibility warnings.
       https://learn.microsoft.com/dotnet/standard/analyzers/platform-compat-analyzer
 
-      Including just net9.0 f users want to build for .NET 9 and do a runtime check.
+      Including just net9.0 if users want to build for .NET 9 and do a runtime check.
     -->
     <TargetFrameworks>net9.0-windows10.0.22000.0;net9.0;$(_FrameworkVersion)</TargetFrameworks>
     <SupportedPlatform>windows10.0.22000.0</SupportedPlatform>
@@ -39,9 +39,15 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Copyright>Copyright (c) Jeremy W. Kuhne. All rights reserved.</Copyright>
 
+    <!-- Publish the repository URL in the built .nupkg (in the NuSpec <repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
     <!-- Not a security boundary, the strong name is for identity and ease of use from other signed assemblies. -->
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\klutzyninja.snk</AssemblyOriginatorKeyFile>
+
+    <!-- MinVer related -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
 
     <!--
      Modifying default items to exclude the Framework items if not building for .NET Framework.
@@ -55,7 +61,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="KlutzyNinja.Touki" Version="0.0.0-alpha.0.12" />
+    <PackageReference Include="KlutzyNinja.Touki" Version="0.1.0-alpha.2.3" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <PackageReference Include="MinVer" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

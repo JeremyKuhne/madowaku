@@ -4,13 +4,10 @@
 
 #pragma warning disable IDE0005 // Using directive is unnecessary.
 global using System;
-global using System.Collections.Generic;
 global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
-
-global using Windows.Win32;
 global using Windows.Win32.Foundation;
 
 // Try to direct as much as possible to Microsoft.IO on .NET Framework. Follow with explicit usings for types
@@ -25,8 +22,6 @@ global using System.IO.Enumeration;
 #endif
 
 global using Stream = System.IO.Stream;
-global using FileAttributes = System.IO.FileAttributes;
-global using IOException = System.IO.IOException;
 global using FileNotFoundException = System.IO.FileNotFoundException;
 global using DirectoryNotFoundException = System.IO.DirectoryNotFoundException;
 global using PathTooLongException = System.IO.PathTooLongException;
