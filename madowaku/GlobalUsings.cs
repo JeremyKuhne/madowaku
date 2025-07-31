@@ -31,9 +31,11 @@ global using Marshal = System.Runtime.InteropServices.Marshal;
 global using FILETIME = Windows.Win32.Foundation.FILETIME;
 
 #if NETFRAMEWORK
-global using ArgumentOutOfRange = Madowaku.ArgumentOutOfRangeAdapter;
+global using ArgumentNull = Touki.Exceptions.ArgumentNullAdapter;
+global using ArgumentOutOfRange = Touki.Exceptions.ArgumentOutOfRangeAdapter;
 global using ObjectDisposed = Madowaku.ObjectDisposedAdapter;
 #else
+global using ArgumentNull = System.ArgumentNullException;
 global using ArgumentOutOfRange = System.ArgumentOutOfRangeException;
 global using ObjectDisposed = System.ObjectDisposedException;
 #endif
