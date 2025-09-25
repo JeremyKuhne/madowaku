@@ -30,12 +30,4 @@ global using DriveNotFoundException = System.IO.DriveNotFoundException;
 global using Marshal = System.Runtime.InteropServices.Marshal;
 global using FILETIME = Windows.Win32.Foundation.FILETIME;
 
-#if NETFRAMEWORK
-global using ArgumentOutOfRange = Madowaku.ArgumentOutOfRangeAdapter;
-global using ObjectDisposed = Madowaku.ObjectDisposedAdapter;
-#else
-global using ArgumentOutOfRange = System.ArgumentOutOfRangeException;
-global using ObjectDisposed = System.ObjectDisposedException;
-#endif
-
 #pragma warning restore IDE0005 // Using directive is unnecessary.

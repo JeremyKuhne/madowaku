@@ -1,32 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <_FrameworkVersion>net472</_FrameworkVersion>
-
     <!--
-      Multitarget .NET 9 and .NET Framework 4.72
-      https://learn.microsoft.com/dotnet/standard/frameworks
-
-      Because we're multitargeting, we need to specify SupportedPlatform
-      to get proper platform compatibility warnings.
+      Because we're multitargeting, we need to specify SupportedPlatform to get proper platform compatibility warnings.
       https://learn.microsoft.com/dotnet/standard/analyzers/platform-compat-analyzer
 
-      Including just net9.0 if users want to build for .NET 9 and do a runtime check.
+      Including platform specific and non-platform specific target frameworks to allow use with a runtime check.
     -->
-    <TargetFrameworks>net9.0-windows10.0.22000.0;net9.0;$(_FrameworkVersion)</TargetFrameworks>
-    <SupportedPlatform>windows10.0.22000.0</SupportedPlatform>
+    <TargetFrameworks>$(DotNetCoreVersion)-$(WindowsPlatformVersion);$(DotNetCoreVersion);$(DotNetFrameworkVersion)</TargetFrameworks>
+    <SupportedPlatform>$(WindowsPlatformVersion)</SupportedPlatform>
 
-    <!-- Ignore checking for compatibilty when targetting .NET 9 without the windows qualifier -->
-    <NoWarn Condition="'$(TargetFramework)' == 'net9.0'">$(NoWarn);CA1416</NoWarn>
+    <!-- Ignore checking for compatibilty when targetting .NET Core without the windows qualifier -->
+    <NoWarn Condition="'$(TargetFramework)' == '$(DotNetCoreVersion)'">$(NoWarn);CA1416</NoWarn>
 
     <!--
      We don't want to have implicit usings as we're retargeting System.IO to Microsoft.IO
-     in our GlobalUsings.cs file for .NET 4.7.2.
+     in our GlobalUsings.cs file for .NET Framework.
     -->
     <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
     <RootNamespace />
 
     <PackageId>KlutzyNinja.Madowaku</PackageId>
@@ -52,26 +44,22 @@
     <!--
      Modifying default items to exclude the Framework items if not building for .NET Framework.
     -->
-    <DefaultItemExcludes Condition="'$(TargetFramework)' != '$(_FrameworkVersion)'">$(DefaultItemExcludes);**/Framework/**/*</DefaultItemExcludes>
+    <DefaultItemExcludes Condition="'$(TargetFramework)' != '$(DotNetFrameworkVersion)'">$(DefaultItemExcludes);**/Framework/**/*</DefaultItemExcludes>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != '$(_FrameworkVersion)'">
+  <ItemGroup Condition="'$(TargetFramework)' != '$(DotNetFrameworkVersion)'">
     <!-- Include the Framework specific items as none so we can see them easily in the Solution Explorer. -->
     <None Include="**/Framework/**/*" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="KlutzyNinja.Touki" Version="0.1.0-alpha.7" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-    <PackageReference Include="MinVer" Version="6.0.0">
+    <PackageReference Include="KlutzyNinja.Touki" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+    <PackageReference Include="MinVer">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
+    <PackageReference Include="Microsoft.Windows.CsWin32">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -80,11 +68,11 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == '$(_FrameworkVersion)'">
     <!-- This gets us .NET 6 System.IO repackaged for .NET Framework. -->
-    <PackageReference Include="Microsoft.IO.Redist" Version="6.1.3" />
+    <PackageReference Include="Microsoft.IO.Redist" />
     <!-- This gets us Span. -->
-    <PackageReference Include="System.Memory" Version="4.6.3" />
+    <PackageReference Include="System.Memory" />
     <!-- This provides Range and Index support downlevel -->
-    <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Bcl.Memory" />
   </ItemGroup>
 
 </Project>
