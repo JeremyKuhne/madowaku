@@ -5,6 +5,40 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="'$(ImportCommonProps)' == 'true' and Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
 
+  <PropertyGroup>
+    <!--
+      Cross-platform targetting in .NET
+      https://learn.microsoft.com/dotnet/standard/library-guidance/cross-platform-targeting
+    -->
+
+    <!--
+      Want to keep current and support the most recent LTS.
+    -->
+    <DotNetCoreVersion>net10.0</DotNetCoreVersion>
+
+    <!--
+      4.7.2 addresses issues when consuming .NET Standard 2.0 libraries from .NET Framework.
+
+      Windows 10 1803 and Server 2019 included 4.7.2 in the box. Most OSes have gone out of support that shipped with
+      earlier versions. The only exceptions are enterprise and server versions from 2016. We could support 4.6.2
+      instead if the need arises, but starting with 4.7.2 to be explicit about the best choice.
+      https://learn.microsoft.com/lifecycle/products/windows-81
+      https://learn.microsoft.com/lifecycle/products/windows-7
+      https://learn.microsoft.com/lifecycle/products/windows-server-2016
+      https://learn.microsoft.com/lifecycle/products/windows-10-2016-ltsb
+    -->
+    <DotNetFrameworkVersion>net472</DotNetFrameworkVersion>
+
+    <WindowsPlatformVersion>windows10.0.22000.0</WindowsPlatformVersion>
+
+    <!-- C# Features -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>14</LangVersion>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
   <!-- Common repo directories -->
   <PropertyGroup>
     <RepoDir>$(MSBuildThisFileDirectory)</RepoDir>
@@ -16,11 +50,6 @@
 
     <!-- Input Directories -->
     <PackagesDir Condition="'$(PackagesDir)'==''">$(RepoDir)packages\</PackagesDir>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- Set default Configuration and Platform -->
