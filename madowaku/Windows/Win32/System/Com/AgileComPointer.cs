@@ -78,7 +78,7 @@ public unsafe class AgileComPointer<TInterface> : IComPointer
     /// </summary>
     ~AgileComPointer()
     {
-        Debug.Fail($"Did not dispose {nameof(AgileComPointer<TInterface>)}");
+        Debug.Fail($"Did not dispose {nameof(AgileComPointer<>)}");
         Dispose(disposing: false);
     }
 
