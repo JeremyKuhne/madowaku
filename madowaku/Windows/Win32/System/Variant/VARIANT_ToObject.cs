@@ -50,12 +50,12 @@ public unsafe partial struct VARIANT
                 throw new InvalidCastException();
             }
 
-            if (vt.HasFlag(VT_VECTOR))
+            if (vt.AreFlagsSet(VT_VECTOR))
             {
                 return ToVector(thisVariant->data.ca, vt);
             }
 
-            if (vt.HasFlag(VT_ARRAY))
+            if (vt.AreFlagsSet(VT_ARRAY))
             {
                 return ToArray(*(SAFEARRAY**)data, vt);
             }
@@ -71,7 +71,8 @@ public unsafe partial struct VARIANT
             return null;
         }
 
-        VARENUM arrayType = vt & ~VT_ARRAY;
+        VARENUM arrayType = vt;
+        arrayType.ClearFlags(VT_ARRAY);
         Array array = CreateArrayFromSafeArray(psa, arrayType);
 
         HRESULT hr = PInvokeMadowaku.SafeArrayLock(psa);
@@ -550,7 +551,7 @@ public unsafe partial struct VARIANT
             case VT_PTR:
                 return (uint)IntPtr.Size;
             default:
-                if ((vt & VT_ARRAY) != 0)
+                if (vt.AreFlagsSet(VT_ARRAY))
                 {
                     return (uint)sizeof(SAFEARRAY*);
                 }
@@ -678,7 +679,8 @@ public unsafe partial struct VARIANT
 
     private static object ToVector(in CAUB ca, VARENUM vectorType)
     {
-        VARENUM vt = vectorType & ~VT_VECTOR;
+        VARENUM vt = vectorType;
+        vt.ClearFlags(VT_VECTOR);
         switch (vt)
         {
             case VT_I1:

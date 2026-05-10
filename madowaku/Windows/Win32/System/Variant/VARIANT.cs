@@ -28,7 +28,7 @@ public unsafe partial struct VARIANT : IDisposable
     /// <summary>
     ///  Gets a value indicating whether this <see cref="VARIANT"/> is a by-reference value.
     /// </summary>
-    public bool Byref => vt.HasFlag(VT_BYREF);
+    public bool Byref => vt.AreFlagsSet(VT_BYREF);
 
     /// <summary>
     ///  Gets a reference to the <see cref="VARENUM"/> value type field.
@@ -254,7 +254,7 @@ public unsafe partial struct VARIANT : IDisposable
 
         static Type? GetArrayType(VARENUM type)
         {
-            if (!type.HasFlag(VT_ARRAY) && !type.HasFlag(VT_VECTOR))
+            if (!type.AreFlagsSet(VT_ARRAY) && !type.AreFlagsSet(VT_VECTOR))
             {
                 return null;
             }

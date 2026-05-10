@@ -191,20 +191,20 @@ public static unsafe class Error
 
         if (args == null || args.Length == 0)
         {
-            flags |= FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_IGNORE_INSERTS;
+            flags.SetFlags(FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_IGNORE_INSERTS);
         }
         else
         {
-            flags |= FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_ARGUMENT_ARRAY;
+            flags.SetFlags(FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_ARGUMENT_ARRAY);
         }
 
         if (!source.IsNull)
         {
-            flags |= FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_FROM_HMODULE;
+            flags.SetFlags(FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_FROM_HMODULE);
         }
 
         // Don't use line breaks
-        flags |= (FORMAT_MESSAGE_OPTIONS)0xFF; // FORMAT_MESSAGE_MAX_WIDTH_MASK
+        flags.SetFlags((FORMAT_MESSAGE_OPTIONS)0xFF); // FORMAT_MESSAGE_MAX_WIDTH_MASK
 
         using StringParameterArray strings = new(args);
 
