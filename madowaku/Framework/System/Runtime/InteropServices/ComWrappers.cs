@@ -34,6 +34,10 @@ internal abstract class ComWrappers
         ///  Always returns <see langword="null"/> on .NET Framework. CCW
         ///  unwrapping is not supported in this polyfill.
         /// </summary>
-        public static T? GetInstance<T>(ComInterfaceDispatch* dispatch) where T : class => null;
+        public static T? GetInstance<T>(ComInterfaceDispatch* dispatch) where T : class
+        {
+            _ = dispatch;
+            return null;
+        }
     }
 }
