@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
+using Windows.Win32.System.Variant;
+
 namespace Windows.Win32.System.Com;
 
 public class SafeArrayScopeTests
@@ -111,5 +113,68 @@ public class SafeArrayScopeTests
         using SafeArrayScope<int> source = new(1);
         SAFEARRAY* ptr = source.Value;
         Assert.Throws<ArgumentException>(() => new SafeArrayScope<double>(ptr));
+    }
+
+    [Fact]
+    public void Length_ReturnsElementCount()
+    {
+        using SafeArrayScope<int> array = new(5);
+        Assert.Equal(5, array.Length);
+    }
+
+    [Fact]
+    public void IsEmpty_LengthZero_ReturnsTrue()
+    {
+        using SafeArrayScope<int> array = new(0);
+        Assert.True(array.IsEmpty);
+    }
+
+    [Fact]
+    public void IsEmpty_NonEmpty_ReturnsFalse()
+    {
+        using SafeArrayScope<int> array = new(1);
+        Assert.False(array.IsEmpty);
+    }
+
+    [Fact]
+    public unsafe void IsNull_DefaultConstructed_ReturnsTrue()
+    {
+        using SafeArrayScope<int> array = new((SAFEARRAY*)null);
+        Assert.True(array.IsNull);
+    }
+
+    [Fact]
+    public unsafe void ImplicitOperator_SafearrayStar_NonNull()
+    {
+        using SafeArrayScope<int> array = new(2);
+        SAFEARRAY* ptr = array;
+        Assert.False(ptr is null);
+    }
+
+    [Fact]
+    public void ImplicitOperator_Nint_NonZero()
+    {
+        using SafeArrayScope<int> array = new(2);
+        nint value = array;
+        Assert.NotEqual(0, value);
+    }
+
+    [Fact]
+    public unsafe void ExplicitOperator_Variant_HasArrayFlag()
+    {
+        using SafeArrayScope<int> array = new(2);
+        VARIANT v = (VARIANT)array;
+        Assert.Equal(VARENUM.VT_ARRAY, v.vt & VARENUM.VT_ARRAY);
+        Assert.Equal(VARENUM.VT_I4, v.vt & VARENUM.VT_TYPEMASK);
+    }
+
+    [Fact]
+    public unsafe void Constructor_ObjectType_VariantSafearray_Roundtrips()
+    {
+        using SafeArrayScope<object> array = new(2);
+        array[0] = 42;
+        array[1] = "hi";
+        Assert.Equal(42, array[0]);
+        Assert.Equal("hi", array[1]);
     }
 }
