@@ -1,4 +1,3 @@
-<!-- DO NOT EDIT. Generated mirror of /AGENTS.md. Edit AGENTS.md and run: pwsh tools/Validate-AgentFiles.ps1 -Fix -->
 # AGENTS.md
 
 Instructions for AI coding agents working in this repository.
@@ -7,15 +6,15 @@ agent), Claude Code, OpenAI Codex, Cursor, Aider, Gemini CLI, and any other
 tool that supports the [AGENTS.md](https://agents.md/) standard.
 
 This file is the single source of truth.
-[.github/copilot-instructions.md](copilot-instructions.md) mirrors
+[.github/copilot-instructions.md](.github/copilot-instructions.md) mirrors
 this file for Copilot features that read it directly; do not edit the
 mirror by hand &mdash; regenerate it via
 `pwsh tools/Validate-AgentFiles.ps1 -Fix`.
 
-For broader contributor guidance, see [CONTRIBUTING.md](../CONTRIBUTING.md).
+For broader contributor guidance, see [CONTRIBUTING.md](CONTRIBUTING.md).
 For how to add or update agent customizations (skills, prompts, custom
 agents, path-specific instructions), see
-[docs/agent-customization.md](../docs/agent-customization.md).
+[docs/agent-customization.md](docs/agent-customization.md).
 
 ## Project overview
 
@@ -127,7 +126,7 @@ Top-level layout:
 ## Testing
 
 Detailed test conventions live in
-[.github/instructions/tests.instructions.md](instructions/tests.instructions.md)
+[.github/instructions/tests.instructions.md](.github/instructions/tests.instructions.md)
 (applies to `madowaku.tests/**/*.cs`). Headline rules: place tests in
 `madowaku.tests`; name them `MethodName_StateUnderTest_ExpectedBehavior`;
 use FluentAssertions; xUnit v3 with the Microsoft Testing Platform
@@ -174,7 +173,7 @@ The publish-boundary rule above is also enforced mechanically so that
 model rationalization cannot bypass it:
 
 - **VS Code Copilot agent mode.**
-  [.vscode/settings.json](../.vscode/settings.json) configures
+  [.vscode/settings.json](.vscode/settings.json) configures
   `chat.tools.terminal.autoApprove` to deny `git commit`, `git push`,
   `git reset --hard`, `git rebase`, `git merge`, `git cherry-pick`,
   `git tag`, destructive `git branch -d/-D`, and
@@ -203,8 +202,8 @@ not a license to skip the conversation.
 - CsWin32-generated P/Invoke lives under the `Windows.Win32` namespace via
   `NativeMethods.txt` / `NativeMethods.json`. Prefer the generated
   `PInvoke` / `PInvokeMadowaku` surface over hand-written `[DllImport]`.
-  See the [`cswin32-interop`](../.agents/skills/cswin32-interop/SKILL.md) and
-  [`cswin32-com`](../.agents/skills/cswin32-com/SKILL.md) skills for
+  See the [`cswin32-interop`](.agents/skills/cswin32-interop/SKILL.md) and
+  [`cswin32-com`](.agents/skills/cswin32-com/SKILL.md) skills for
   patterns, TFM gating, and the per-struct net472 polyfill recipe.
 - Hand-rolled net472 polyfills live under `madowaku/Framework/` and
   declare the BCL namespace they're polyfilling (e.g.
@@ -216,16 +215,16 @@ not a license to skip the conversation.
 ## Path-specific instructions
 
 Additional rules apply to specific file types and live under
-[.github/instructions/](instructions/). Tools that support the
+[.github/instructions/](.github/instructions/). Tools that support the
 `*.instructions.md` format (Copilot cloud agent, Copilot code review, VS
 Code) load them automatically based on each file's `applyTo` glob.
 
 Currently:
 
-- [.github/instructions/msbuild.instructions.md](instructions/msbuild.instructions.md)
+- [.github/instructions/msbuild.instructions.md](.github/instructions/msbuild.instructions.md)
   &mdash; rules for `*.csproj`, `*.props`, `*.targets`.
-- [.github/instructions/tests.instructions.md](instructions/tests.instructions.md)
+- [.github/instructions/tests.instructions.md](.github/instructions/tests.instructions.md)
   &mdash; conventions for `madowaku.tests/**/*.cs`.
-- [.github/instructions/interop.instructions.md](instructions/interop.instructions.md)
+- [.github/instructions/interop.instructions.md](.github/instructions/interop.instructions.md)
   &mdash; CsWin32 P/Invoke and COM rules for `madowaku/Windows/Win32/**`
   and `madowaku/Framework/**`.

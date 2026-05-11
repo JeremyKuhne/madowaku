@@ -36,12 +36,21 @@ for the COM activation and per-struct partial.
 
 ## Maintenance
 
-Freshness is tracked from git history, not from a manual column. Re-read
-each skill end-to-end against the current codebase periodically. Confirm:
+Freshness is tracked from git history, not from a manual column. CI warns
+(does not fail) when a skill directory has no commits in the last 90 days
+&mdash; see
+[.github/workflows/agent-files.yml](../../.github/workflows/agent-files.yml).
+
+A stale warning means "re-read this skill end-to-end against the current
+codebase." Confirm:
 
 1. Every cross-reference resolves.
 2. Every file path / type / API mentioned still exists.
 3. Every claim about the codebase is still true.
+
+The only way to clear the warning is to commit a change to the skill
+directory &mdash; ideally the result of a real review pass, but at minimum
+a whitespace touch with a commit message stating "verified still current."
 
 When adding a new skill, append a row to the inventory above in the same
 change set; the skill is not "shipped" until the catalog reflects it.
