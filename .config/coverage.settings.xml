@@ -12,8 +12,25 @@
     <Attributes>
       <Exclude>
         <Attribute>^System\.Diagnostics\.CodeAnalysis\.ExcludeFromCodeCoverageAttribute$</Attribute>
-        <Attribute>^System\.CodeDom\.Compiler\.GeneratedCodeAttribute$</Attribute>
+        <!--
+         Do NOT exclude GeneratedCodeAttribute. CsWin32 emits user-authored partial
+         structs (BSTR, HRESULT, FILETIME, VARIANT, etc.) alongside a generated
+         partial decorated with [GeneratedCode]. Excluding the attribute drops
+         coverage of the user-authored partial too. Generated source files are
+         filtered out via the <Sources> exclude below instead.
+        -->
       </Exclude>
     </Attributes>
+    <Sources>
+      <Exclude>
+        <!--
+         Drop source-generator output (CsWin32, ResxSourceGenerator, etc.) so
+         coverage measures only hand-written madowaku code. This filters at line
+         level, leaving the user-authored half of each partial intact.
+        -->
+        <Source>.*[\\/]obj[\\/].*</Source>
+        <Source>.*\.g\.cs$</Source>
+      </Exclude>
+    </Sources>
   </CodeCoverage>
 </Configuration>
