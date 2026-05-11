@@ -1,6 +1,7 @@
 ﻿# Madowaku (窓枠): Win32 CsWin32 support for .NET and .NET Framework
 
 [![Build](https://github.com/JeremyKuhne/madowaku/actions/workflows/dotnet.yml/badge.svg)](https://github.com/JeremyKuhne/madowaku/actions/workflows/dotnet.yml)
+[![codecov](https://codecov.io/gh/JeremyKuhne/madowaku/branch/main/graph/badge.svg)](https://codecov.io/gh/JeremyKuhne/madowaku)
 [![NuGet](https://img.shields.io/nuget/v/KlutzyNinja.Madowaku.svg)](https://www.nuget.org/packages/KlutzyNinja.Madowaku/)
 
 Provides useful Win32 functionality based on both for .NET and .NET Framework applications.

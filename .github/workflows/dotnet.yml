@@ -73,6 +73,9 @@ jobs:
         }
         $reportsArg = ($reports -join ';')
         New-Item -ItemType Directory -Force -Path artifacts/coverage | Out-Null
+        # Source-generator output (CsWin32, ResxSourceGenerator, etc.) is
+        # filtered out at collection time via .config/coverage.settings.xml so
+        # coverage reflects only hand-written madowaku source.
         reportgenerator `
           "-reports:$reportsArg" `
           -targetdir:artifacts/coverage `
