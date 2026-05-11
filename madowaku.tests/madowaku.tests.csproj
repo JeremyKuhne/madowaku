@@ -18,9 +18,6 @@
 
     <!-- Use the Microsoft Testing Platform -->
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
-
-    <!-- This will no longer be needed for the .NET 10 SDK -->
-    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
 
   <ItemGroup>
