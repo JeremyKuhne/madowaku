@@ -8,6 +8,7 @@ global using System.Diagnostics;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Runtime.CompilerServices;
 global using System.Runtime.InteropServices;
+global using Touki;
 global using Windows.Win32.Foundation;
 
 // Try to direct as much as possible to Microsoft.IO on .NET Framework. Follow with explicit usings for types
