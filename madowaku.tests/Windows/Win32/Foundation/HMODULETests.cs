@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
+using System.ComponentModel;
+
 namespace Windows.Win32.Foundation;
 
 public class HMODULETests
@@ -32,13 +34,26 @@ public class HMODULETests
     public void LoadModule_KnownSystemDll_ReturnsModule()
     {
         HMODULE module = HMODULE.LoadModule("shell32.dll");
-        Assert.False(module.IsNull);
+        try
+        {
+            Assert.False(module.IsNull);
+        }
+        finally
+        {
+            PInvokeMadowaku.FreeLibrary(module);
+        }
     }
 
     [Fact]
-    public void LoadModule_NonexistentPath_Throws()
+    public void LoadModule_NonexistentPath_ThrowsWin32Exception()
     {
-        Assert.ThrowsAny<Exception>(() => HMODULE.LoadModule("madowaku-no-such-file.dll"));
+        Win32Exception ex = Assert.Throws<Win32Exception>(
+            () => HMODULE.LoadModule("madowaku-no-such-file.dll"));
+
+        // ERROR_MOD_NOT_FOUND = 126, ERROR_FILE_NOT_FOUND = 2, ERROR_PATH_NOT_FOUND = 3
+        Assert.True(
+            ex.NativeErrorCode is 126 or 2 or 3,
+            $"Unexpected NativeErrorCode {ex.NativeErrorCode}");
     }
 
     [Fact]
@@ -50,18 +65,29 @@ public class HMODULETests
     }
 
     [Fact]
-    public void GetProcAddress_UnknownExport_Throws()
+    public void GetProcAddress_UnknownExport_ThrowsWin32Exception()
     {
         HMODULE module = HMODULE.FromName("kernel32.dll");
-        Assert.ThrowsAny<Exception>(() => module.GetProcAddress("MadowakuNoSuchExport"));
+        Win32Exception ex = Assert.Throws<Win32Exception>(
+            () => module.GetProcAddress("MadowakuNoSuchExport"));
+
+        // ERROR_PROC_NOT_FOUND = 127
+        Assert.Equal(127, ex.NativeErrorCode);
     }
 
     [Fact]
     public void GetDllVersion_Shell32_ReturnsVersion()
     {
         HMODULE module = HMODULE.LoadModule("shell32.dll");
-        Version version = module.GetDllVersion();
-        Assert.True(version.Major >= 5);
+        try
+        {
+            Version version = module.GetDllVersion();
+            Assert.True(version.Major >= 5);
+        }
+        finally
+        {
+            PInvokeMadowaku.FreeLibrary(module);
+        }
     }
 
     [Fact]

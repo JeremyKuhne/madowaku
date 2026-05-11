@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
-using Windows.Win32.System.Com;
-
 namespace Windows.Win32.System.Com;
 
 public class ComScopeTests
