@@ -1,0 +1,55 @@
+# Codecov configuration. See https://docs.codecov.com/docs/codecov-yaml.
+#
+# Goal: keep coverage signal useful, but stop the patch check from blocking
+# PRs whose diff is build/CI/config plumbing or otherwise can't reasonably
+# be exercised by unit tests.
+
+coverage:
+  status:
+    project:
+      default:
+        # Match the previous commit's coverage with a small tolerance so a
+        # typical PR can't silently regress overall coverage, but a small
+        # housekeeping change isn't blocked by rounding noise.
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        # Bar for new/changed lines themselves. 50% is a soft target rather
+        # than "match the project's current 36%+" so a one-line build fix
+        # or a refactor that mostly moves existing code can land.
+        target: 50%
+        threshold: 5%
+        # Treat the patch check as informational so it never blocks the
+        # PR. The Codecov comment still reports the number; reviewers can
+        # decide whether the diff needs more tests.
+        informational: true
+        if_ci_failed: success
+
+# Paths that are never relevant for coverage measurement. Excluded from
+# both collection (where the runner honors it) and from project/patch
+# percentages.
+ignore:
+  - "**/*.csproj"
+  - "**/*.props"
+  - "**/*.targets"
+  - "**/Directory.Packages.props"
+  - ".github/**"
+  - ".config/**"
+  - ".vscode/**"
+  - ".agents/**"
+  - "docs/**"
+  - "tools/**"
+  - "global.json"
+  - "**/*.md"
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "**/*.json"
+  - "**/obj/**"
+  - "**/*.g.cs"
+
+comment:
+  # Don't post a Codecov comment on PRs that don't actually change
+  # coverable lines (pure doc / workflow / config PRs).
+  require_changes: true
+  layout: "reach, diff, flags, files"
