@@ -72,4 +72,44 @@ public class SafeArrayScopeTests
         using SafeArrayScope<int> array = new((SAFEARRAY*)null);
         Assert.True(array.Value is null);
     }
+
+    [Fact]
+    public unsafe void Constructor_WrapVT_I4_Succeeds()
+    {
+        using SafeArrayScope<int> source = new(2);
+        source[0] = 7;
+        source[1] = 8;
+
+        // Wrap the existing VT_I4 SAFEARRAY in a new scope — must not throw.
+        SafeArrayScope<int> wrapped = new(source.Value);
+        Assert.Equal(7, wrapped[0]);
+        Assert.Equal(8, wrapped[1]);
+    }
+
+    [Fact]
+    public unsafe void Constructor_TypeMismatch_ForInt_Throws()
+    {
+        // VT_BSTR SAFEARRAY wrapped as SafeArrayScope<int> must throw.
+        using SafeArrayScope<string> source = new(1);
+        SAFEARRAY* ptr = source.Value;
+        ArgumentException ex = Assert.Throws<ArgumentException>(
+            () => new SafeArrayScope<int>(ptr));
+        Assert.Contains("VarType=", ex.Message);
+    }
+
+    [Fact]
+    public unsafe void Constructor_TypeMismatch_ForString_Throws()
+    {
+        using SafeArrayScope<int> source = new(1);
+        SAFEARRAY* ptr = source.Value;
+        Assert.Throws<ArgumentException>(() => new SafeArrayScope<string>(ptr));
+    }
+
+    [Fact]
+    public unsafe void Constructor_TypeMismatch_ForDouble_Throws()
+    {
+        using SafeArrayScope<int> source = new(1);
+        SAFEARRAY* ptr = source.Value;
+        Assert.Throws<ArgumentException>(() => new SafeArrayScope<double>(ptr));
+    }
 }
