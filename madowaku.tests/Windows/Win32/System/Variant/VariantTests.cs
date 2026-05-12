@@ -432,6 +432,66 @@ public class VariantTests
     }
 
     [Fact]
+    public unsafe void ToObject_VT_ARRAY_2D_VT_I4_TransposesAndReturnsIntMatrix()
+    {
+        // 2x3 SAFEARRAY of VT_I4. Native SAFEARRAYs are column-major; CLR arrays are row-major,
+        // so VARIANT.ToObject transposes. Build via SafeArrayCreate + SafeArrayPutElement.
+        SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[2];
+        bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
+        bounds[1] = new SAFEARRAYBOUND { cElements = 3, lLbound = 0 };
+
+        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_I4, 2, bounds);
+        Assert.False(psa is null);
+
+        try
+        {
+            // Populate so transposition is obvious.
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    int value = i * 10 + j;
+                    Span<int> idx = [i, j];
+                    fixed (int* p = idx)
+                    {
+                        PInvokeMadowaku.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
+                    }
+                }
+            }
+
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
+            v.data.parray = psa;
+
+            // VARIANT.ToObject transposes column-major SAFEARRAY into row-major CLR Array, and
+            // CreateArrayFromSafeArray reverses the bound order, so a 2x3 SAFEARRAY round-trips
+            // as a 2D CLR int matrix of total length 6. This test guards the InvalidCastException
+            // regression (multi-dim arrays used to throw); strengthen the assertions to detect
+            // dimension confusion: every populated source value must appear exactly once, with
+            // no extras and no default-zero padding.
+            int[,] array = Assert.IsType<int[,]>(v.ToObject());
+            Assert.Equal(2, array.Rank);
+            Assert.Equal(6, array.Length);
+            Assert.Equal(6, array.GetLength(0) * array.GetLength(1));
+
+            List<int> actual = [];
+            for (int a = 0; a < array.GetLength(0); a++)
+            {
+                for (int b = 0; b < array.GetLength(1); b++)
+                {
+                    actual.Add(array[a, b]);
+                }
+            }
+
+            int[] expected = [0, 1, 2, 10, 11, 12];
+            Assert.Equal(expected.OrderBy(x => x), actual.OrderBy(x => x));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
     public unsafe void Byref_BoolByRef_ReturnsTrue()
     {
         VARIANT_BOOL b = VARIANT_BOOL.VARIANT_TRUE;
