@@ -1077,6 +1077,8 @@ public partial class VariantTests
     {
         SAFEARRAYBOUND bound = new() { cElements = 3, lLbound = 5 };
         SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_I4, 1, &bound);
+        Assert.False(psa is null);
+
         try
         {
             for (int i = 0; i < 3; i++)
@@ -1098,7 +1100,10 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            if (psa is not null)
+            {
+                PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            }
         }
     }
 
