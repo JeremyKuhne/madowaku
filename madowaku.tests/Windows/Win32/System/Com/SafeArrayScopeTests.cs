@@ -177,4 +177,22 @@ public class SafeArrayScopeTests
         Assert.Equal(42, array[0]);
         Assert.Equal("hi", array[1]);
     }
+
+    [Fact]
+    public unsafe void ImplicitOperator_VoidDoublePointer_DereferencesToSafearrayPointer()
+    {
+        using SafeArrayScope<int> array = new(2);
+        void** pp = array;
+        Assert.False(pp is null);
+        Assert.True(*pp == array.Value);
+    }
+
+    [Fact]
+    public unsafe void ImplicitOperator_SafearrayDoublePointer_DereferencesToSafearrayPointer()
+    {
+        using SafeArrayScope<int> array = new(2);
+        SAFEARRAY** pp = array;
+        Assert.False(pp is null);
+        Assert.True(*pp == array.Value);
+    }
 }

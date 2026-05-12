@@ -62,4 +62,41 @@ public class AgileComPointerTests
             agile.Dispose();
         }
     }
+
+    [Fact]
+    public unsafe void GetInterface_Generic_RequeriesAsSameInterface_Succeeds()
+    {
+        using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
+        using ComScope<IUnknown> source = factory.CreateInstance<IUnknown>();
+
+        AgileComPointer<IUnknown> agile = new(source.Pointer, takeOwnership: false);
+        try
+        {
+            using ComScope<IUnknown> scope = agile.GetInterface<IUnknown>();
+            Assert.False(scope.IsNull);
+        }
+        finally
+        {
+            agile.Dispose();
+        }
+    }
+
+    [Fact]
+    public unsafe void TryGetInterface_Generic_RequeriesAsSameInterface_Succeeds()
+    {
+        using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
+        using ComScope<IUnknown> source = factory.CreateInstance<IUnknown>();
+
+        AgileComPointer<IUnknown> agile = new(source.Pointer, takeOwnership: false);
+        try
+        {
+            using ComScope<IUnknown> scope = agile.TryGetInterface<IUnknown>(out HRESULT hr);
+            Assert.True(hr.Succeeded);
+            Assert.False(scope.IsNull);
+        }
+        finally
+        {
+            agile.Dispose();
+        }
+    }
 }
