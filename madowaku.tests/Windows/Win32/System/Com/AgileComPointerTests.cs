@@ -12,10 +12,9 @@ public class AgileComPointerTests
     public unsafe void Constructor_RegistersInterface_AndGetInterfaceReturnsScope()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
-        ComScope<IUnknown> source = factory.CreateInstance<IUnknown>();
+        using ComScope<IUnknown> source = factory.CreateInstance<IUnknown>();
 
-        // AgileComPointer takes ownership (we pass true), so we don't release `source` explicitly.
-        AgileComPointer<IUnknown> agile = new(source.Pointer, takeOwnership: true);
+        AgileComPointer<IUnknown> agile = new(source.Pointer, takeOwnership: false);
         try
         {
             using ComScope<IUnknown> scope = agile.GetInterface();
@@ -31,9 +30,9 @@ public class AgileComPointerTests
     public unsafe void TryGetInterface_ReturnsSuccess()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
-        ComScope<IUnknown> source = factory.CreateInstance<IUnknown>();
+        using ComScope<IUnknown> source = factory.CreateInstance<IUnknown>();
 
-        AgileComPointer<IUnknown> agile = new(source.Pointer, takeOwnership: true);
+        AgileComPointer<IUnknown> agile = new(source.Pointer, takeOwnership: false);
         try
         {
             using ComScope<IUnknown> scope = agile.TryGetInterface(out HRESULT hr);
@@ -50,10 +49,10 @@ public class AgileComPointerTests
     public unsafe void Equals_SamePointer_ReturnsTrue()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
-        ComScope<IUnknown> source = factory.CreateInstance<IUnknown>();
+        using ComScope<IUnknown> source = factory.CreateInstance<IUnknown>();
         IUnknown* ptr = source.Pointer;
 
-        AgileComPointer<IUnknown> agile = new(ptr, takeOwnership: true);
+        AgileComPointer<IUnknown> agile = new(ptr, takeOwnership: false);
         try
         {
             Assert.True(agile.Equals(ptr));
