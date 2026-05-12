@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
+using System.ComponentModel;
+
 namespace Windows.Win32.Foundation;
 
 public class ErrorTests
@@ -85,5 +87,84 @@ public class ErrorTests
     public void ThrowIfFailed_Failure_Throws()
     {
         Assert.Throws<FileNotFoundException>(() => WIN32_ERROR.ERROR_FILE_NOT_FOUND.ThrowIfFailed());
+    }
+
+    [Fact]
+    public void GetException_FilenameExcededRange_ReturnsPathTooLongException()
+    {
+        Exception ex = WIN32_ERROR.ERROR_FILENAME_EXCED_RANGE.GetException();
+        Assert.IsType<PathTooLongException>(ex);
+    }
+
+    [Fact]
+    public void GetException_InvalidDrive_ReturnsDriveNotFoundException()
+    {
+        Exception ex = WIN32_ERROR.ERROR_INVALID_DRIVE.GetException();
+        Assert.IsType<DriveNotFoundException>(ex);
+    }
+
+    [Fact]
+    public void GetException_OperationAborted_ReturnsOperationCanceledException()
+    {
+        Exception ex = WIN32_ERROR.ERROR_OPERATION_ABORTED.GetException();
+        Assert.IsType<OperationCanceledException>(ex);
+    }
+
+    [Fact]
+    public void GetException_Cancelled_ReturnsOperationCanceledException()
+    {
+        Exception ex = WIN32_ERROR.ERROR_CANCELLED.GetException();
+        Assert.IsType<OperationCanceledException>(ex);
+    }
+
+    [Fact]
+    public void GetException_NetworkAccessDenied_ReturnsUnauthorizedAccessException()
+    {
+        Exception ex = WIN32_ERROR.ERROR_NETWORK_ACCESS_DENIED.GetException();
+        Assert.IsType<UnauthorizedAccessException>(ex);
+    }
+
+    [Fact]
+    public void GetException_NotReady_ReturnsWin32Exception()
+    {
+        Exception ex = WIN32_ERROR.ERROR_NOT_READY.GetException();
+        Assert.IsType<Win32Exception>(ex);
+    }
+
+    [Fact]
+    public void GetException_FileExists_ReturnsWin32Exception()
+    {
+        Exception ex = WIN32_ERROR.ERROR_FILE_EXISTS.GetException();
+        Assert.IsType<Win32Exception>(ex);
+    }
+
+    [Fact]
+    public void GetException_AlreadyExists_ReturnsWin32Exception()
+    {
+        Exception ex = WIN32_ERROR.ERROR_ALREADY_EXISTS.GetException();
+        Assert.IsType<Win32Exception>(ex);
+    }
+
+    [Fact]
+    public void GetException_NotSupportedInAppContainer_ReturnsNotSupportedException()
+    {
+        Exception ex = WIN32_ERROR.ERROR_NOT_SUPPORTED_IN_APPCONTAINER.GetException();
+        Assert.IsType<NotSupportedException>(ex);
+    }
+
+    [Fact]
+    public void GetException_UnknownError_ReturnsWin32Exception()
+    {
+        Exception ex = ((WIN32_ERROR)9999).GetException();
+        Assert.IsType<Win32Exception>(ex);
+    }
+
+    [Fact]
+    public void ThrowIfLastErrorNot_LastErrorMatches_DoesNotThrow()
+    {
+        // Read the current last-error so the test doesn't depend on prior state, then assert
+        // ThrowIfLastErrorNot matches it.
+        WIN32_ERROR current = Error.GetLastError();
+        Error.ThrowIfLastErrorNot(current);
     }
 }

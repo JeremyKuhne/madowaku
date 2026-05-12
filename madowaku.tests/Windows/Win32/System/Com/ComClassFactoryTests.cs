@@ -44,4 +44,26 @@ public class ComClassFactoryTests
         Assert.True(hr.Succeeded);
         Assert.False(requeried.IsNull);
     }
+
+    [Fact]
+    public void Constructor_FilePath_NonexistentDll_Throws()
+    {
+        Assert.ThrowsAny<Exception>(
+            () => new ComClassFactory("madowaku-no-such-dll.dll", CLSID.FileOpenDialog));
+    }
+
+    [Fact]
+    public unsafe void Constructor_Hmodule_KnownExport_ExposesClassId()
+    {
+        // Get the module that already provides StdGlobalInterfaceTable's exports.
+        // ole32.dll exports DllGetClassObject and the StdGlobalInterfaceTable CLSID.
+        HMODULE ole32 = HMODULE.FromName("ole32.dll");
+        Assert.False(ole32.IsNull);
+
+        using ComClassFactory factory = new(ole32, CLSID.StdGlobalInterfaceTable);
+        Assert.Equal(CLSID.StdGlobalInterfaceTable, factory.ClassId);
+
+        using ComScope<IUnknown> unknown = factory.CreateInstance<IUnknown>();
+        Assert.False(unknown.IsNull);
+    }
 }

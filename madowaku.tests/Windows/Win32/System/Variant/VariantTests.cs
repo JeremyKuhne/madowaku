@@ -344,6 +344,49 @@ public class VariantTests
     }
 
     [Fact]
+    public unsafe void ToObject_VT_CLSID_ReturnsGuid()
+    {
+        Guid expected = new("12345678-1234-1234-1234-1234567890ab");
+        VARIANT v = new() { vt = VARENUM.VT_CLSID };
+        v.data.puuid = &expected;
+        Assert.Equal(expected, v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_FILETIME_ReturnsDateTime()
+    {
+        DateTime expected = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc).ToLocalTime();
+        FILETIME ft = (FILETIME)expected;
+        VARIANT v = new() { vt = VARENUM.VT_FILETIME };
+        Unsafe.As<VARIANT._Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union, FILETIME>(ref v.data) = ft;
+        Assert.Equal(expected, v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_LPSTR_ReturnsString()
+    {
+        nint ansi = global::System.Runtime.InteropServices.Marshal.StringToCoTaskMemAnsi("ascii-text");
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_LPSTR };
+            v.data.pcVal = new PSTR((byte*)ansi);
+            Assert.Equal("ascii-text", v.ToObject());
+        }
+        finally
+        {
+            global::System.Runtime.InteropServices.Marshal.FreeCoTaskMem(ansi);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_VARIANT_NotByref_ThrowsInvalidCast()
+    {
+        VARIANT v = new() { vt = VARENUM.VT_VARIANT };
+        // Falling through the switch with no byref bit set yields the "Unsupported VARENUM" path.
+        Assert.Throws<ArgumentException>(() => v.ToObject());
+    }
+
+    [Fact]
     public unsafe void ToObject_VT_ARRAY_VT_I4_ReturnsIntArray()
     {
         using SafeArrayScope<int> source = new([10, 20, 30]);
