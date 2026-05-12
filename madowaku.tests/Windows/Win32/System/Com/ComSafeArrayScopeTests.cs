@@ -59,12 +59,13 @@ public class ComSafeArrayScopeTests
     }
 
     [Fact]
-    public unsafe void ImplicitOperator_SafearrayDoublePointer_NonNull()
+    public unsafe void ImplicitOperator_SafearrayDoublePointer_DereferencesToSafearrayPointer()
     {
         SAFEARRAYBOUND bound = new() { cElements = 1, lLbound = 0 };
         SAFEARRAY* array = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
         using ComSafeArrayScope<IUnknown> scope = new(array);
         SAFEARRAY** pp = scope;
         Assert.False(pp is null);
+        Assert.True(*pp == scope.Value);
     }
 }

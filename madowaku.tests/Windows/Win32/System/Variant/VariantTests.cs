@@ -379,7 +379,7 @@ public class VariantTests
     }
 
     [Fact]
-    public unsafe void ToObject_VT_VARIANT_NotByref_ThrowsInvalidCast()
+    public unsafe void ToObject_VT_VARIANT_NotByref_ThrowsArgument()
     {
         VARIANT v = new() { vt = VARENUM.VT_VARIANT };
         // Falling through the switch with no byref bit set yields the "Unsupported VARENUM" path.

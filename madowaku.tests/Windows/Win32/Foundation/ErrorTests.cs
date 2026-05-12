@@ -90,7 +90,7 @@ public class ErrorTests
     }
 
     [Fact]
-    public void GetException_FilenameExcededRange_ReturnsPathTooLongException()
+    public void GetException_FilenameExcedRange_ReturnsPathTooLongException()
     {
         Exception ex = WIN32_ERROR.ERROR_FILENAME_EXCED_RANGE.GetException();
         Assert.IsType<PathTooLongException>(ex);
