@@ -298,100 +298,152 @@ public unsafe partial struct VARIANT
 
     private static void SetArrayValue(SAFEARRAY* psa, Array array, Span<int> indices, Span<int> lowerBounds, VARENUM arrayType)
     {
-        static void SetValue<T>(Array array, T value, Span<int> indices, Span<int> lowerBounds)
+        // CLR arrays — both SZArray (T[]) and multi-dimensional (T[,], T[,,], …) — are laid out
+        // contiguously in row-major order. See CLI 8.9.1:
+        // https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-335.pdf
+        //
+        // Walk the indices to compute the row-major offset.
+        static int GetRowMajorOffset(Array array, Span<int> indices, Span<int> lowerBounds)
         {
-            // Fast path for SZArrays (1D zero-based) — directly cast and write by row-major offset.
-            // CLR arrays are laid out in row-major order.
-            // See CLI 8.9.1: https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-335.pdf
+            int offset = 0;
+            int multiplier = 1;
+            for (int i = array.Rank; i >= 1; i--)
+            {
+                int diff = indices[i - 1] - lowerBounds[i - 1];
+                offset += diff * multiplier;
+                multiplier *= array.GetLength(i - 1);
+            }
+
+            return offset;
+        }
+
+        // Write a blittable value into the raw array storage. On modern .NET, get a typed reference
+        // via MemoryMarshal.GetArrayDataReference and write through Unsafe.Add (works for both SZArray
+        // and multi-dim, no allocation). On net472 the same API is unavailable, so pin the array
+        // (legal for unmanaged T) and write through Unsafe.AsRef on the pinned address.
+        static void SetValueUnmanaged<T>(Array array, T value, Span<int> indices, Span<int> lowerBounds)
+            where T : unmanaged
+        {
+            int offset = GetRowMajorOffset(array, indices, lowerBounds);
+#if NETFRAMEWORK
+            GCHandle handle = GCHandle.Alloc(array, GCHandleType.Pinned);
+            try
+            {
+                ref T first = ref Unsafe.AsRef<T>((void*)Marshal.UnsafeAddrOfPinnedArrayElement(array, 0));
+                Unsafe.Add(ref first, offset) = value;
+            }
+            finally
+            {
+                handle.Free();
+            }
+#else
+            ref T first = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetArrayDataReference(array));
+            Unsafe.Add(ref first, offset) = value;
+#endif
+        }
+
+        // Write a possibly-reference-typed value (string, object). Reference-type element arrays
+        // can't be pinned via GCHandle on net472, so SZArray takes the typed-cast fast path and
+        // multi-dim uses rank-specific Array.SetValue overloads to avoid allocating an int[] per
+        // element. Modern .NET uses the same GetArrayDataReference path as the unmanaged overload.
+        static void SetValueObject<T>(Array array, T value, Span<int> indices, Span<int> lowerBounds)
+        {
+#if NETFRAMEWORK
             if (array is T[] span)
             {
-                int offset = 0;
-                int multiplier = 1;
-                for (int i = array.Rank; i >= 1; i--)
-                {
-                    int diff = indices[i - 1] - lowerBounds[i - 1];
-                    offset += diff * multiplier;
-                    multiplier *= array.GetLength(i - 1);
-                }
-
-                span[offset] = value;
+                span[GetRowMajorOffset(array, indices, lowerBounds)] = value;
                 return;
             }
 
-            // Multi-dimensional arrays cannot be cast to T[]. Use Array.SetValue with the
-            // absolute multi-dim indices (Array.SetValue honors the array's own LowerBound).
-            // Heap allocation per element is unavoidable on net472 (no Array.SetValue(value, ReadOnlySpan<int>) overload).
-            int[] indexCopy = indices.ToArray();
-            array.SetValue(value, indexCopy);
+            // Array.SetValue's rank-specific overloads accept absolute indices (they honor each
+            // dimension's LowerBound), so the row-major offset math isn't needed here.
+            switch (indices.Length)
+            {
+                case 2:
+                    array.SetValue(value, indices[0], indices[1]);
+                    break;
+                case 3:
+                    array.SetValue(value, indices[0], indices[1], indices[2]);
+                    break;
+                default:
+                    // Rank 4+ is rare enough that the per-element int[] allocation is acceptable.
+                    array.SetValue(value, indices.ToArray());
+                    break;
+            }
+#else
+            int offset = GetRowMajorOffset(array, indices, lowerBounds);
+            ref T first = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetArrayDataReference(array));
+            Unsafe.Add(ref first, offset) = value;
+#endif
         }
 
         switch (arrayType)
         {
             case VT_I1:
-                SetValue(array, psa->GetValue<sbyte>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<sbyte>(indices), indices, lowerBounds);
                 break;
             case VT_UI1:
-                SetValue(array, psa->GetValue<byte>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<byte>(indices), indices, lowerBounds);
                 break;
             case VT_I2:
-                SetValue(array, psa->GetValue<short>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<short>(indices), indices, lowerBounds);
                 break;
             case VT_UI2:
-                SetValue(array, psa->GetValue<ushort>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<ushort>(indices), indices, lowerBounds);
                 break;
             case VT_I4:
             case VT_INT:
-                SetValue(array, psa->GetValue<int>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<int>(indices), indices, lowerBounds);
                 break;
             case VT_UI4:
             case VT_UINT:
             case VT_ERROR: // Not explicitly mentioned in the docs but trivial to implement.
-                SetValue(array, psa->GetValue<uint>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<uint>(indices), indices, lowerBounds);
                 break;
             case VT_I8:
-                SetValue(array, psa->GetValue<long>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<long>(indices), indices, lowerBounds);
                 break;
             case VT_UI8:
-                SetValue(array, psa->GetValue<ulong>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<ulong>(indices), indices, lowerBounds);
                 break;
             case VT_R4:
-                SetValue(array, psa->GetValue<float>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<float>(indices), indices, lowerBounds);
                 break;
             case VT_R8:
-                SetValue(array, psa->GetValue<double>(indices), indices, lowerBounds);
+                SetValueUnmanaged(array, psa->GetValue<double>(indices), indices, lowerBounds);
                 break;
             case VT_BOOL:
                 {
                     VARIANT_BOOL data = psa->GetValue<VARIANT_BOOL>(indices);
-                    SetValue(array, data != VARIANT_BOOL.VARIANT_FALSE, indices, lowerBounds);
+                    SetValueUnmanaged(array, data != VARIANT_BOOL.VARIANT_FALSE, indices, lowerBounds);
                     break;
                 }
 
             case VT_DECIMAL:
                 {
                     DECIMAL data = psa->GetValue<DECIMAL>(indices);
-                    SetValue(array, (decimal)data, indices, lowerBounds);
+                    SetValueUnmanaged(array, (decimal)data, indices, lowerBounds);
                     break;
                 }
 
             case VT_CY:
                 {
                     long data = psa->GetValue<long>(indices);
-                    SetValue(array, decimal.FromOACurrency(data), indices, lowerBounds);
+                    SetValueUnmanaged(array, decimal.FromOACurrency(data), indices, lowerBounds);
                     break;
                 }
 
             case VT_DATE:
                 {
                     double data = psa->GetValue<double>(indices);
-                    SetValue(array, DateTime.FromOADate(data), indices, lowerBounds);
+                    SetValueUnmanaged(array, DateTime.FromOADate(data), indices, lowerBounds);
                     break;
                 }
 
             case VT_BSTR:
                 {
                     IntPtr data = psa->GetValue<IntPtr>(indices);
-                    SetValue(array, InteropMarshal.PtrToStringUni(data), indices, lowerBounds);
+                    SetValueObject(array, InteropMarshal.PtrToStringUni(data), indices, lowerBounds);
                     break;
                 }
 
@@ -401,11 +453,11 @@ public unsafe partial struct VARIANT
                     IntPtr data = psa->GetValue<IntPtr>(indices);
                     if (data == IntPtr.Zero)
                     {
-                        SetValue<object?>(array, null, indices, lowerBounds);
+                        SetValueObject<object?>(array, null, indices, lowerBounds);
                     }
                     else
                     {
-                        SetValue(array, InteropMarshal.GetObjectForIUnknown(data), indices, lowerBounds);
+                        SetValueObject(array, InteropMarshal.GetObjectForIUnknown(data), indices, lowerBounds);
                     }
 
                     break;
@@ -414,7 +466,7 @@ public unsafe partial struct VARIANT
             case VT_VARIANT:
                 {
                     VARIANT data = psa->GetValue<VARIANT>(indices);
-                    SetValue(array, data.ToObject(), indices, lowerBounds);
+                    SetValueObject(array, data.ToObject(), indices, lowerBounds);
                     break;
                 }
 

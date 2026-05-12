@@ -462,28 +462,32 @@ public class VariantTests
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
             v.data.parray = psa;
 
-            // VARIANT.ToObject transposes column-major SAFEARRAY into row-major CLR Array.
-            // What matters here is that this used to throw InvalidCastException — verify
-            // we now get a 2D int matrix back containing the populated values.
+            // VARIANT.ToObject transposes column-major SAFEARRAY into row-major CLR Array, and
+            // CreateArrayFromSafeArray reverses the bound order, so a 2x3 SAFEARRAY round-trips
+            // as a 2D CLR int matrix of total length 6. This test guards the InvalidCastException
+            // regression (multi-dim arrays used to throw); strengthen the assertions to detect
+            // dimension confusion: every populated source value must appear exactly once, with
+            // no extras and no default-zero padding.
             int[,] array = Assert.IsType<int[,]>(v.ToObject());
             Assert.Equal(2, array.Rank);
             Assert.Equal(6, array.Length);
+            Assert.Equal(6, array.GetLength(0) * array.GetLength(1));
 
-            // Collect all values and verify the set matches what we wrote.
-            HashSet<int> populated = [];
+            List<int> actual = [];
             for (int a = 0; a < array.GetLength(0); a++)
             {
                 for (int b = 0; b < array.GetLength(1); b++)
                 {
-                    populated.Add(array[a, b]);
+                    actual.Add(array[a, b]);
                 }
             }
 
-            Assert.Equal([0, 1, 2, 10, 11, 12], populated.OrderBy(x => x));
+            int[] expected = [0, 1, 2, 10, 11, 12];
+            Assert.Equal(expected.OrderBy(x => x), actual.OrderBy(x => x));
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa);
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
