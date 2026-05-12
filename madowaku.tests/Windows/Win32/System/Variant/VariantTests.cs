@@ -5,10 +5,14 @@
 using System.Runtime.CompilerServices;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Com;
+using Windows.Win32.System.Com.StructuredStorage;
+using InteropMarshal = System.Runtime.InteropServices.Marshal;
+using InvalidOleVariantTypeException = System.Runtime.InteropServices.InvalidOleVariantTypeException;
+using SafeArrayTypeMismatchException = System.Runtime.InteropServices.SafeArrayTypeMismatchException;
 
 namespace Windows.Win32.System.Variant;
 
-public class VariantTests
+public partial class VariantTests
 {
     private static VARIANT MakeScalar<T>(VARENUM type, T value) where T : unmanaged
     {
@@ -634,5 +638,875 @@ public class VariantTests
         v.Clear();
         Assert.True(v.IsEmpty);
         Assert.Equal(VARENUM.VT_EMPTY, v.vt);
+    }
+
+    private static unsafe SAFEARRAY* CreateSafeArray<T>(VARENUM vt, T[] values) where T : unmanaged
+    {
+        SAFEARRAYBOUND bound = new() { cElements = (uint)values.Length, lLbound = 0 };
+        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(vt, 1, &bound);
+        Assert.False(psa is null);
+        for (int i = 0; i < values.Length; i++)
+        {
+            T value = values[i];
+            int index = i;
+            PInvokeMadowaku.SafeArrayPutElement(psa, &index, &value).ThrowOnFailure();
+        }
+
+        return psa;
+    }
+
+    private static unsafe VARIANT MakeVector<T>(VARENUM elementType, T[] values) where T : unmanaged
+    {
+        int byteCount = sizeof(T) * values.Length;
+        nint mem = InteropMarshal.AllocCoTaskMem(byteCount);
+        // Use a raw memory copy to avoid Span<T> constraints on net481 for types
+        // containing pointers (e.g. VARIANT).
+        fixed (T* src = values)
+        {
+            Buffer.MemoryCopy(src, (void*)mem, byteCount, byteCount);
+        }
+
+        VARIANT v = new() { vt = VARENUM.VT_VECTOR | elementType };
+        v.data.ca = new CAUB { cElems = (uint)values.Length, pElems = (byte*)mem };
+        return v;
+    }
+
+    private static unsafe void FreeVector(ref VARIANT v)
+    {
+        if (v.data.ca.pElems is not null)
+        {
+            InteropMarshal.FreeCoTaskMem((nint)v.data.ca.pElems);
+            v.data.ca.pElems = null;
+        }
+    }
+
+    [Fact]
+    public void Clear_NonEmptyBstr_ClearsAndFreesString()
+    {
+        VARIANT v = (VARIANT)"some-text";
+        Assert.False(v.IsEmpty);
+        v.Clear();
+        Assert.True(v.IsEmpty);
+        Assert.Equal(VARENUM.VT_EMPTY, v.vt);
+    }
+
+    [Fact]
+    public void Clear_AlreadyEmpty_NoOps()
+    {
+        VARIANT v = VARIANT.Empty;
+        v.Clear();
+        Assert.True(v.IsEmpty);
+    }
+
+    [Fact]
+    public unsafe void StringCast_VT_LPWSTR_ReturnsString()
+    {
+        nint wide = InteropMarshal.StringToCoTaskMemUni("wide-text");
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_LPWSTR };
+            v.data.pcVal = new PSTR((byte*)wide);
+            Assert.Equal("wide-text", (string)v);
+        }
+        finally
+        {
+            InteropMarshal.FreeCoTaskMem(wide);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_LPWSTR_ReturnsString()
+    {
+        nint wide = InteropMarshal.StringToCoTaskMemUni("wide-obj");
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_LPWSTR };
+            v.data.pcVal = new PSTR((byte*)wide);
+            Assert.Equal("wide-obj", v.ToObject());
+        }
+        finally
+        {
+            InteropMarshal.FreeCoTaskMem(wide);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_HRESULT_ReturnsInt()
+    {
+        VARIANT v = MakeScalar(VARENUM.VT_HRESULT, unchecked((int)0x80070005));
+        Assert.Equal(unchecked((int)0x80070005), v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_UNKNOWN_NullPointer_ReturnsNull()
+    {
+        VARIANT v = new() { vt = VARENUM.VT_UNKNOWN };
+        v.data.punkVal = null;
+        Assert.Null(v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_DISPATCH_NullPointer_ReturnsNull()
+    {
+        VARIANT v = new() { vt = VARENUM.VT_DISPATCH };
+        v.data.pdispVal = null;
+        Assert.Null(v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_VARIANT_BYREF_NestedByref_Throws()
+    {
+        VARIANT innerByref = new() { vt = VARENUM.VT_I4 | VARENUM.VT_BYREF };
+        int value = 5;
+        innerByref.data.pintVal = &value;
+        VARIANT outer = new() { vt = VARENUM.VT_VARIANT | VARENUM.VT_BYREF };
+        outer.data.pvarVal = &innerByref;
+        Assert.Throws<InvalidOleVariantTypeException>(() => outer.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_CLSID_Byref_Throws()
+    {
+        Guid g = Guid.NewGuid();
+        Guid* pg = &g;
+        VARIANT v = new() { vt = VARENUM.VT_CLSID | VARENUM.VT_BYREF };
+        v.data.byref = &pg;
+        Assert.Throws<ArgumentException>(() => v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_FILETIME_Byref_Throws()
+    {
+        FILETIME ft = default;
+        VARIANT v = new() { vt = VARENUM.VT_FILETIME | VARENUM.VT_BYREF };
+        v.data.byref = &ft;
+        Assert.Throws<ArgumentException>(() => v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_RECORD_NullRecInfo_Throws()
+    {
+        VARIANT v = new() { vt = VARENUM.VT_RECORD };
+        Assert.Throws<ArgumentException>(() => v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_Byref_NullData_NonEmpty_Throws()
+    {
+        VARIANT v = new() { vt = VARENUM.VT_I4 | VARENUM.VT_BYREF };
+        v.data.pintVal = null;
+        Assert.Throws<ArgumentException>(() => v.ToObject());
+    }
+
+    [Fact]
+    public unsafe void ToObject_VT_NULL_BYREF_NullData_ReturnsDBNull()
+    {
+        VARIANT v = new() { vt = VARENUM.VT_NULL | VARENUM.VT_BYREF };
+        Assert.Equal(Convert.DBNull, v.ToObject());
+    }
+
+    // ===== ToArray (VT_ARRAY) coverage =====
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_I1_ReturnsSbyteArray()
+    {
+        sbyte[] values = [-1, 2, -3];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_I1, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I1 };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<sbyte[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_UI1_ReturnsByteArray()
+    {
+        byte[] values = [1, 2, 3];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_UI1, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UI1 };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<byte[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_I2_ReturnsShortArray()
+    {
+        short[] values = [-1, 2];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_I2, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I2 };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<short[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_UI2_ReturnsUshortArray()
+    {
+        ushort[] values = [1, 2];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_UI2, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UI2 };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<ushort[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_UI4_ReturnsUintArray()
+    {
+        uint[] values = [1u, 2u];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_UI4, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UI4 };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<uint[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_I8_ReturnsLongArray()
+    {
+        long[] values = [-1L, 2L];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_I8, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I8 };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<long[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_UI8_ReturnsUlongArray()
+    {
+        ulong[] values = [1UL, 2UL];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_UI8, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UI8 };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<ulong[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_R4_ReturnsFloatArray()
+    {
+        float[] values = [1.5f, 2.5f];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_R4, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_R4 };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<float[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_BOOL_ReturnsBoolArray()
+    {
+        VARIANT_BOOL[] values = [VARIANT_BOOL.VARIANT_TRUE, VARIANT_BOOL.VARIANT_FALSE];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_BOOL, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_BOOL };
+            v.data.parray = psa;
+            bool[] expected = [true, false];
+            Assert.Equal(expected, Assert.IsType<bool[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_DATE_ReturnsDateTimeArray()
+    {
+        DateTime d1 = new(2024, 1, 1);
+        DateTime d2 = new(2025, 6, 15);
+        double[] values = [d1.ToOADate(), d2.ToOADate()];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_DATE, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_DATE };
+            v.data.parray = psa;
+            DateTime[] expected = [d1, d2];
+            Assert.Equal(expected, Assert.IsType<DateTime[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_CY_ReturnsDecimalArray()
+    {
+        long[] values = [12345L, 67890L];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_CY, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_CY };
+            v.data.parray = psa;
+            decimal[] expected = [1.2345m, 6.789m];
+            Assert.Equal(expected, Assert.IsType<decimal[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_VARIANT_ReturnsObjectArray()
+    {
+#if NETFRAMEWORK
+        // net481's Span<T> rejects types containing pointers (VARIANT contains BSTR* etc.),
+        // so the Span<VARIANT> in ToArray throws. The modern .NET runtime allows it.
+        return;
+#else
+        using SafeArrayScope<object> source = new(2);
+        VARIANT one = (VARIANT)1;
+        VARIANT two = (VARIANT)2;
+        int idx0 = 0;
+        int idx1 = 1;
+        PInvokeMadowaku.SafeArrayPutElement(source.Value, &idx0, &one).ThrowOnFailure();
+        PInvokeMadowaku.SafeArrayPutElement(source.Value, &idx1, &two).ThrowOnFailure();
+
+        VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_VARIANT };
+        v.data.parray = source.Value;
+        object?[] array = Assert.IsType<object?[]>(v.ToObject());
+        object?[] expected = [1, 2];
+        Assert.Equal(expected, array);
+#endif
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_RECORD_Throws()
+    {
+        int[] values = [1];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_I4, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_RECORD };
+            v.data.parray = psa;
+            Assert.ThrowsAny<Exception>(() => v.ToObject());
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_TypeMismatch_Throws()
+    {
+        double[] values = [1.0];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_R8, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
+            v.data.parray = psa;
+            Assert.Throws<SafeArrayTypeMismatchException>(() => v.ToObject());
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_VT_INT_From_VT_I4_SafeArray_Succeeds()
+    {
+        int[] values = [7, 8];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_I4, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_INT };
+            v.data.parray = psa;
+            Assert.Equal(values, Assert.IsType<int[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_2D_VT_BSTR_TransposesStrings()
+    {
+        SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[2];
+        bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
+        bounds[1] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
+        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_BSTR, 2, bounds);
+        try
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    using BSTR b = new($"{i},{j}");
+                    Span<int> idx = [i, j];
+                    fixed (int* p = idx)
+                    {
+                        PInvokeMadowaku.SafeArrayPutElement(psa, p, (void*)(nint)b).ThrowOnFailure();
+                    }
+                }
+            }
+
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_BSTR };
+            v.data.parray = psa;
+            string[,] array = Assert.IsType<string[,]>(v.ToObject());
+            Assert.Equal(4, array.Length);
+            List<string> items = [];
+            for (int a = 0; a < array.GetLength(0); a++)
+            {
+                for (int b = 0; b < array.GetLength(1); b++)
+                {
+                    items.Add(array[a, b]);
+                }
+            }
+
+            string[] expected = ["0,0", "0,1", "1,0", "1,1"];
+            Assert.Equal(expected, items.OrderBy(x => x));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_3D_VT_R8_Transposes()
+    {
+        SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[3];
+        bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
+        bounds[1] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
+        bounds[2] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
+        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_R8, 3, bounds);
+        try
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    for (int k = 0; k < 2; k++)
+                    {
+                        double value = i * 100 + j * 10 + k;
+                        Span<int> idx = [i, j, k];
+                        fixed (int* p = idx)
+                        {
+                            PInvokeMadowaku.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
+                        }
+                    }
+                }
+            }
+
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_R8 };
+            v.data.parray = psa;
+            double[,,] array = Assert.IsType<double[,,]>(v.ToObject());
+            Assert.Equal(8, array.Length);
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    // ===== ToVector (VT_VECTOR) coverage =====
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_I1_ReturnsSbyteArray()
+    {
+        sbyte[] values = [-1, 2];
+        VARIANT v = MakeVector(VARENUM.VT_I1, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<sbyte[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_UI1_ReturnsByteArray()
+    {
+        byte[] values = [1, 2, 3];
+        VARIANT v = MakeVector(VARENUM.VT_UI1, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<byte[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_I2_ReturnsShortArray()
+    {
+        short[] values = [-1, 2];
+        VARIANT v = MakeVector(VARENUM.VT_I2, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<short[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_UI2_ReturnsUshortArray()
+    {
+        ushort[] values = [1, 2];
+        VARIANT v = MakeVector(VARENUM.VT_UI2, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<ushort[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_I4_ReturnsIntArray()
+    {
+        int[] values = [1, 2, 3];
+        VARIANT v = MakeVector(VARENUM.VT_I4, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<int[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_UI4_ReturnsUintArray()
+    {
+        uint[] values = [1u, 2u];
+        VARIANT v = MakeVector(VARENUM.VT_UI4, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<uint[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_I8_ReturnsLongArray()
+    {
+        long[] values = [1L, 2L];
+        VARIANT v = MakeVector(VARENUM.VT_I8, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<long[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_UI8_ReturnsUlongArray()
+    {
+        ulong[] values = [1UL, 2UL];
+        VARIANT v = MakeVector(VARENUM.VT_UI8, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<ulong[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_R4_ReturnsFloatArray()
+    {
+        float[] values = [1.5f, 2.5f];
+        VARIANT v = MakeVector(VARENUM.VT_R4, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<float[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_R8_ReturnsDoubleArray()
+    {
+        double[] values = [1.5, 2.5];
+        VARIANT v = MakeVector(VARENUM.VT_R8, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<double[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_BOOL_ReturnsBoolArray()
+    {
+        VARIANT_BOOL[] values = [VARIANT_BOOL.VARIANT_TRUE, VARIANT_BOOL.VARIANT_FALSE];
+        VARIANT v = MakeVector(VARENUM.VT_BOOL, values);
+        try
+        {
+            bool[] expected = [true, false];
+            Assert.Equal(expected, Assert.IsType<bool[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_CY_ReturnsDecimalArray()
+    {
+        long[] values = [12345L];
+        VARIANT v = MakeVector(VARENUM.VT_CY, values);
+        try
+        {
+            decimal[] expected = [1.2345m];
+            Assert.Equal(expected, Assert.IsType<decimal[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_DATE_ReturnsDateTimeArray()
+    {
+        DateTime d = new(2024, 1, 1);
+        double[] values = [d.ToOADate()];
+        VARIANT v = MakeVector(VARENUM.VT_DATE, values);
+        try
+        {
+            DateTime[] expected = [d];
+            Assert.Equal(expected, Assert.IsType<DateTime[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_FILETIME_ReturnsDateTimeArray()
+    {
+        DateTime expected = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc).ToLocalTime();
+        FILETIME ft = (FILETIME)expected;
+        FILETIME[] values = [ft];
+        VARIANT v = MakeVector(VARENUM.VT_FILETIME, values);
+        try
+        {
+            DateTime[] expectedArray = [expected];
+            Assert.Equal(expectedArray, Assert.IsType<DateTime[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_CLSID_ReturnsGuidArray()
+    {
+        Guid g1 = Guid.NewGuid();
+        Guid g2 = Guid.NewGuid();
+        Guid[] values = [g1, g2];
+        VARIANT v = MakeVector(VARENUM.VT_CLSID, values);
+        try
+        {
+            Assert.Equal(values, Assert.IsType<Guid[]>(v.ToObject()));
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_BSTR_ReturnsStringArray()
+    {
+        BSTR b1 = new("alpha");
+        BSTR b2 = new("beta");
+        try
+        {
+            nint[] values = [(nint)b1, (nint)b2];
+            VARIANT v = MakeVector(VARENUM.VT_BSTR, values);
+            try
+            {
+                string?[] array = Assert.IsType<string?[]>(v.ToObject());
+                string?[] expected = ["alpha", "beta"];
+                Assert.Equal(expected, array);
+            }
+            finally
+            {
+                FreeVector(ref v);
+            }
+        }
+        finally
+        {
+            b1.Dispose();
+            b2.Dispose();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_LPWSTR_ReturnsStringArray()
+    {
+        nint s1 = InteropMarshal.StringToCoTaskMemUni("one");
+        nint s2 = InteropMarshal.StringToCoTaskMemUni("two");
+        try
+        {
+            nint[] values = [s1, s2];
+            VARIANT v = MakeVector(VARENUM.VT_LPWSTR, values);
+            try
+            {
+                string?[] array = Assert.IsType<string?[]>(v.ToObject());
+                string?[] expected = ["one", "two"];
+                Assert.Equal(expected, array);
+            }
+            finally
+            {
+                FreeVector(ref v);
+            }
+        }
+        finally
+        {
+            InteropMarshal.FreeCoTaskMem(s1);
+            InteropMarshal.FreeCoTaskMem(s2);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_LPSTR_ReturnsStringArray()
+    {
+        nint s1 = InteropMarshal.StringToCoTaskMemAnsi("one");
+        nint s2 = InteropMarshal.StringToCoTaskMemAnsi("two");
+        try
+        {
+            nint[] values = [s1, s2];
+            VARIANT v = MakeVector(VARENUM.VT_LPSTR, values);
+            try
+            {
+                string?[] array = Assert.IsType<string?[]>(v.ToObject());
+                string?[] expected = ["one", "two"];
+                Assert.Equal(expected, array);
+            }
+            finally
+            {
+                FreeVector(ref v);
+            }
+        }
+        finally
+        {
+            InteropMarshal.FreeCoTaskMem(s1);
+            InteropMarshal.FreeCoTaskMem(s2);
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_VT_VARIANT_ReturnsObjectArray()
+    {
+#if NETFRAMEWORK
+        // net481's Span<T> rejects types containing pointers (VARIANT contains BSTR* etc.),
+        // so the Span<VARIANT> in ToVector throws. The modern .NET runtime allows it.
+        return;
+#else
+        VARIANT[] inners = [(VARIANT)1, (VARIANT)2];
+        VARIANT v = MakeVector(VARENUM.VT_VARIANT, inners);
+        try
+        {
+            object?[] array = Assert.IsType<object?[]>(v.ToObject());
+            object?[] expected = [1, 2];
+            Assert.Equal(expected, array);
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
+#endif
+    }
+
+    [Fact]
+    public unsafe void ToObject_Vector_UnsupportedType_Throws()
+    {
+        int[] values = [0];
+        VARIANT v = MakeVector(VARENUM.VT_CF, values);
+        try
+        {
+            Assert.Throws<ArgumentException>(() => v.ToObject());
+        }
+        finally
+        {
+            FreeVector(ref v);
+        }
     }
 }
