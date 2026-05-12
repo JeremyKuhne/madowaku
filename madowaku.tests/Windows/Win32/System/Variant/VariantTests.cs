@@ -1004,8 +1004,15 @@ public partial class VariantTests
     {
 #if NETFRAMEWORK
         // net481's Span<T> rejects types containing pointers (VARIANT contains BSTR* etc.),
-        // so the Span<VARIANT> in ToArray throws. The modern .NET runtime allows it.
-        return;
+        // so the Span<VARIANT> in ToArray throws ArgumentException. The modern .NET runtime
+        // allows it and produces a populated object?[].
+        using SafeArrayScope<object> source481 = new(1);
+        VARIANT inner481 = (VARIANT)1;
+        int idx481 = 0;
+        PInvokeMadowaku.SafeArrayPutElement(source481.Value, &idx481, &inner481).ThrowOnFailure();
+        VARIANT v481 = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_VARIANT };
+        v481.data.parray = source481.Value;
+        Assert.Throws<ArgumentException>(() => v481.ToObject());
 #else
         using SafeArrayScope<object> source = new(2);
         VARIANT one = (VARIANT)1;
@@ -1024,15 +1031,19 @@ public partial class VariantTests
     }
 
     [Fact]
-    public unsafe void ToObject_Array_VT_RECORD_Throws()
+    public unsafe void ToObject_Array_VT_RECORD_MismatchedSafeArray_ThrowsArgumentException()
     {
+        // Constructing a true VT_RECORD SAFEARRAY requires an IRecordInfo, which is impractical
+        // in a unit test. Instead, mis-tag a VT_I4 SAFEARRAY as VT_ARRAY|VT_RECORD to exercise
+        // CreateArrayFromSafeArray's record-type validation path. The current behavior is to
+        // throw ArgumentException; pin that contract so a behavior change is caught.
         int[] values = [1];
         SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_I4, values);
         try
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_RECORD };
             v.data.parray = psa;
-            Assert.ThrowsAny<Exception>(() => v.ToObject());
+            Assert.Throws<ArgumentException>(() => v.ToObject());
         }
         finally
         {
@@ -1148,6 +1159,27 @@ public partial class VariantTests
             v.data.parray = psa;
             double[,,] array = Assert.IsType<double[,,]>(v.ToObject());
             Assert.Equal(8, array.Length);
+
+            // Validate that every populated source value appears exactly once in the CLR array.
+            // SAFEARRAYs are column-major and CLR arrays are row-major, so VARIANT.ToObject
+            // transposes; CreateArrayFromSafeArray also reverses the bound order. Assert the
+            // multiset of values rather than per-index equality to detect dimension/index
+            // confusion (extras, missing values, default-zero padding) without locking in the
+            // specific index mapping.
+            List<double> actual = [];
+            for (int a = 0; a < array.GetLength(0); a++)
+            {
+                for (int b = 0; b < array.GetLength(1); b++)
+                {
+                    for (int c = 0; c < array.GetLength(2); c++)
+                    {
+                        actual.Add(array[a, b, c]);
+                    }
+                }
+            }
+
+            double[] expected = [0, 1, 10, 11, 100, 101, 110, 111];
+            Assert.Equal(expected.OrderBy(x => x), actual.OrderBy(x => x));
         }
         finally
         {
@@ -1477,8 +1509,18 @@ public partial class VariantTests
     {
 #if NETFRAMEWORK
         // net481's Span<T> rejects types containing pointers (VARIANT contains BSTR* etc.),
-        // so the Span<VARIANT> in ToVector throws. The modern .NET runtime allows it.
-        return;
+        // so the Span<VARIANT> in ToVector throws ArgumentException. The modern .NET runtime
+        // allows it and produces a populated object?[].
+        VARIANT[] inners481 = [(VARIANT)1];
+        VARIANT v481 = MakeVector(VARENUM.VT_VARIANT, inners481);
+        try
+        {
+            Assert.Throws<ArgumentException>(() => v481.ToObject());
+        }
+        finally
+        {
+            FreeVector(ref v481);
+        }
 #else
         VARIANT[] inners = [(VARIANT)1, (VARIANT)2];
         VARIANT v = MakeVector(VARENUM.VT_VARIANT, inners);
