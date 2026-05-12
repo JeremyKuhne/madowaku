@@ -25,7 +25,11 @@ public unsafe partial struct VARIANT
     /// </summary>
     public object? ToObject()
     {
-        if (Type == VT_DECIMAL)
+        // VT_DECIMAL stores its payload directly in the VARIANT, including bytes that overlap
+        // the vt field (vt's wReserved1 == DECIMAL.wReserved). The scalar form is identified by
+        // vt == VT_DECIMAL with no modifier flags; VT_ARRAY|VT_DECIMAL, VT_VECTOR|VT_DECIMAL, and
+        // byref variants store a pointer instead and must fall through to the normal dispatch.
+        if (Type == VT_DECIMAL && !vt.AreAnyFlagsSet(VT_ARRAY | VT_VECTOR | VT_BYREF))
         {
             return (decimal)Anonymous.decVal;
         }
@@ -80,7 +84,12 @@ public unsafe partial struct VARIANT
 
         try
         {
-            if (array.Rank != 1)
+            // The fast path below uses Span<T>.CopyTo((T[])array), which requires an SZArray
+            // (zero-lower-bound vector). A 1-D SAFEARRAY with a non-zero lower bound comes back
+            // from CreateArrayFromSafeArray as a variable-bound 1-D array (e.g. int[*]) that
+            // can't be cast to int[]; route those through the transpose path, which writes
+            // through Unsafe.Add / MemoryMarshal.GetArrayDataReference and works for any rank.
+            if (array.Rank != 1 || array.GetLowerBound(0) != 0)
             {
                 if (array.Length != 0)
                 {

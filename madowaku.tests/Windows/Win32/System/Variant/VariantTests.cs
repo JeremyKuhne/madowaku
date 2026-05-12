@@ -1000,6 +1000,27 @@ public partial class VariantTests
     }
 
     [Fact]
+    public unsafe void ToObject_Array_VT_DECIMAL_ReturnsDecimalArray()
+    {
+        // Regression guard: VARIANT.ToObject used to short-circuit on `Type == VT_DECIMAL`
+        // (which masks off VT_ARRAY/VT_VECTOR/VT_BYREF), returning a bogus scalar decimal
+        // instead of dispatching to the SAFEARRAY path.
+        DECIMAL[] values = [new(1.5m), new(2.5m)];
+        SAFEARRAY* psa = CreateSafeArray(VARENUM.VT_DECIMAL, values);
+        try
+        {
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_DECIMAL };
+            v.data.parray = psa;
+            decimal[] expected = [1.5m, 2.5m];
+            Assert.Equal(expected, Assert.IsType<decimal[]>(v.ToObject()));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
     public unsafe void ToObject_Array_VT_VARIANT_ReturnsObjectArray()
     {
 #if NETFRAMEWORK
@@ -1044,6 +1065,36 @@ public partial class VariantTests
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_RECORD };
             v.data.parray = psa;
             Assert.Throws<ArgumentException>(() => v.ToObject());
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+        }
+    }
+
+    [Fact]
+    public unsafe void ToObject_Array_NonZeroLowerBound_PreservesBounds()
+    {
+        SAFEARRAYBOUND bound = new() { cElements = 3, lLbound = 5 };
+        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_I4, 1, &bound);
+        try
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                int abs = i + 5;
+                int value = i * 10;
+                PInvokeMadowaku.SafeArrayPutElement(psa, &abs, &value).ThrowOnFailure();
+            }
+
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
+            v.data.parray = psa;
+            Array array = Assert.IsAssignableFrom<Array>(v.ToObject());
+            Assert.Equal(1, array.Rank);
+            Assert.Equal(5, array.GetLowerBound(0));
+            Assert.Equal(3, array.Length);
+            Assert.Equal(0, array.GetValue(5));
+            Assert.Equal(10, array.GetValue(6));
+            Assert.Equal(20, array.GetValue(7));
         }
         finally
         {
