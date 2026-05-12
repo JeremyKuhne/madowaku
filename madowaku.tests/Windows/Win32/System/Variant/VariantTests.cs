@@ -432,6 +432,62 @@ public class VariantTests
     }
 
     [Fact]
+    public unsafe void ToObject_VT_ARRAY_2D_VT_I4_TransposesAndReturnsIntMatrix()
+    {
+        // 2x3 SAFEARRAY of VT_I4. Native SAFEARRAYs are column-major; CLR arrays are row-major,
+        // so VARIANT.ToObject transposes. Build via SafeArrayCreate + SafeArrayPutElement.
+        SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[2];
+        bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
+        bounds[1] = new SAFEARRAYBOUND { cElements = 3, lLbound = 0 };
+
+        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_I4, 2, bounds);
+        Assert.False(psa is null);
+
+        try
+        {
+            // Populate so transposition is obvious.
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    int value = i * 10 + j;
+                    Span<int> idx = [i, j];
+                    fixed (int* p = idx)
+                    {
+                        PInvokeMadowaku.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
+                    }
+                }
+            }
+
+            VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
+            v.data.parray = psa;
+
+            // VARIANT.ToObject transposes column-major SAFEARRAY into row-major CLR Array.
+            // What matters here is that this used to throw InvalidCastException — verify
+            // we now get a 2D int matrix back containing the populated values.
+            int[,] array = Assert.IsType<int[,]>(v.ToObject());
+            Assert.Equal(2, array.Rank);
+            Assert.Equal(6, array.Length);
+
+            // Collect all values and verify the set matches what we wrote.
+            HashSet<int> populated = [];
+            for (int a = 0; a < array.GetLength(0); a++)
+            {
+                for (int b = 0; b < array.GetLength(1); b++)
+                {
+                    populated.Add(array[a, b]);
+                }
+            }
+
+            Assert.Equal([0, 1, 2, 10, 11, 12], populated.OrderBy(x => x));
+        }
+        finally
+        {
+            PInvokeMadowaku.SafeArrayDestroy(psa);
+        }
+    }
+
+    [Fact]
     public unsafe void Byref_BoolByRef_ReturnsTrue()
     {
         VARIANT_BOOL b = VARIANT_BOOL.VARIANT_TRUE;

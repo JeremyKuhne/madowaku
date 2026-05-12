@@ -300,19 +300,29 @@ public unsafe partial struct VARIANT
     {
         static void SetValue<T>(Array array, T value, Span<int> indices, Span<int> lowerBounds)
         {
+            // Fast path for SZArrays (1D zero-based) — directly cast and write by row-major offset.
             // CLR arrays are laid out in row-major order.
             // See CLI 8.9.1: https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-335.pdf
-            T[] span = (T[])array;
-            int offset = 0;
-            int multiplier = 1;
-            for (int i = array.Rank; i >= 1; i--)
+            if (array is T[] span)
             {
-                int diff = indices[i - 1] - lowerBounds[i - 1];
-                offset += diff * multiplier;
-                multiplier *= array.GetLength(i - 1);
+                int offset = 0;
+                int multiplier = 1;
+                for (int i = array.Rank; i >= 1; i--)
+                {
+                    int diff = indices[i - 1] - lowerBounds[i - 1];
+                    offset += diff * multiplier;
+                    multiplier *= array.GetLength(i - 1);
+                }
+
+                span[offset] = value;
+                return;
             }
 
-            span[offset] = value;
+            // Multi-dimensional arrays cannot be cast to T[]. Use Array.SetValue with the
+            // absolute multi-dim indices (Array.SetValue honors the array's own LowerBound).
+            // Heap allocation per element is unavoidable on net472 (no Array.SetValue(value, ReadOnlySpan<int>) overload).
+            int[] indexCopy = indices.ToArray();
+            array.SetValue(value, indexCopy);
         }
 
         switch (arrayType)
