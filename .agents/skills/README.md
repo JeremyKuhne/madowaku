@@ -15,6 +15,7 @@ overlap.
 | ----- | ---------------- | ---------------- |
 | [cswin32-interop](./cswin32-interop/SKILL.md) | "add a P/Invoke", "replace `[DllImport]`", "use CsWin32 for X", "what does `PInvoke` vs `PInvokeMadowaku` mean", net472 vs modern .NET CsWin32 gating, the `ComWrappers` polyfill, Touki vs local polyfills | `cswin32-com` |
 | [cswin32-com](./cswin32-com/SKILL.md) | "use `ComScope<T>`", "wire up `IComIID`", "activate a COM object", "manually define an `ICLR*` / `IWbem*` / `IMetaData*` interface", `IID.Get<T>()`, `delegate* unmanaged` vtables, per-struct net472 polyfill | `cswin32-interop` |
+| [performance-testing](./performance-testing/SKILL.md) | "add a benchmark", "run perf tests", "compare allocations", "BenchmarkDotNet", "why is net481 slower/faster" | `cswin32-interop`, `cswin32-com` |
 
 ## Disambiguation
 

@@ -206,6 +206,10 @@ not a license to skip the conversation.
   See the [`cswin32-interop`](../.agents/skills/cswin32-interop/SKILL.md) and
   [`cswin32-com`](../.agents/skills/cswin32-com/SKILL.md) skills for
   patterns, TFM gating, and the per-struct net472 polyfill recipe.
+- For BenchmarkDotNet setup, authoring rules, and run guidance in
+  `madowaku.perf`, see the
+  [`performance-testing`](../.agents/skills/performance-testing/SKILL.md)
+  skill.
 - Hand-rolled net472 polyfills live under `madowaku/Framework/` and
   declare the BCL namespace they're polyfilling (e.g.
   `Framework/System/Runtime/InteropServices/ComWrappers.cs` &rarr;
