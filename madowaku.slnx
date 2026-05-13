@@ -19,6 +19,9 @@
     <File Path=".github/workflows/dotnet.yml" />
     <File Path=".github/workflows/publish.yml" />
   </Folder>
+  <Project Path="madowaku.perf/madowaku.perf.csproj">
+    <Platform Project="x64" />
+  </Project>
   <Project Path="madowaku.tests/madowaku.tests.csproj" Id="3cc6b747-dfb7-40c7-82ca-ca4d3c0c28a9">
     <Platform Project="x64" />
   </Project>

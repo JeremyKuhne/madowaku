@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Targeting 4.8.1 for perf tests to get additional runtime diagnostics support. -->
+    <TargetFrameworks>$(DotNetCoreVersion)-$(WindowsPlatformVersion);net481</TargetFrameworks>
+    <DependencyTargetFramework>$(TargetFramework)</DependencyTargetFramework>
+    <OutputType>Exe</OutputType>
+    <StartupObject>madowaku.perf.Program</StartupObject>
+
+    <!-- Make sure the main project builds against its normal framework target. -->
+    <DependencyTargetFramework Condition="'$(TargetFramework)' == 'net481'">$(DotNetFrameworkVersion)</DependencyTargetFramework>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace />
+
+    <!-- Turn off Microsoft Testing Platform's transitive test-app behavior. -->
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+
+    <!-- Do not advertise this executable as a test container/server. -->
+    <DisableTestingPlatformServerCapability>true</DisableTestingPlatformServerCapability>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\madowaku.tests\madowaku.tests.csproj" />
+    <ProjectReference Include="..\madowaku\madowaku.csproj" AdditionalProperties="TargetFramework=$(DependencyTargetFramework)" />
+  </ItemGroup>
+
+</Project>
