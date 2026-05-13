@@ -29,7 +29,7 @@ public class VariantConversionPerf
     /// <summary>
     ///  Reads an int payload directly through the explicit VARIANT cast operator.
     /// </summary>
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public int ExplicitIntCast()
     {
         return (int)_intVariant;
