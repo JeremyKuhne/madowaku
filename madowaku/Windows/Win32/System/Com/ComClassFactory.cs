@@ -18,11 +18,6 @@ public sealed unsafe class ComClassFactory : IDisposable
     private readonly bool _unloadModule;
     private readonly IClassFactory* _classFactory;
 
-    private delegate HRESULT DllGetClassObjectProc(
-        Guid* rclsid,
-        Guid* riid,
-        void** ppv);
-
     /// <summary>
     ///  The class ID.
     /// </summary>
@@ -68,18 +63,17 @@ public sealed unsafe class ComClassFactory : IDisposable
         IClassFactory* classFactory;
         Guid iid = IClassFactory.IID_Guid;
 
-#if NETFRAMEWORK
-        // In .NET Framework we need to use the delegate type to call the method.
-        Marshal.GetDelegateForFunctionPointer<DllGetClassObjectProc>(proc.Value)(
+        // DllGetClassObject is declared STDAPI (__stdcall). The explicit [Stdcall]
+        // qualifier is required: it is convention-correct on x86 (where Stdcall and
+        // Cdecl differ in who cleans the stack) and compiles on net472, where the
+        // Roslyn lowering uses the legacy IL "unmanaged stdcall" signature encoding
+        // rather than a CallConvStdcall modopt. An unqualified delegate* unmanaged
+        // would not compile on net472 (CS8889) and would resolve to Cdecl on x86
+        // on modern .NET.
+        ((delegate* unmanaged[Stdcall]<Guid*, Guid*, void**, HRESULT>)proc.Value)(
             &classId,
             &iid,
             (void**)&classFactory).ThrowOnFailure();
-#else
-        ((delegate* unmanaged<Guid*, Guid*, void**, HRESULT>)proc.Value)(
-            &classId,
-            &iid,
-            (void**)&classFactory).ThrowOnFailure();
-#endif
 
         _classFactory = classFactory;
     }
