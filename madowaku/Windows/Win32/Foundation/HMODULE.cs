@@ -15,8 +15,6 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
 {
     private const string DllGetVersionMethodName = "DllGetVersion";
 
-    private delegate HRESULT DllGetVersionProc(DLLVERSIONINFO* version);
-
     HMODULE IHandle<HMODULE>.Handle => this;
     object? IHandle<HMODULE>.Wrapper => null;
 
@@ -111,11 +109,11 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
         };
 
         // HRESULT Dllgetversionproc(DLLVERSIONINFO* version)
-#if NETFRAMEWORK
-        Marshal.GetDelegateForFunctionPointer<DllGetVersionProc>(proc.Value)(&versionInfo).ThrowOnFailure();
-#else
-        ((delegate* unmanaged<DLLVERSIONINFO*, HRESULT>)proc.Value)(&versionInfo).ThrowOnFailure();
-#endif
+        // DllGetVersion is declared STDAPI (__stdcall). The explicit [Stdcall]
+        // qualifier is convention-correct on x86 and compiles on net472 (Roslyn
+        // emits the legacy IL "unmanaged stdcall" signature encoding, no modopt
+        // polyfill required).
+        ((delegate* unmanaged[Stdcall]<DLLVERSIONINFO*, HRESULT>)proc.Value)(&versionInfo).ThrowOnFailure();
 
         return new Version(
             (int)versionInfo.dwMajorVersion,
