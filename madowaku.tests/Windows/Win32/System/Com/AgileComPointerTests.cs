@@ -6,9 +6,10 @@ using Windows.Win32.Foundation;
 
 namespace Windows.Win32.System.Com;
 
+[TestClass]
 public class AgileComPointerTests
 {
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_RegistersInterface_AndGetInterfaceReturnsScope()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
@@ -18,7 +19,7 @@ public class AgileComPointerTests
         try
         {
             using ComScope<IUnknown> scope = agile.GetInterface();
-            Assert.False(scope.IsNull);
+            scope.IsNull.Should().BeFalse();
         }
         finally
         {
@@ -26,7 +27,7 @@ public class AgileComPointerTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void TryGetInterface_ReturnsSuccess()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
@@ -36,8 +37,8 @@ public class AgileComPointerTests
         try
         {
             using ComScope<IUnknown> scope = agile.TryGetInterface(out HRESULT hr);
-            Assert.True(hr.Succeeded);
-            Assert.False(scope.IsNull);
+            hr.Succeeded.Should().BeTrue();
+            scope.IsNull.Should().BeFalse();
         }
         finally
         {
@@ -45,7 +46,7 @@ public class AgileComPointerTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Equals_SamePointer_ReturnsTrue()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
@@ -55,7 +56,7 @@ public class AgileComPointerTests
         AgileComPointer<IUnknown> agile = new(ptr, takeOwnership: false);
         try
         {
-            Assert.True(agile.Equals(ptr));
+            agile.Equals(ptr).Should().BeTrue();
         }
         finally
         {
@@ -63,7 +64,7 @@ public class AgileComPointerTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void GetInterface_Generic_RequeriesAsSameInterface_Succeeds()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
@@ -73,7 +74,7 @@ public class AgileComPointerTests
         try
         {
             using ComScope<IUnknown> scope = agile.GetInterface<IUnknown>();
-            Assert.False(scope.IsNull);
+            scope.IsNull.Should().BeFalse();
         }
         finally
         {
@@ -81,7 +82,7 @@ public class AgileComPointerTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void TryGetInterface_Generic_RequeriesAsSameInterface_Succeeds()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
@@ -91,8 +92,8 @@ public class AgileComPointerTests
         try
         {
             using ComScope<IUnknown> scope = agile.TryGetInterface<IUnknown>(out HRESULT hr);
-            Assert.True(hr.Succeeded);
-            Assert.False(scope.IsNull);
+            hr.Succeeded.Should().BeTrue();
+            scope.IsNull.Should().BeFalse();
         }
         finally
         {

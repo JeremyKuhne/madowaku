@@ -6,76 +6,78 @@ using Windows.Win32.System.Variant;
 
 namespace Windows.Win32.System.Com;
 
+[TestClass]
 public class SafeArrayScopeTests
 {
-    [Fact]
+    [TestMethod]
     public void Constructor_IntSize_CreatesSafeArray()
     {
         using SafeArrayScope<int> array = new(3);
-        unsafe { Assert.False(array.Value is null); }
+        unsafe { (array.Value is null).Should().BeFalse(); }
     }
 
-    [Fact]
+    [TestMethod]
     public void Indexer_Int_RoundTripsValues()
     {
         using SafeArrayScope<int> array = new(3);
         array[0] = 10;
         array[1] = 20;
         array[2] = 30;
-        Assert.Equal(10, array[0]);
-        Assert.Equal(20, array[1]);
-        Assert.Equal(30, array[2]);
+        array[0].Should().Be(10);
+        array[1].Should().Be(20);
+        array[2].Should().Be(30);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_FromIntArray_PopulatesValues()
     {
         using SafeArrayScope<int> array = new([1, 2, 3, 4]);
-        Assert.Equal(1, array[0]);
-        Assert.Equal(4, array[3]);
+        array[0].Should().Be(1);
+        array[3].Should().Be(4);
     }
 
-    [Fact]
+    [TestMethod]
     public void Indexer_String_RoundTripsValues()
     {
         using SafeArrayScope<string> array = new(2);
         array[0] = "alpha";
         array[1] = "beta";
-        Assert.Equal("alpha", array[0]);
-        Assert.Equal("beta", array[1]);
+        array[0].Should().Be("alpha");
+        array[1].Should().Be("beta");
     }
 
-    [Fact]
+    [TestMethod]
     public void Indexer_Double_RoundTripsValues()
     {
         using SafeArrayScope<double> array = new(2);
         array[0] = 1.5;
         array[1] = 2.5;
-        Assert.Equal(1.5, array[0]);
-        Assert.Equal(2.5, array[1]);
+        array[0].Should().Be(1.5);
+        array[1].Should().Be(2.5);
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_UnsupportedType_Throws()
     {
-        Assert.Throws<ArgumentException>(() => new SafeArrayScope<byte>(1));
+        FluentActions.Invoking(() => new SafeArrayScope<byte>(1)).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_NintType_ThrowsWithComSafeArrayScopeMessage()
     {
-        ArgumentException ex = Assert.Throws<ArgumentException>(() => new SafeArrayScope<nint>(1));
-        Assert.Contains("ComSafeArrayScope", ex.Message);
+        ArgumentException ex = FluentActions.Invoking(() => new SafeArrayScope<nint>(1))
+            .Should().Throw<ArgumentException>().Which;
+        ex.Message.Should().Contain("ComSafeArrayScope");
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_NullSafearrayPointer_ValueIsNull()
     {
         using SafeArrayScope<int> array = new((SAFEARRAY*)null);
-        Assert.True(array.Value is null);
+        (array.Value is null).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_WrapVT_I4_Succeeds()
     {
         using SafeArrayScope<int> source = new(2);
@@ -84,115 +86,115 @@ public class SafeArrayScopeTests
 
         // Wrap the existing VT_I4 SAFEARRAY in a new scope — must not throw.
         SafeArrayScope<int> wrapped = new(source.Value);
-        Assert.Equal(7, wrapped[0]);
-        Assert.Equal(8, wrapped[1]);
+        wrapped[0].Should().Be(7);
+        wrapped[1].Should().Be(8);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_TypeMismatch_ForInt_Throws()
     {
         // VT_BSTR SAFEARRAY wrapped as SafeArrayScope<int> must throw.
         using SafeArrayScope<string> source = new(1);
         SAFEARRAY* ptr = source.Value;
-        ArgumentException ex = Assert.Throws<ArgumentException>(
-            () => new SafeArrayScope<int>(ptr));
-        Assert.Contains("VarType=", ex.Message);
+        ArgumentException ex = FluentActions.Invoking(() => new SafeArrayScope<int>(ptr))
+            .Should().Throw<ArgumentException>().Which;
+        ex.Message.Should().Contain("VarType=");
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_TypeMismatch_ForString_Throws()
     {
         using SafeArrayScope<int> source = new(1);
         SAFEARRAY* ptr = source.Value;
-        Assert.Throws<ArgumentException>(() => new SafeArrayScope<string>(ptr));
+        FluentActions.Invoking(() => new SafeArrayScope<string>(ptr)).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_TypeMismatch_ForDouble_Throws()
     {
         using SafeArrayScope<int> source = new(1);
         SAFEARRAY* ptr = source.Value;
-        Assert.Throws<ArgumentException>(() => new SafeArrayScope<double>(ptr));
+        FluentActions.Invoking(() => new SafeArrayScope<double>(ptr)).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [TestMethod]
     public void Length_ReturnsElementCount()
     {
         using SafeArrayScope<int> array = new(5);
-        Assert.Equal(5, array.Length);
+        array.Length.Should().Be(5);
     }
 
-    [Fact]
+    [TestMethod]
     public void IsEmpty_LengthZero_ReturnsTrue()
     {
         using SafeArrayScope<int> array = new(0);
-        Assert.True(array.IsEmpty);
+        array.IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void IsEmpty_NonEmpty_ReturnsFalse()
     {
         using SafeArrayScope<int> array = new(1);
-        Assert.False(array.IsEmpty);
+        array.IsEmpty.Should().BeFalse();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void IsNull_DefaultConstructed_ReturnsTrue()
     {
         using SafeArrayScope<int> array = new((SAFEARRAY*)null);
-        Assert.True(array.IsNull);
+        array.IsNull.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_SafearrayStar_NonNull()
     {
         using SafeArrayScope<int> array = new(2);
         SAFEARRAY* ptr = array;
-        Assert.False(ptr is null);
+        (ptr is null).Should().BeFalse();
     }
 
-    [Fact]
+    [TestMethod]
     public void ImplicitOperator_Nint_NonZero()
     {
         using SafeArrayScope<int> array = new(2);
         nint value = array;
-        Assert.NotEqual(0, value);
+        value.Should().NotBe(0);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ExplicitOperator_Variant_HasArrayFlag()
     {
         using SafeArrayScope<int> array = new(2);
         VARIANT v = (VARIANT)array;
-        Assert.Equal(VARENUM.VT_ARRAY, v.vt & VARENUM.VT_ARRAY);
-        Assert.Equal(VARENUM.VT_I4, v.vt & VARENUM.VT_TYPEMASK);
+        (v.vt & VARENUM.VT_ARRAY).Should().Be(VARENUM.VT_ARRAY);
+        (v.vt & VARENUM.VT_TYPEMASK).Should().Be(VARENUM.VT_I4);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_ObjectType_VariantSafearray_Roundtrips()
     {
         using SafeArrayScope<object> array = new(2);
         array[0] = 42;
         array[1] = "hi";
-        Assert.Equal(42, array[0]);
-        Assert.Equal("hi", array[1]);
+        array[0].Should().Be(42);
+        array[1].Should().Be("hi");
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_VoidDoublePointer_DereferencesToSafearrayPointer()
     {
         using SafeArrayScope<int> array = new(2);
         void** pp = array;
-        Assert.False(pp is null);
-        Assert.True(*pp == array.Value);
+        (pp is null).Should().BeFalse();
+        (*pp == array.Value).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_SafearrayDoublePointer_DereferencesToSafearrayPointer()
     {
         using SafeArrayScope<int> array = new(2);
         SAFEARRAY** pp = array;
-        Assert.False(pp is null);
-        Assert.True(*pp == array.Value);
+        (pp is null).Should().BeFalse();
+        (*pp == array.Value).Should().BeTrue();
     }
 }

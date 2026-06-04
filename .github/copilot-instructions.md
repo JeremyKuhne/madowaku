@@ -28,7 +28,7 @@ Top-level layout:
 
 - `madowaku/` &mdash; main library (CsWin32 P/Invoke surface, COM helpers,
   net472 polyfills under `madowaku/Framework/`)
-- `madowaku.tests/` &mdash; xUnit v3 tests (uses FluentAssertions; targets
+- `madowaku.tests/` &mdash; MSTest tests (uses AwesomeAssertions; targets
   `net10.0-windows10.0.22000.0` and `net481`)
 - `artifacts/`, `TestResults/` &mdash; build/test output (ignored)
 
@@ -130,9 +130,9 @@ Detailed test conventions live in
 [.github/instructions/tests.instructions.md](instructions/tests.instructions.md)
 (applies to `madowaku.tests/**/*.cs`). Headline rules: place tests in
 `madowaku.tests`; name them `MethodName_StateUnderTest_ExpectedBehavior`;
-use FluentAssertions; xUnit v3 with the Microsoft Testing Platform
-runner; cover edge and negative cases; do not add "Arrange, Act, Assert"
-comments.
+use AwesomeAssertions `.Should()`; MSTest with the Microsoft Testing
+Platform runner and method-level parallelism; cover edge and negative
+cases; do not add "Arrange, Act, Assert" comments.
 
 ## Working with the user on changes
 

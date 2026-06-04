@@ -12,6 +12,7 @@ using SafeArrayTypeMismatchException = System.Runtime.InteropServices.SafeArrayT
 
 namespace Windows.Win32.System.Variant;
 
+[TestClass]
 public partial class VariantTests
 {
     private static VARIANT MakeScalar<T>(VARENUM type, T value) where T : unmanaged
@@ -21,49 +22,49 @@ public partial class VariantTests
         return v;
     }
 
-    [Fact]
+    [TestMethod]
     public void EmptyVariant_HasExpectedProperties()
     {
         VARIANT v = VARIANT.Empty;
-        Assert.True(v.IsEmpty);
-        Assert.Equal(VARENUM.VT_EMPTY, v.vt);
-        Assert.Equal(VARENUM.VT_EMPTY, v.Type);
-        Assert.False(v.Byref);
-        Assert.Null(v.GetManagedType());
+        v.IsEmpty.Should().BeTrue();
+        v.vt.Should().Be(VARENUM.VT_EMPTY);
+        v.Type.Should().Be(VARENUM.VT_EMPTY);
+        v.Byref.Should().BeFalse();
+        v.GetManagedType().Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void IntConversion_RoundTrip()
     {
         int value = 42;
         VARIANT v = (VARIANT)value;
-        Assert.Equal(VARENUM.VT_I4, v.vt);
-        Assert.Equal(value, (int)v);
-        Assert.Equal(typeof(int), v.GetManagedType());
+        v.vt.Should().Be(VARENUM.VT_I4);
+        ((int)v).Should().Be(value);
+        v.GetManagedType().Should().Be(typeof(int));
     }
 
-    [Fact]
+    [TestMethod]
     public void UIntConversion_RoundTrip()
     {
         uint value = 123u;
         VARIANT v = (VARIANT)value;
-        Assert.Equal(VARENUM.VT_UI4, v.vt);
-        Assert.Equal(value, (uint)v);
-        Assert.Equal(typeof(uint), v.GetManagedType());
+        v.vt.Should().Be(VARENUM.VT_UI4);
+        ((uint)v).Should().Be(value);
+        v.GetManagedType().Should().Be(typeof(uint));
     }
 
-    [Fact]
+    [TestMethod]
     public void BoolConversion_RoundTrip()
     {
         VARIANT vTrue = (VARIANT)true;
         VARIANT vFalse = (VARIANT)false;
-        Assert.Equal(VARENUM.VT_BOOL, vTrue.vt);
-        Assert.True((bool)vTrue);
-        Assert.False((bool)vFalse);
-        Assert.Equal(typeof(bool), vTrue.GetManagedType());
+        vTrue.vt.Should().Be(VARENUM.VT_BOOL);
+        ((bool)vTrue).Should().BeTrue();
+        ((bool)vFalse).Should().BeFalse();
+        vTrue.GetManagedType().Should().Be(typeof(bool));
     }
 
-    [Fact]
+    [TestMethod]
     public void DecimalConversion_RoundTrip()
     {
         decimal value = 123.45m;
@@ -72,129 +73,131 @@ public partial class VariantTests
         v.Anonymous.decVal = new(value);
         v.vt |= VARENUM.VT_DECIMAL;
 
-        Assert.Equal(value, v.ToObject());
-        Assert.Equal(typeof(decimal), v.GetManagedType());
+        // BeApproximately with zero tolerance compares decimal value scale-insensitively
+        // (the round-trip can change the decimal's scale on some target frameworks).
+        v.ToObject().Should().BeOfType<decimal>().Which.Should().BeApproximately(value, 0m);
+        v.GetManagedType().Should().Be(typeof(decimal));
     }
 
-    [Fact]
+    [TestMethod]
     public void StringConversion_RoundTrip()
     {
         string s = "hello";
         using BSTR bstr = new(s);
         VARIANT v = (VARIANT)bstr;
-        Assert.Equal(VARENUM.VT_BSTR, v.vt);
-        Assert.Equal(s, (string)v);
-        Assert.Equal(typeof(string), v.GetManagedType());
+        v.vt.Should().Be(VARENUM.VT_BSTR);
+        ((string)v).Should().Be(s);
+        v.GetManagedType().Should().Be(typeof(string));
     }
 
-    [Fact]
+    [TestMethod]
     public void StringExplicitCast_RoundTrip()
     {
         VARIANT v = (VARIANT)"hello";
-        Assert.Equal(VARENUM.VT_BSTR, v.vt);
-        Assert.Equal("hello", (string)v);
+        v.vt.Should().Be(VARENUM.VT_BSTR);
+        ((string)v).Should().Be("hello");
         v.Dispose();
     }
 
-    [Fact]
+    [TestMethod]
     public void DoubleExplicitCast_ProducesR8Variant()
     {
         VARIANT v = (VARIANT)3.14;
-        Assert.Equal(VARENUM.VT_R8, v.vt);
-        Assert.Equal(3.14, v.data.dblVal);
+        v.vt.Should().Be(VARENUM.VT_R8);
+        v.data.dblVal.Should().Be(3.14);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void IDispatchPointer_NullRoundTrip()
     {
         VARIANT v = (VARIANT)(IDispatch*)null;
-        Assert.Equal(VARENUM.VT_DISPATCH, v.vt);
-        Assert.True((IDispatch*)v is null);
+        v.vt.Should().Be(VARENUM.VT_DISPATCH);
+        ((IDispatch*)v is null).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void InvalidIDispatchCast_Throws()
     {
         VARIANT v = VARIANT.Empty;
-        Assert.Throws<InvalidCastException>(() => { IDispatch* _ = (IDispatch*)v; });
+        FluentActions.Invoking(() => { IDispatch* _ = (IDispatch*)v; }).Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [TestMethod]
     public void InvalidCast_Throws()
     {
         VARIANT v = VARIANT.Empty;
-        Assert.Throws<InvalidCastException>(() => (int)v);
-        Assert.Throws<InvalidCastException>(() => (uint)v);
-        Assert.Throws<InvalidCastException>(() => (bool)v);
-        Assert.Throws<InvalidCastException>(() => (decimal)v);
-        Assert.Throws<InvalidCastException>(() => (string)v);
+        FluentActions.Invoking(() => (int)v).Should().Throw<InvalidCastException>();
+        FluentActions.Invoking(() => (uint)v).Should().Throw<InvalidCastException>();
+        FluentActions.Invoking(() => (bool)v).Should().Throw<InvalidCastException>();
+        FluentActions.Invoking(() => (decimal)v).Should().Throw<InvalidCastException>();
+        FluentActions.Invoking(() => (string)v).Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [TestMethod]
     public void FromObject_Null_ReturnsEmpty()
     {
         VARIANT v = VARIANT.FromObject(null);
-        Assert.True(v.IsEmpty);
+        v.IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void FromObject_String_ReturnsBstrVariant()
     {
         VARIANT v = VARIANT.FromObject("text");
-        Assert.Equal(VARENUM.VT_BSTR, v.vt);
-        Assert.Equal("text", (string)v);
+        v.vt.Should().Be(VARENUM.VT_BSTR);
+        ((string)v).Should().Be("text");
         v.Dispose();
     }
 
-    [Fact]
+    [TestMethod]
     public void FromObject_Int_ReturnsI4Variant()
     {
         VARIANT v = VARIANT.FromObject(123);
-        Assert.Equal(VARENUM.VT_I4, v.vt);
-        Assert.Equal(123, (int)v);
+        v.vt.Should().Be(VARENUM.VT_I4);
+        ((int)v).Should().Be(123);
     }
 
-    [Fact]
+    [TestMethod]
     public void FromObject_UInt_ReturnsUI4Variant()
     {
         VARIANT v = VARIANT.FromObject(456u);
-        Assert.Equal(VARENUM.VT_UI4, v.vt);
-        Assert.Equal(456u, (uint)v);
+        v.vt.Should().Be(VARENUM.VT_UI4);
+        ((uint)v).Should().Be(456u);
     }
 
-    [Fact]
+    [TestMethod]
     public void FromObject_Short_ProducesI4VariantViaImplicitWidening()
     {
         // FromObject branches on `is short` but `(VARIANT)shortValue` has no short operator,
         // so the value widens to int and goes through the int operator → VT_I4.
         VARIANT v = VARIANT.FromObject((short)7);
-        Assert.Equal(VARENUM.VT_I4, v.vt);
-        Assert.Equal(7, (int)v);
+        v.vt.Should().Be(VARENUM.VT_I4);
+        ((int)v).Should().Be(7);
     }
 
-    [Fact]
+    [TestMethod]
     public void FromObject_Bool_ReturnsBoolVariant()
     {
         VARIANT v = VARIANT.FromObject(true);
-        Assert.Equal(VARENUM.VT_BOOL, v.vt);
-        Assert.True((bool)v);
+        v.vt.Should().Be(VARENUM.VT_BOOL);
+        ((bool)v).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void FromObject_Double_ReturnsR8Variant()
     {
         VARIANT v = VARIANT.FromObject(2.5);
-        Assert.Equal(VARENUM.VT_R8, v.vt);
+        v.vt.Should().Be(VARENUM.VT_R8);
     }
 
-    [Fact]
+    [TestMethod]
     public void FromObject_ViaMarshal_DateTime_ProducesDateOrR8Variant()
     {
         VARIANT v = VARIANT.FromObject(new DateTime(2025, 6, 1));
         try
         {
             // Marshal returns either VT_DATE or VT_R8 depending on the platform; either is acceptable.
-            Assert.True(v.vt is VARENUM.VT_DATE or VARENUM.VT_R8);
+            v.vt.Should().BeOneOf(VARENUM.VT_DATE, VARENUM.VT_R8);
         }
         finally
         {
@@ -202,178 +205,178 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_Decimal_ReturnsDecimal()
     {
         VARIANT v = new();
         v.Anonymous.decVal = new(100.5m);
         v.vt |= VARENUM.VT_DECIMAL;
-        Assert.Equal(100.5m, v.ToObject());
+        v.ToObject().Should().BeOfType<decimal>().Which.Should().BeApproximately(100.5m, 0m);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_Int_ReturnsInt()
     {
         VARIANT v = (VARIANT)42;
-        Assert.Equal(42, v.ToObject());
+        v.ToObject().Should().Be(42);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_Bool_ReturnsBool()
     {
         VARIANT v = (VARIANT)true;
-        Assert.Equal(true, v.ToObject());
+        v.ToObject().Should().Be(true);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_String_ReturnsString()
     {
         VARIANT v = (VARIANT)"abc";
-        Assert.Equal("abc", v.ToObject());
+        v.ToObject().Should().Be("abc");
         v.Dispose();
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_NULL_ReturnsDBNull()
     {
         VARIANT v = new() { vt = VARENUM.VT_NULL };
-        Assert.Equal(Convert.DBNull, v.ToObject());
+        v.ToObject().Should().Be(Convert.DBNull);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_EMPTY_ReturnsNull()
     {
         VARIANT v = VARIANT.Empty;
-        Assert.Null(v.ToObject());
+        v.ToObject().Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_I1_ReturnsSbyte()
     {
         VARIANT v = MakeScalar(VARENUM.VT_I1, (sbyte)-5);
-        Assert.Equal((sbyte)-5, v.ToObject());
+        v.ToObject().Should().Be((sbyte)-5);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_UI1_ReturnsByte()
     {
         VARIANT v = MakeScalar(VARENUM.VT_UI1, (byte)200);
-        Assert.Equal((byte)200, v.ToObject());
+        v.ToObject().Should().Be((byte)200);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_I2_ReturnsShort()
     {
         VARIANT v = MakeScalar(VARENUM.VT_I2, (short)-1000);
-        Assert.Equal((short)-1000, v.ToObject());
+        v.ToObject().Should().Be((short)-1000);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_UI2_ReturnsUshort()
     {
         VARIANT v = MakeScalar(VARENUM.VT_UI2, (ushort)50000);
-        Assert.Equal((ushort)50000, v.ToObject());
+        v.ToObject().Should().Be((ushort)50000);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_I8_ReturnsLong()
     {
         VARIANT v = MakeScalar(VARENUM.VT_I8, -1234567890123L);
-        Assert.Equal(-1234567890123L, v.ToObject());
+        v.ToObject().Should().Be(-1234567890123L);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_UI8_ReturnsUlong()
     {
         VARIANT v = MakeScalar(VARENUM.VT_UI8, 9876543210123UL);
-        Assert.Equal(9876543210123UL, v.ToObject());
+        v.ToObject().Should().Be(9876543210123UL);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_R4_ReturnsFloat()
     {
         VARIANT v = MakeScalar(VARENUM.VT_R4, 1.5f);
-        Assert.Equal(1.5f, v.ToObject());
+        v.ToObject().Should().Be(1.5f);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_R8_ReturnsDouble()
     {
         VARIANT v = MakeScalar(VARENUM.VT_R8, 2.25);
-        Assert.Equal(2.25, v.ToObject());
+        v.ToObject().Should().Be(2.25);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_UINT_ReturnsUint()
     {
         VARIANT v = MakeScalar(VARENUM.VT_UINT, 42u);
-        Assert.Equal(42u, v.ToObject());
+        v.ToObject().Should().Be(42u);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_INT_ReturnsInt()
     {
         VARIANT v = MakeScalar(VARENUM.VT_INT, 7);
-        Assert.Equal(7, v.ToObject());
+        v.ToObject().Should().Be(7);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_ERROR_ReturnsInt()
     {
         VARIANT v = MakeScalar(VARENUM.VT_ERROR, unchecked((int)0x80004005));
-        Assert.Equal(unchecked((int)0x80004005), v.ToObject());
+        v.ToObject().Should().Be(unchecked((int)0x80004005));
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_DATE_ReturnsDateTime()
     {
         DateTime expected = new(2024, 3, 15);
         VARIANT v = MakeScalar(VARENUM.VT_DATE, expected.ToOADate());
-        Assert.Equal(expected, v.ToObject());
+        v.ToObject().Should().Be(expected);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_CY_ReturnsDecimal()
     {
         // OACurrency stores value * 10000 as Int64.
         VARIANT v = MakeScalar(VARENUM.VT_CY, 12345L);
-        Assert.Equal(1.2345m, v.ToObject());
+        v.ToObject().Should().Be(1.2345m);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_VT_VOID_ReturnsNull()
     {
         VARIANT v = new() { vt = VARENUM.VT_VOID };
-        Assert.Null(v.ToObject());
+        v.ToObject().Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void ToObject_Invalid_HighVtBits_Throws()
     {
         VARIANT v = new() { vt = (VARENUM)0xFF };
-        Assert.Throws<InvalidCastException>(() => v.ToObject());
+        FluentActions.Invoking(() => v.ToObject()).Should().Throw<InvalidCastException>();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_CLSID_ReturnsGuid()
     {
         Guid expected = new("12345678-1234-1234-1234-1234567890ab");
         VARIANT v = new() { vt = VARENUM.VT_CLSID };
         v.data.puuid = &expected;
-        Assert.Equal(expected, v.ToObject());
+        v.ToObject().Should().Be(expected);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_FILETIME_ReturnsDateTime()
     {
         DateTime expected = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc).ToLocalTime();
         FILETIME ft = (FILETIME)expected;
         VARIANT v = new() { vt = VARENUM.VT_FILETIME };
         Unsafe.As<VARIANT._Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union, FILETIME>(ref v.data) = ft;
-        Assert.Equal(expected, v.ToObject());
+        v.ToObject().Should().Be(expected);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_LPSTR_ReturnsString()
     {
         nint ansi = global::System.Runtime.InteropServices.Marshal.StringToCoTaskMemAnsi("ascii-text");
@@ -381,7 +384,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_LPSTR };
             v.data.pcVal = new PSTR((byte*)ansi);
-            Assert.Equal("ascii-text", v.ToObject());
+            v.ToObject().Should().Be("ascii-text");
         }
         finally
         {
@@ -389,15 +392,15 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_VARIANT_NotByref_ThrowsArgument()
     {
         VARIANT v = new() { vt = VARENUM.VT_VARIANT };
         // Falling through the switch with no byref bit set yields the "Unsupported VARENUM" path.
-        Assert.Throws<ArgumentException>(() => v.ToObject());
+        FluentActions.Invoking(() => v.ToObject()).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_ARRAY_VT_I4_ReturnsIntArray()
     {
         using SafeArrayScope<int> source = new([10, 20, 30]);
@@ -405,11 +408,11 @@ public partial class VariantTests
         VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
         v.data.parray = source.Value;
 
-        int[] array = Assert.IsType<int[]>(v.ToObject());
-        Assert.Equal([10, 20, 30], array);
+        int[] array = v.ToObject().Should().BeOfType<int[]>().Subject;
+        array.Should().Equal(10, 20, 30);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_ARRAY_VT_R8_ReturnsDoubleArray()
     {
         using SafeArrayScope<double> source = new([1.5, 2.5]);
@@ -417,11 +420,11 @@ public partial class VariantTests
         VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_R8 };
         v.data.parray = source.Value;
 
-        double[] array = Assert.IsType<double[]>(v.ToObject());
-        Assert.Equal([1.5, 2.5], array);
+        double[] array = v.ToObject().Should().BeOfType<double[]>().Subject;
+        array.Should().Equal(1.5, 2.5);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_ARRAY_VT_BSTR_ReturnsStringArray()
     {
         using SafeArrayScope<string> source = new(["alpha", "beta"]);
@@ -429,20 +432,20 @@ public partial class VariantTests
         VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_BSTR };
         v.data.parray = source.Value;
 
-        string[] array = Assert.IsType<string[]>(v.ToObject());
-        Assert.Equal(["alpha", "beta"], array);
+        string[] array = v.ToObject().Should().BeOfType<string[]>().Subject;
+        array.Should().Equal("alpha", "beta");
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_ARRAY_NullSafearray_ReturnsNull()
     {
         VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
         v.data.parray = null;
 
-        Assert.Null(v.ToObject());
+        v.ToObject().Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_ARRAY_2D_VT_I4_TransposesAndReturnsIntMatrix()
     {
         // 2x3 SAFEARRAY of VT_I4. Native SAFEARRAYs are column-major; CLR arrays are row-major,
@@ -452,7 +455,7 @@ public partial class VariantTests
         bounds[1] = new SAFEARRAYBOUND { cElements = 3, lLbound = 0 };
 
         SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_I4, 2, bounds);
-        Assert.False(psa is null);
+        (psa is null).Should().BeFalse();
 
         try
         {
@@ -479,10 +482,10 @@ public partial class VariantTests
             // regression (multi-dim arrays used to throw); strengthen the assertions to detect
             // dimension confusion: every populated source value must appear exactly once, with
             // no extras and no default-zero padding.
-            int[,] array = Assert.IsType<int[,]>(v.ToObject());
-            Assert.Equal(2, array.Rank);
-            Assert.Equal(6, array.Length);
-            Assert.Equal(6, array.GetLength(0) * array.GetLength(1));
+            int[,] array = v.ToObject().Should().BeOfType<int[,]>().Subject;
+            array.Rank.Should().Be(2);
+            array.Length.Should().Be(6);
+            (array.GetLength(0) * array.GetLength(1)).Should().Be(6);
 
             List<int> actual = [];
             for (int a = 0; a < array.GetLength(0); a++)
@@ -494,7 +497,7 @@ public partial class VariantTests
             }
 
             int[] expected = [0, 1, 2, 10, 11, 12];
-            Assert.Equal(expected.OrderBy(x => x), actual.OrderBy(x => x));
+            actual.OrderBy(x => x).Should().Equal(expected.OrderBy(x => x));
         }
         finally
         {
@@ -502,205 +505,205 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Byref_BoolByRef_ReturnsTrue()
     {
         VARIANT_BOOL b = VARIANT_BOOL.VARIANT_TRUE;
         VARIANT v = new() { vt = VARENUM.VT_BOOL | VARENUM.VT_BYREF };
         v.data.pboolVal = &b;
-        Assert.True(v.Byref);
+        v.Byref.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_BOOL_BYREF_ReturnsBool()
     {
         VARIANT_BOOL b = VARIANT_BOOL.VARIANT_TRUE;
         VARIANT v = new() { vt = VARENUM.VT_BOOL | VARENUM.VT_BYREF };
         v.data.pboolVal = &b;
-        Assert.Equal(true, v.ToObject());
+        v.ToObject().Should().Be(true);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_I4_BYREF_ReturnsInt()
     {
         int value = 1234;
         VARIANT v = new() { vt = VARENUM.VT_I4 | VARENUM.VT_BYREF };
         v.data.pintVal = &value;
-        Assert.Equal(1234, v.ToObject());
+        v.ToObject().Should().Be(1234);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_R8_BYREF_ReturnsDouble()
     {
         double value = 3.5;
         VARIANT v = new() { vt = VARENUM.VT_R8 | VARENUM.VT_BYREF };
         v.data.pdblVal = &value;
-        Assert.Equal(3.5, v.ToObject());
+        v.ToObject().Should().Be(3.5);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_VARIANT_BYREF_ReturnsNestedObject()
     {
         VARIANT inner = (VARIANT)42;
         VARIANT outer = new() { vt = VARENUM.VT_VARIANT | VARENUM.VT_BYREF };
         outer.data.pvarVal = &inner;
-        Assert.Equal(42, outer.ToObject());
+        outer.ToObject().Should().Be(42);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_EMPTY_BYREF_NullData_ReturnsZero()
     {
         VARIANT v = new() { vt = VARENUM.VT_EMPTY | VARENUM.VT_BYREF };
         // No data assigned — byref data pointer is null. Should yield 0 (uint/ulong),
         // not throw, per the VT_EMPTY|VT_BYREF special case.
         object? result = v.ToObject();
-        Assert.NotNull(result);
-        Assert.True(result is uint u && u == 0 || result is ulong ul && ul == 0);
+        result.Should().NotBeNull();
+        (result is uint u && u == 0 || result is ulong ul && ul == 0).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void GetManagedType_FromInstance_ReturnsBackingType()
     {
         VARIANT v = (VARIANT)123;
-        Assert.Equal(typeof(int), v.GetManagedType());
+        v.GetManagedType().Should().Be(typeof(int));
     }
 
-    [Fact]
+    [TestMethod]
     public void GetManagedType_FromEmptyInstance_ReturnsNull()
     {
-        Assert.Null(VARIANT.Empty.GetManagedType());
+        VARIANT.Empty.GetManagedType().Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void GetManagedType_Static_ReturnsExpectedTypes()
     {
-        Assert.Equal(typeof(int), VARIANT.GetManagedType(VARENUM.VT_I4));
-        Assert.Equal(typeof(uint), VARIANT.GetManagedType(VARENUM.VT_UI4));
-        Assert.Equal(typeof(bool), VARIANT.GetManagedType(VARENUM.VT_BOOL));
-        Assert.Equal(typeof(string), VARIANT.GetManagedType(VARENUM.VT_BSTR));
-        Assert.Equal(typeof(decimal), VARIANT.GetManagedType(VARENUM.VT_DECIMAL));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_UNKNOWN));
-        Assert.Equal(typeof(int[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_I4));
-        Assert.Null(VARIANT.GetManagedType((VARENUM)0xFFFF));
+        VARIANT.GetManagedType(VARENUM.VT_I4).Should().Be(typeof(int));
+        VARIANT.GetManagedType(VARENUM.VT_UI4).Should().Be(typeof(uint));
+        VARIANT.GetManagedType(VARENUM.VT_BOOL).Should().Be(typeof(bool));
+        VARIANT.GetManagedType(VARENUM.VT_BSTR).Should().Be(typeof(string));
+        VARIANT.GetManagedType(VARENUM.VT_DECIMAL).Should().Be(typeof(decimal));
+        VARIANT.GetManagedType(VARENUM.VT_UNKNOWN).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_I4).Should().Be(typeof(int[]));
+        VARIANT.GetManagedType((VARENUM)0xFFFF).Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void GetManagedType_AllScalarTypes_ReturnsExpected()
     {
-        Assert.Equal(typeof(sbyte), VARIANT.GetManagedType(VARENUM.VT_I1));
-        Assert.Equal(typeof(byte), VARIANT.GetManagedType(VARENUM.VT_UI1));
-        Assert.Equal(typeof(short), VARIANT.GetManagedType(VARENUM.VT_I2));
-        Assert.Equal(typeof(ushort), VARIANT.GetManagedType(VARENUM.VT_UI2));
-        Assert.Equal(typeof(int), VARIANT.GetManagedType(VARENUM.VT_INT));
-        Assert.Equal(typeof(uint), VARIANT.GetManagedType(VARENUM.VT_UINT));
-        Assert.Equal(typeof(long), VARIANT.GetManagedType(VARENUM.VT_I8));
-        Assert.Equal(typeof(ulong), VARIANT.GetManagedType(VARENUM.VT_UI8));
-        Assert.Equal(typeof(float), VARIANT.GetManagedType(VARENUM.VT_R4));
-        Assert.Equal(typeof(double), VARIANT.GetManagedType(VARENUM.VT_R8));
-        Assert.Equal(typeof(int), VARIANT.GetManagedType(VARENUM.VT_ERROR));
-        Assert.Equal(typeof(decimal), VARIANT.GetManagedType(VARENUM.VT_CY));
-        Assert.Equal(typeof(DateTime), VARIANT.GetManagedType(VARENUM.VT_DATE));
-        Assert.Equal(typeof(DateTime), VARIANT.GetManagedType(VARENUM.VT_FILETIME));
-        Assert.Equal(typeof(string), VARIANT.GetManagedType(VARENUM.VT_LPSTR));
-        Assert.Equal(typeof(string), VARIANT.GetManagedType(VARENUM.VT_LPWSTR));
-        Assert.Equal(typeof(VARIANT), VARIANT.GetManagedType(VARENUM.VT_VARIANT));
-        Assert.Equal(typeof(Guid), VARIANT.GetManagedType(VARENUM.VT_CLSID));
-        Assert.Equal(typeof(byte[]), VARIANT.GetManagedType(VARENUM.VT_BLOB));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_DISPATCH));
+        VARIANT.GetManagedType(VARENUM.VT_I1).Should().Be(typeof(sbyte));
+        VARIANT.GetManagedType(VARENUM.VT_UI1).Should().Be(typeof(byte));
+        VARIANT.GetManagedType(VARENUM.VT_I2).Should().Be(typeof(short));
+        VARIANT.GetManagedType(VARENUM.VT_UI2).Should().Be(typeof(ushort));
+        VARIANT.GetManagedType(VARENUM.VT_INT).Should().Be(typeof(int));
+        VARIANT.GetManagedType(VARENUM.VT_UINT).Should().Be(typeof(uint));
+        VARIANT.GetManagedType(VARENUM.VT_I8).Should().Be(typeof(long));
+        VARIANT.GetManagedType(VARENUM.VT_UI8).Should().Be(typeof(ulong));
+        VARIANT.GetManagedType(VARENUM.VT_R4).Should().Be(typeof(float));
+        VARIANT.GetManagedType(VARENUM.VT_R8).Should().Be(typeof(double));
+        VARIANT.GetManagedType(VARENUM.VT_ERROR).Should().Be(typeof(int));
+        VARIANT.GetManagedType(VARENUM.VT_CY).Should().Be(typeof(decimal));
+        VARIANT.GetManagedType(VARENUM.VT_DATE).Should().Be(typeof(DateTime));
+        VARIANT.GetManagedType(VARENUM.VT_FILETIME).Should().Be(typeof(DateTime));
+        VARIANT.GetManagedType(VARENUM.VT_LPSTR).Should().Be(typeof(string));
+        VARIANT.GetManagedType(VARENUM.VT_LPWSTR).Should().Be(typeof(string));
+        VARIANT.GetManagedType(VARENUM.VT_VARIANT).Should().Be(typeof(VARIANT));
+        VARIANT.GetManagedType(VARENUM.VT_CLSID).Should().Be(typeof(Guid));
+        VARIANT.GetManagedType(VARENUM.VT_BLOB).Should().Be(typeof(byte[]));
+        VARIANT.GetManagedType(VARENUM.VT_DISPATCH).Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void GetManagedType_ArrayTypes_ReturnsArrayType()
     {
-        Assert.Equal(typeof(byte[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_UI1));
-        Assert.Equal(typeof(short[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_I2));
-        Assert.Equal(typeof(uint[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_UI4));
-        Assert.Equal(typeof(int[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_ERROR));
-        Assert.Equal(typeof(double[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_R8));
-        Assert.Equal(typeof(bool[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_BOOL));
-        Assert.Equal(typeof(string[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_BSTR));
-        Assert.Equal(typeof(Guid[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_CLSID));
-        Assert.Equal(typeof(decimal[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_DECIMAL));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_DISPATCH));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_UI1).Should().Be(typeof(byte[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_I2).Should().Be(typeof(short[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_UI4).Should().Be(typeof(uint[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_ERROR).Should().Be(typeof(int[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_R8).Should().Be(typeof(double[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_BOOL).Should().Be(typeof(bool[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_BSTR).Should().Be(typeof(string[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_CLSID).Should().Be(typeof(Guid[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_DECIMAL).Should().Be(typeof(decimal[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_DISPATCH).Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void GetManagedType_StaticSpecialCases_ReturnExpectedTypes()
     {
-        Assert.Equal(typeof(Stream), VARIANT.GetManagedType(VARENUM.VT_STREAM));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_CF));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_STREAMED_OBJECT));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_STORAGE));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_STORED_OBJECT));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_VERSIONED_STREAM));
+        VARIANT.GetManagedType(VARENUM.VT_STREAM).Should().Be(typeof(Stream));
+        VARIANT.GetManagedType(VARENUM.VT_CF).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_STREAMED_OBJECT).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_STORAGE).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_STORED_OBJECT).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_VERSIONED_STREAM).Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void GetManagedType_VectorTypes_ReturnExpectedArrayTypes()
     {
-        Assert.Equal(typeof(sbyte[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_I1));
-        Assert.Equal(typeof(ushort[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_UI2));
-        Assert.Equal(typeof(long[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_I8));
-        Assert.Equal(typeof(ulong[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_UI8));
-        Assert.Equal(typeof(int[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_INT));
-        Assert.Equal(typeof(uint[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_UINT));
-        Assert.Equal(typeof(float[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_R4));
-        Assert.Equal(typeof(decimal[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_CY));
-        Assert.Equal(typeof(DateTime[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_DATE));
-        Assert.Equal(typeof(DateTime[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_FILETIME));
-        Assert.Equal(typeof(string[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_LPSTR));
-        Assert.Equal(typeof(string[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_LPWSTR));
-        Assert.Equal(typeof(VARIANT[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_VARIANT));
-        Assert.Equal(typeof(Stream[]), VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_STREAM));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_UNKNOWN));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_DISPATCH));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_I1).Should().Be(typeof(sbyte[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_UI2).Should().Be(typeof(ushort[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_I8).Should().Be(typeof(long[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_UI8).Should().Be(typeof(ulong[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_INT).Should().Be(typeof(int[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_UINT).Should().Be(typeof(uint[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_R4).Should().Be(typeof(float[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_CY).Should().Be(typeof(decimal[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_DATE).Should().Be(typeof(DateTime[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_FILETIME).Should().Be(typeof(DateTime[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_LPSTR).Should().Be(typeof(string[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_LPWSTR).Should().Be(typeof(string[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_VARIANT).Should().Be(typeof(VARIANT[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_STREAM).Should().Be(typeof(Stream[]));
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_UNKNOWN).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_VECTOR | VARENUM.VT_DISPATCH).Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void GetManagedType_ArraySpecialCases_ReturnExpectedTypes()
     {
-        Assert.Equal(typeof(Stream[]), VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_STREAM));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_BLOB));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_CF));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_STREAMED_OBJECT));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_STORAGE));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_STORED_OBJECT));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_VERSIONED_STREAM));
-        Assert.Null(VARIANT.GetManagedType(VARENUM.VT_VOID));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_STREAM).Should().Be(typeof(Stream[]));
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_BLOB).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_CF).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_STREAMED_OBJECT).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_STORAGE).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_STORED_OBJECT).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_ARRAY | VARENUM.VT_VERSIONED_STREAM).Should().BeNull();
+        VARIANT.GetManagedType(VARENUM.VT_VOID).Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public void ByrefProperty_ReflectsVtFlag()
     {
         VARIANT v = (VARIANT)1;
-        Assert.False(v.Byref);
+        v.Byref.Should().BeFalse();
         v.vt |= VARENUM.VT_BYREF;
-        Assert.True(v.Byref);
+        v.Byref.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void Dispose_ClearsVariant()
     {
         VARIANT v = (VARIANT)123;
         v.Dispose();
-        Assert.True(v.IsEmpty);
-        Assert.Equal(VARENUM.VT_EMPTY, v.vt);
+        v.IsEmpty.Should().BeTrue();
+        v.vt.Should().Be(VARENUM.VT_EMPTY);
     }
 
-    [Fact]
+    [TestMethod]
     public void Clear_ClearsVariant()
     {
         VARIANT v = (VARIANT)456;
         v.Clear();
-        Assert.True(v.IsEmpty);
-        Assert.Equal(VARENUM.VT_EMPTY, v.vt);
+        v.IsEmpty.Should().BeTrue();
+        v.vt.Should().Be(VARENUM.VT_EMPTY);
     }
 
     private static unsafe SAFEARRAY* CreateSafeArray<T>(VARENUM vt, T[] values) where T : unmanaged
     {
         SAFEARRAYBOUND bound = new() { cElements = (uint)values.Length, lLbound = 0 };
         SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(vt, 1, &bound);
-        Assert.False(psa is null);
+        (psa is null).Should().BeFalse();
         for (int i = 0; i < values.Length; i++)
         {
             T value = values[i];
@@ -716,7 +719,7 @@ public partial class VariantTests
     {
         SAFEARRAYBOUND bounds = new() { cElements = (uint)values.Length, lLbound = 5 };
         SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(safeArrayType, 1, &bounds);
-        Assert.False(psa is null);
+        (psa is null).Should().BeFalse();
 
         try
         {
@@ -729,9 +732,9 @@ public partial class VariantTests
 
             VARIANT variant = new() { vt = VARENUM.VT_ARRAY | variantType };
             variant.data.parray = psa;
-            Array result = Assert.IsAssignableFrom<Array>(variant.ToObject());
-            Assert.Equal(5, result.GetLowerBound(0));
-            Assert.Equal(values.Length, result.Length);
+            Array result = variant.ToObject().Should().BeAssignableTo<Array>().Subject;
+            result.GetLowerBound(0).Should().Be(5);
+            result.Length.Should().Be(values.Length);
             return result;
         }
         finally
@@ -768,25 +771,25 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void Clear_NonEmptyBstr_ClearsAndFreesString()
     {
         VARIANT v = (VARIANT)"some-text";
-        Assert.False(v.IsEmpty);
+        v.IsEmpty.Should().BeFalse();
         v.Clear();
-        Assert.True(v.IsEmpty);
-        Assert.Equal(VARENUM.VT_EMPTY, v.vt);
+        v.IsEmpty.Should().BeTrue();
+        v.vt.Should().Be(VARENUM.VT_EMPTY);
     }
 
-    [Fact]
+    [TestMethod]
     public void Clear_AlreadyEmpty_NoOps()
     {
         VARIANT v = VARIANT.Empty;
         v.Clear();
-        Assert.True(v.IsEmpty);
+        v.IsEmpty.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void StringCast_VT_LPWSTR_ReturnsString()
     {
         nint wide = InteropMarshal.StringToCoTaskMemUni("wide-text");
@@ -794,7 +797,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_LPWSTR };
             v.data.pcVal = new PSTR((byte*)wide);
-            Assert.Equal("wide-text", (string)v);
+            ((string)v).Should().Be("wide-text");
         }
         finally
         {
@@ -802,7 +805,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_LPWSTR_ReturnsString()
     {
         nint wide = InteropMarshal.StringToCoTaskMemUni("wide-obj");
@@ -810,7 +813,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_LPWSTR };
             v.data.pcVal = new PSTR((byte*)wide);
-            Assert.Equal("wide-obj", v.ToObject());
+            v.ToObject().Should().Be("wide-obj");
         }
         finally
         {
@@ -818,22 +821,22 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_HRESULT_ReturnsInt()
     {
         VARIANT v = MakeScalar(VARENUM.VT_HRESULT, unchecked((int)0x80070005));
-        Assert.Equal(unchecked((int)0x80070005), v.ToObject());
+        v.ToObject().Should().Be(unchecked((int)0x80070005));
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_UNKNOWN_NullPointer_ReturnsNull()
     {
         VARIANT v = new() { vt = VARENUM.VT_UNKNOWN };
         v.data.punkVal = null;
-        Assert.Null(v.ToObject());
+        v.ToObject().Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_UNKNOWN_NonNullPointer_ReturnsComObject()
     {
         object source = new();
@@ -842,7 +845,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_UNKNOWN };
             v.data.punkVal = (IUnknown*)unknown;
-            Assert.NotNull(v.ToObject());
+            v.ToObject().Should().NotBeNull();
         }
         finally
         {
@@ -850,24 +853,24 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_DECIMAL_BYREF_ReturnsDecimal()
     {
         DECIMAL value = new(42.125m);
         VARIANT v = new() { vt = VARENUM.VT_DECIMAL | VARENUM.VT_BYREF };
         v.data.byref = &value;
-        Assert.Equal(42.125m, v.ToObject());
+        v.ToObject().Should().Be(42.125m);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_DISPATCH_NullPointer_ReturnsNull()
     {
         VARIANT v = new() { vt = VARENUM.VT_DISPATCH };
         v.data.pdispVal = null;
-        Assert.Null(v.ToObject());
+        v.ToObject().Should().BeNull();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_VARIANT_BYREF_NestedByref_Throws()
     {
         VARIANT innerByref = new() { vt = VARENUM.VT_I4 | VARENUM.VT_BYREF };
@@ -875,53 +878,53 @@ public partial class VariantTests
         innerByref.data.pintVal = &value;
         VARIANT outer = new() { vt = VARENUM.VT_VARIANT | VARENUM.VT_BYREF };
         outer.data.pvarVal = &innerByref;
-        Assert.Throws<InvalidOleVariantTypeException>(() => outer.ToObject());
+        FluentActions.Invoking(() => outer.ToObject()).Should().Throw<InvalidOleVariantTypeException>();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_CLSID_Byref_Throws()
     {
         Guid g = Guid.NewGuid();
         Guid* pg = &g;
         VARIANT v = new() { vt = VARENUM.VT_CLSID | VARENUM.VT_BYREF };
         v.data.byref = &pg;
-        Assert.Throws<ArgumentException>(() => v.ToObject());
+        FluentActions.Invoking(() => v.ToObject()).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_FILETIME_Byref_Throws()
     {
         FILETIME ft = default;
         VARIANT v = new() { vt = VARENUM.VT_FILETIME | VARENUM.VT_BYREF };
         v.data.byref = &ft;
-        Assert.Throws<ArgumentException>(() => v.ToObject());
+        FluentActions.Invoking(() => v.ToObject()).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_RECORD_NullRecInfo_Throws()
     {
         VARIANT v = new() { vt = VARENUM.VT_RECORD };
-        Assert.Throws<ArgumentException>(() => v.ToObject());
+        FluentActions.Invoking(() => v.ToObject()).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Byref_NullData_NonEmpty_Throws()
     {
         VARIANT v = new() { vt = VARENUM.VT_I4 | VARENUM.VT_BYREF };
         v.data.pintVal = null;
-        Assert.Throws<ArgumentException>(() => v.ToObject());
+        FluentActions.Invoking(() => v.ToObject()).Should().Throw<ArgumentException>();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_VT_NULL_BYREF_NullData_ReturnsDBNull()
     {
         VARIANT v = new() { vt = VARENUM.VT_NULL | VARENUM.VT_BYREF };
-        Assert.Equal(Convert.DBNull, v.ToObject());
+        v.ToObject().Should().Be(Convert.DBNull);
     }
 
     // ===== ToArray (VT_ARRAY) coverage =====
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_I1_ReturnsSbyteArray()
     {
         sbyte[] values = [-1, 2, -3];
@@ -930,7 +933,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I1 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<sbyte[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<sbyte[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -938,7 +941,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_UI1_ReturnsByteArray()
     {
         byte[] values = [1, 2, 3];
@@ -947,7 +950,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UI1 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<byte[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<byte[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -955,7 +958,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_I2_ReturnsShortArray()
     {
         short[] values = [-1, 2];
@@ -964,7 +967,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I2 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<short[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<short[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -972,7 +975,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_UI2_ReturnsUshortArray()
     {
         ushort[] values = [1, 2];
@@ -981,7 +984,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UI2 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<ushort[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<ushort[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -989,7 +992,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_UI4_ReturnsUintArray()
     {
         uint[] values = [1u, 2u];
@@ -998,7 +1001,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UI4 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<uint[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<uint[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1006,7 +1009,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_I8_ReturnsLongArray()
     {
         long[] values = [-1L, 2L];
@@ -1015,7 +1018,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I8 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<long[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<long[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1023,7 +1026,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_UI8_ReturnsUlongArray()
     {
         ulong[] values = [1UL, 2UL];
@@ -1032,7 +1035,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UI8 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<ulong[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<ulong[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1040,7 +1043,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_R4_ReturnsFloatArray()
     {
         float[] values = [1.5f, 2.5f];
@@ -1049,7 +1052,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_R4 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<float[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<float[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1057,7 +1060,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_BOOL_ReturnsBoolArray()
     {
         VARIANT_BOOL[] values = [VARIANT_BOOL.VARIANT_TRUE, VARIANT_BOOL.VARIANT_FALSE];
@@ -1067,7 +1070,7 @@ public partial class VariantTests
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_BOOL };
             v.data.parray = psa;
             bool[] expected = [true, false];
-            Assert.Equal(expected, Assert.IsType<bool[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<bool[]>().Which.Should().Equal(expected);
         }
         finally
         {
@@ -1075,7 +1078,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_DATE_ReturnsDateTimeArray()
     {
         DateTime d1 = new(2024, 1, 1);
@@ -1087,7 +1090,7 @@ public partial class VariantTests
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_DATE };
             v.data.parray = psa;
             DateTime[] expected = [d1, d2];
-            Assert.Equal(expected, Assert.IsType<DateTime[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<DateTime[]>().Which.Should().Equal(expected);
         }
         finally
         {
@@ -1095,7 +1098,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_CY_ReturnsDecimalArray()
     {
         long[] values = [12345L, 67890L];
@@ -1105,7 +1108,7 @@ public partial class VariantTests
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_CY };
             v.data.parray = psa;
             decimal[] expected = [1.2345m, 6.789m];
-            Assert.Equal(expected, Assert.IsType<decimal[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<decimal[]>().Which.Should().Equal(expected);
         }
         finally
         {
@@ -1113,7 +1116,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_DECIMAL_ReturnsDecimalArray()
     {
         // Regression guard: VARIANT.ToObject used to short-circuit on `Type == VT_DECIMAL`
@@ -1126,7 +1129,7 @@ public partial class VariantTests
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_DECIMAL };
             v.data.parray = psa;
             decimal[] expected = [1.5m, 2.5m];
-            Assert.Equal(expected, Assert.IsType<decimal[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<decimal[]>().Which.Should().Equal(expected);
         }
         finally
         {
@@ -1134,7 +1137,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_VARIANT_ReturnsObjectArray()
     {
 #if NETFRAMEWORK
@@ -1147,7 +1150,7 @@ public partial class VariantTests
         PInvokeMadowaku.SafeArrayPutElement(source481.Value, &idx481, &inner481).ThrowOnFailure();
         VARIANT v481 = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_VARIANT };
         v481.data.parray = source481.Value;
-        Assert.Throws<ArgumentException>(() => v481.ToObject());
+        FluentActions.Invoking(() => v481.ToObject()).Should().Throw<ArgumentException>();
 #else
         using SafeArrayScope<object> source = new(2);
         VARIANT one = (VARIANT)1;
@@ -1159,13 +1162,13 @@ public partial class VariantTests
 
         VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_VARIANT };
         v.data.parray = source.Value;
-        object?[] array = Assert.IsType<object?[]>(v.ToObject());
+        object?[] array = v.ToObject().Should().BeOfType<object?[]>().Subject;
         object?[] expected = [1, 2];
-        Assert.Equal(expected, array);
+        array.Should().Equal(expected);
 #endif
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_RECORD_MismatchedSafeArray_ThrowsArgumentException()
     {
         // Constructing a true VT_RECORD SAFEARRAY requires an IRecordInfo, which is impractical
@@ -1178,7 +1181,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_RECORD };
             v.data.parray = psa;
-            Assert.Throws<ArgumentException>(() => v.ToObject());
+            FluentActions.Invoking(() => v.ToObject()).Should().Throw<ArgumentException>();
         }
         finally
         {
@@ -1186,12 +1189,12 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_NonZeroLowerBound_PreservesBounds()
     {
         SAFEARRAYBOUND bound = new() { cElements = 3, lLbound = 5 };
         SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_I4, 1, &bound);
-        Assert.False(psa is null);
+        (psa is null).Should().BeFalse();
 
         try
         {
@@ -1204,13 +1207,13 @@ public partial class VariantTests
 
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
             v.data.parray = psa;
-            Array array = Assert.IsAssignableFrom<Array>(v.ToObject());
-            Assert.Equal(1, array.Rank);
-            Assert.Equal(5, array.GetLowerBound(0));
-            Assert.Equal(3, array.Length);
-            Assert.Equal(0, array.GetValue(5));
-            Assert.Equal(10, array.GetValue(6));
-            Assert.Equal(20, array.GetValue(7));
+            Array array = v.ToObject().Should().BeAssignableTo<Array>().Subject;
+            array.Rank.Should().Be(1);
+            array.GetLowerBound(0).Should().Be(5);
+            array.Length.Should().Be(3);
+            array.GetValue(5).Should().Be(0);
+            array.GetValue(6).Should().Be(10);
+            array.GetValue(7).Should().Be(20);
         }
         finally
         {
@@ -1221,39 +1224,39 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_NonZeroLowerBound_VariousScalarTypes_RoundTrip()
     {
         Array i1 = ConvertNonZeroLowerBoundArray(VARENUM.VT_I1, VARENUM.VT_I1, (sbyte[])[-1, 2]);
-        Assert.Equal((sbyte)-1, i1.GetValue(5));
-        Assert.Equal((sbyte)2, i1.GetValue(6));
+        i1.GetValue(5).Should().Be((sbyte)-1);
+        i1.GetValue(6).Should().Be((sbyte)2);
 
         Array ui1 = ConvertNonZeroLowerBoundArray(VARENUM.VT_UI1, VARENUM.VT_UI1, (byte[])[1, 2]);
-        Assert.Equal((byte)1, ui1.GetValue(5));
-        Assert.Equal((byte)2, ui1.GetValue(6));
+        ui1.GetValue(5).Should().Be((byte)1);
+        ui1.GetValue(6).Should().Be((byte)2);
 
         Array i2 = ConvertNonZeroLowerBoundArray(VARENUM.VT_I2, VARENUM.VT_I2, (short[])[-2, 3]);
-        Assert.Equal((short)-2, i2.GetValue(5));
-        Assert.Equal((short)3, i2.GetValue(6));
+        i2.GetValue(5).Should().Be((short)-2);
+        i2.GetValue(6).Should().Be((short)3);
 
         Array ui2 = ConvertNonZeroLowerBoundArray(VARENUM.VT_UI2, VARENUM.VT_UI2, (ushort[])[2, 4]);
-        Assert.Equal((ushort)2, ui2.GetValue(5));
-        Assert.Equal((ushort)4, ui2.GetValue(6));
+        ui2.GetValue(5).Should().Be((ushort)2);
+        ui2.GetValue(6).Should().Be((ushort)4);
 
         Array i8 = ConvertNonZeroLowerBoundArray(VARENUM.VT_I8, VARENUM.VT_I8, (long[])[-3, 6]);
-        Assert.Equal(-3L, i8.GetValue(5));
-        Assert.Equal(6L, i8.GetValue(6));
+        i8.GetValue(5).Should().Be(-3L);
+        i8.GetValue(6).Should().Be(6L);
 
         Array ui8 = ConvertNonZeroLowerBoundArray(VARENUM.VT_UI8, VARENUM.VT_UI8, (ulong[])[3, 6]);
-        Assert.Equal(3UL, ui8.GetValue(5));
-        Assert.Equal(6UL, ui8.GetValue(6));
+        ui8.GetValue(5).Should().Be(3UL);
+        ui8.GetValue(6).Should().Be(6UL);
 
         Array r4 = ConvertNonZeroLowerBoundArray(VARENUM.VT_R4, VARENUM.VT_R4, (float[])[1.25f, 2.5f]);
-        Assert.Equal(1.25f, r4.GetValue(5));
-        Assert.Equal(2.5f, r4.GetValue(6));
+        r4.GetValue(5).Should().Be(1.25f);
+        r4.GetValue(6).Should().Be(2.5f);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_NonZeroLowerBound_VT_DATE_BehaviorByTfm()
     {
         DateTime d1 = new(2024, 1, 1);
@@ -1261,15 +1264,16 @@ public partial class VariantTests
         double[] values = [d1.ToOADate(), d2.ToOADate()];
 
 #if NETFRAMEWORK
-        Assert.Throws<ArgumentException>(() => ConvertNonZeroLowerBoundArray(VARENUM.VT_DATE, VARENUM.VT_DATE, values));
+        FluentActions.Invoking(() => ConvertNonZeroLowerBoundArray(VARENUM.VT_DATE, VARENUM.VT_DATE, values))
+            .Should().Throw<ArgumentException>();
 #else
         Array dateArray = ConvertNonZeroLowerBoundArray(VARENUM.VT_DATE, VARENUM.VT_DATE, values);
-        Assert.Equal(d1, dateArray.GetValue(5));
-        Assert.Equal(d2, dateArray.GetValue(6));
+        dateArray.GetValue(5).Should().Be(d1);
+        dateArray.GetValue(6).Should().Be(d2);
 #endif
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_TypeMismatch_Throws()
     {
         double[] values = [1.0];
@@ -1278,7 +1282,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
             v.data.parray = psa;
-            Assert.Throws<SafeArrayTypeMismatchException>(() => v.ToObject());
+            FluentActions.Invoking(() => v.ToObject()).Should().Throw<SafeArrayTypeMismatchException>();
         }
         finally
         {
@@ -1286,7 +1290,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_EMPTY_ThrowsInvalidOleVariantTypeException()
     {
         int[] values = [1];
@@ -1295,7 +1299,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_EMPTY };
             v.data.parray = psa;
-            Assert.Throws<InvalidOleVariantTypeException>(() => v.ToObject());
+            FluentActions.Invoking(() => v.ToObject()).Should().Throw<InvalidOleVariantTypeException>();
         }
         finally
         {
@@ -1303,18 +1307,18 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_UNKNOWN_EmptySafeArray_ReturnsEmptyObjectArray()
     {
         SAFEARRAYBOUND bounds = new() { cElements = 0, lLbound = 0 };
         SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bounds);
-        Assert.False(psa is null);
+        (psa is null).Should().BeFalse();
 
         try
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UNKNOWN };
             v.data.parray = psa;
-            Assert.Empty(Assert.IsType<object?[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<object?[]>().Which.Should().BeEmpty();
         }
         finally
         {
@@ -1325,18 +1329,18 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_DISPATCH_EmptySafeArray_ReturnsEmptyObjectArray()
     {
         SAFEARRAYBOUND bounds = new() { cElements = 0, lLbound = 0 };
         SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_DISPATCH, 1, &bounds);
-        Assert.False(psa is null);
+        (psa is null).Should().BeFalse();
 
         try
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_DISPATCH };
             v.data.parray = psa;
-            Assert.Empty(Assert.IsType<object?[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<object?[]>().Which.Should().BeEmpty();
         }
         finally
         {
@@ -1347,7 +1351,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_INT_From_VT_I4_SafeArray_Succeeds()
     {
         int[] values = [7, 8];
@@ -1356,7 +1360,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_INT };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<int[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<int[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1364,7 +1368,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_I4_From_VT_INT_SafeArray_Succeeds()
     {
         int[] values = [9, 10];
@@ -1373,7 +1377,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<int[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<int[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1381,7 +1385,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_VT_UINT_From_VT_UI4_SafeArray_Succeeds()
     {
         uint[] values = [11u, 12u];
@@ -1390,7 +1394,7 @@ public partial class VariantTests
         {
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UINT };
             v.data.parray = psa;
-            Assert.Equal(values, Assert.IsType<uint[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<uint[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1398,7 +1402,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_2D_VT_BSTR_TransposesStrings()
     {
         SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[2];
@@ -1422,8 +1426,8 @@ public partial class VariantTests
 
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_BSTR };
             v.data.parray = psa;
-            string[,] array = Assert.IsType<string[,]>(v.ToObject());
-            Assert.Equal(4, array.Length);
+            string[,] array = v.ToObject().Should().BeOfType<string[,]>().Subject;
+            array.Length.Should().Be(4);
             List<string> items = [];
             for (int a = 0; a < array.GetLength(0); a++)
             {
@@ -1434,7 +1438,7 @@ public partial class VariantTests
             }
 
             string[] expected = ["0,0", "0,1", "1,0", "1,1"];
-            Assert.Equal(expected, items.OrderBy(x => x));
+            items.OrderBy(x => x).Should().Equal(expected);
         }
         finally
         {
@@ -1442,7 +1446,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_3D_VT_R8_Transposes()
     {
         SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[3];
@@ -1470,8 +1474,8 @@ public partial class VariantTests
 
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_R8 };
             v.data.parray = psa;
-            double[,,] array = Assert.IsType<double[,,]>(v.ToObject());
-            Assert.Equal(8, array.Length);
+            double[,,] array = v.ToObject().Should().BeOfType<double[,,]>().Subject;
+            array.Length.Should().Be(8);
 
             // Validate that every populated source value appears exactly once in the CLR array.
             // SAFEARRAYs are column-major and CLR arrays are row-major, so VARIANT.ToObject
@@ -1492,7 +1496,7 @@ public partial class VariantTests
             }
 
             double[] expected = [0, 1, 10, 11, 100, 101, 110, 111];
-            Assert.Equal(expected.OrderBy(x => x), actual.OrderBy(x => x));
+            actual.OrderBy(x => x).Should().Equal(expected.OrderBy(x => x));
         }
         finally
         {
@@ -1500,14 +1504,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Array_2D_VT_UINT_Transposes()
     {
         SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[2];
         bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
         bounds[1] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
         SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UI4, 2, bounds);
-        Assert.False(psa is null);
+        (psa is null).Should().BeFalse();
 
         try
         {
@@ -1526,7 +1530,7 @@ public partial class VariantTests
 
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_UINT };
             v.data.parray = psa;
-            uint[,] array = Assert.IsType<uint[,]>(v.ToObject());
+            uint[,] array = v.ToObject().Should().BeOfType<uint[,]>().Subject;
 
             uint[] expected = [0u, 1u, 10u, 11u];
             List<uint> actual = [];
@@ -1538,7 +1542,7 @@ public partial class VariantTests
                 }
             }
 
-            Assert.Equal(expected.OrderBy(x => x), actual.OrderBy(x => x));
+            actual.OrderBy(x => x).Should().Equal(expected.OrderBy(x => x));
         }
         finally
         {
@@ -1551,14 +1555,14 @@ public partial class VariantTests
 
     // ===== ToVector (VT_VECTOR) coverage =====
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_I1_ReturnsSbyteArray()
     {
         sbyte[] values = [-1, 2];
         VARIANT v = MakeVector(VARENUM.VT_I1, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<sbyte[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<sbyte[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1566,14 +1570,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_UI1_ReturnsByteArray()
     {
         byte[] values = [1, 2, 3];
         VARIANT v = MakeVector(VARENUM.VT_UI1, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<byte[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<byte[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1581,14 +1585,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_I2_ReturnsShortArray()
     {
         short[] values = [-1, 2];
         VARIANT v = MakeVector(VARENUM.VT_I2, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<short[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<short[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1596,14 +1600,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_UI2_ReturnsUshortArray()
     {
         ushort[] values = [1, 2];
         VARIANT v = MakeVector(VARENUM.VT_UI2, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<ushort[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<ushort[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1611,14 +1615,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_I4_ReturnsIntArray()
     {
         int[] values = [1, 2, 3];
         VARIANT v = MakeVector(VARENUM.VT_I4, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<int[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<int[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1626,14 +1630,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_INT_ReturnsIntArray()
     {
         int[] values = [4, 5];
         VARIANT v = MakeVector(VARENUM.VT_INT, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<int[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<int[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1641,14 +1645,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_UI4_ReturnsUintArray()
     {
         uint[] values = [1u, 2u];
         VARIANT v = MakeVector(VARENUM.VT_UI4, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<uint[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<uint[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1656,14 +1660,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_UINT_ReturnsUintArray()
     {
         uint[] values = [3u, 4u];
         VARIANT v = MakeVector(VARENUM.VT_UINT, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<uint[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<uint[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1671,14 +1675,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_ERROR_ReturnsUintArray()
     {
         uint[] values = [5u];
         VARIANT v = MakeVector(VARENUM.VT_ERROR, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<uint[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<uint[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1686,14 +1690,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_I8_ReturnsLongArray()
     {
         long[] values = [1L, 2L];
         VARIANT v = MakeVector(VARENUM.VT_I8, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<long[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<long[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1701,14 +1705,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_UI8_ReturnsUlongArray()
     {
         ulong[] values = [1UL, 2UL];
         VARIANT v = MakeVector(VARENUM.VT_UI8, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<ulong[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<ulong[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1716,14 +1720,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_R4_ReturnsFloatArray()
     {
         float[] values = [1.5f, 2.5f];
         VARIANT v = MakeVector(VARENUM.VT_R4, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<float[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<float[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1731,14 +1735,14 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_R8_ReturnsDoubleArray()
     {
         double[] values = [1.5, 2.5];
         VARIANT v = MakeVector(VARENUM.VT_R8, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<double[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<double[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1746,7 +1750,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_BOOL_ReturnsBoolArray()
     {
         VARIANT_BOOL[] values = [VARIANT_BOOL.VARIANT_TRUE, VARIANT_BOOL.VARIANT_FALSE];
@@ -1754,7 +1758,7 @@ public partial class VariantTests
         try
         {
             bool[] expected = [true, false];
-            Assert.Equal(expected, Assert.IsType<bool[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<bool[]>().Which.Should().Equal(expected);
         }
         finally
         {
@@ -1762,7 +1766,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_CY_ReturnsDecimalArray()
     {
         long[] values = [12345L];
@@ -1770,7 +1774,7 @@ public partial class VariantTests
         try
         {
             decimal[] expected = [1.2345m];
-            Assert.Equal(expected, Assert.IsType<decimal[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<decimal[]>().Which.Should().Equal(expected);
         }
         finally
         {
@@ -1778,7 +1782,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_DATE_ReturnsDateTimeArray()
     {
         DateTime d = new(2024, 1, 1);
@@ -1787,7 +1791,7 @@ public partial class VariantTests
         try
         {
             DateTime[] expected = [d];
-            Assert.Equal(expected, Assert.IsType<DateTime[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<DateTime[]>().Which.Should().Equal(expected);
         }
         finally
         {
@@ -1795,7 +1799,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_FILETIME_ReturnsDateTimeArray()
     {
         DateTime expected = new DateTime(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc).ToLocalTime();
@@ -1805,7 +1809,7 @@ public partial class VariantTests
         try
         {
             DateTime[] expectedArray = [expected];
-            Assert.Equal(expectedArray, Assert.IsType<DateTime[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<DateTime[]>().Which.Should().Equal(expectedArray);
         }
         finally
         {
@@ -1813,7 +1817,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_CLSID_ReturnsGuidArray()
     {
         Guid g1 = Guid.NewGuid();
@@ -1822,7 +1826,7 @@ public partial class VariantTests
         VARIANT v = MakeVector(VARENUM.VT_CLSID, values);
         try
         {
-            Assert.Equal(values, Assert.IsType<Guid[]>(v.ToObject()));
+            v.ToObject().Should().BeOfType<Guid[]>().Which.Should().Equal(values);
         }
         finally
         {
@@ -1830,7 +1834,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_BSTR_ReturnsStringArray()
     {
         BSTR b1 = new("alpha");
@@ -1841,9 +1845,9 @@ public partial class VariantTests
             VARIANT v = MakeVector(VARENUM.VT_BSTR, values);
             try
             {
-                string?[] array = Assert.IsType<string?[]>(v.ToObject());
+                string?[] array = v.ToObject().Should().BeOfType<string?[]>().Subject;
                 string?[] expected = ["alpha", "beta"];
-                Assert.Equal(expected, array);
+                array.Should().Equal(expected);
             }
             finally
             {
@@ -1857,7 +1861,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_LPWSTR_ReturnsStringArray()
     {
         nint s1 = InteropMarshal.StringToCoTaskMemUni("one");
@@ -1868,9 +1872,9 @@ public partial class VariantTests
             VARIANT v = MakeVector(VARENUM.VT_LPWSTR, values);
             try
             {
-                string?[] array = Assert.IsType<string?[]>(v.ToObject());
+                string?[] array = v.ToObject().Should().BeOfType<string?[]>().Subject;
                 string?[] expected = ["one", "two"];
-                Assert.Equal(expected, array);
+                array.Should().Equal(expected);
             }
             finally
             {
@@ -1884,7 +1888,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_LPSTR_ReturnsStringArray()
     {
         nint s1 = InteropMarshal.StringToCoTaskMemAnsi("one");
@@ -1895,9 +1899,9 @@ public partial class VariantTests
             VARIANT v = MakeVector(VARENUM.VT_LPSTR, values);
             try
             {
-                string?[] array = Assert.IsType<string?[]>(v.ToObject());
+                string?[] array = v.ToObject().Should().BeOfType<string?[]>().Subject;
                 string?[] expected = ["one", "two"];
-                Assert.Equal(expected, array);
+                array.Should().Equal(expected);
             }
             finally
             {
@@ -1911,7 +1915,7 @@ public partial class VariantTests
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_VT_VARIANT_ReturnsObjectArray()
     {
 #if NETFRAMEWORK
@@ -1922,7 +1926,7 @@ public partial class VariantTests
         VARIANT v481 = MakeVector(VARENUM.VT_VARIANT, inners481);
         try
         {
-            Assert.Throws<ArgumentException>(() => v481.ToObject());
+            FluentActions.Invoking(() => v481.ToObject()).Should().Throw<ArgumentException>();
         }
         finally
         {
@@ -1933,9 +1937,9 @@ public partial class VariantTests
         VARIANT v = MakeVector(VARENUM.VT_VARIANT, inners);
         try
         {
-            object?[] array = Assert.IsType<object?[]>(v.ToObject());
+            object?[] array = v.ToObject().Should().BeOfType<object?[]>().Subject;
             object?[] expected = [1, 2];
-            Assert.Equal(expected, array);
+            array.Should().Equal(expected);
         }
         finally
         {
@@ -1944,14 +1948,14 @@ public partial class VariantTests
 #endif
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ToObject_Vector_UnsupportedType_Throws()
     {
         int[] values = [0];
         VARIANT v = MakeVector(VARENUM.VT_CF, values);
         try
         {
-            Assert.Throws<ArgumentException>(() => v.ToObject());
+            FluentActions.Invoking(() => v.ToObject()).Should().Throw<ArgumentException>();
         }
         finally
         {
