@@ -14,7 +14,7 @@ rules (coding style, whitespace, file header) still apply.
   `dotnet test`; do not invoke `vstest` directly.
 - Tests run with **method-level parallelism**. The assembly-level
   `[assembly: Parallelize(Workers = 0, Scope = ExecutionScope.MethodLevel)]`
-  attribute lives in `GlobalUsings.cs`. Do not rely on shared mutable
+  attribute lives in `AssemblyInfo.cs`. Do not rely on shared mutable
   static state between test methods; if a test cannot run in parallel,
   mark it `[DoNotParallelize]`.
 - Target frameworks: `net10.0-windows10.0.22000.0` and `net481`. All
