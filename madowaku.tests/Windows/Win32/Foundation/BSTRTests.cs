@@ -4,65 +4,66 @@
 
 namespace Windows.Win32.Foundation;
 
+[TestClass]
 public class BSTRTests
 {
-    [Fact]
+    [TestMethod]
     public void Constructor_ManagedString_RoundTripsValue()
     {
         using BSTR bstr = new("hello");
-        Assert.False(bstr.IsNull);
-        Assert.Equal("hello", bstr.ToString());
+        bstr.IsNull.Should().BeFalse();
+        bstr.ToString().Should().Be("hello");
     }
 
-    [Fact]
+    [TestMethod]
     public void IsNull_DefaultInstance_ReturnsTrue()
     {
         BSTR bstr = default;
-        Assert.True(bstr.IsNull);
+        bstr.IsNull.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void ToStringAndFree_ReturnsValueAndFrees()
     {
         BSTR bstr = new("disposable");
         string result = bstr.ToStringAndFree();
-        Assert.Equal("disposable", result);
-        Assert.True(bstr.IsNull);
+        result.Should().Be("disposable");
+        bstr.IsNull.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void Dispose_ClearsPointer()
     {
         BSTR bstr = new("clear me");
         bstr.Dispose();
-        Assert.True(bstr.IsNull);
+        bstr.IsNull.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void TryFormat_DestinationLargeEnough_WritesAllChars()
     {
         using BSTR bstr = new("abc");
         Span<char> buffer = stackalloc char[8];
         bool result = bstr.TryFormat(buffer, out int written, default, null);
-        Assert.True(result);
-        Assert.Equal(3, written);
-        Assert.Equal("abc", buffer[..written].ToString());
+        result.Should().BeTrue();
+        written.Should().Be(3);
+        buffer[..written].ToString().Should().Be("abc");
     }
 
-    [Fact]
+    [TestMethod]
     public void TryFormat_DestinationTooSmall_ReturnsFalse()
     {
         using BSTR bstr = new("abcdef");
         Span<char> buffer = stackalloc char[3];
         bool result = bstr.TryFormat(buffer, out int written, default, null);
-        Assert.False(result);
-        Assert.Equal(0, written);
+        result.Should().BeFalse();
+        written.Should().Be(0);
     }
 
-    [Fact]
+    [TestMethod]
     public void ToStringWithFormat_IgnoresFormatAndProvider()
     {
         using BSTR bstr = new("value");
-        Assert.Equal("value", bstr.ToString("X", null));
+        bstr.ToString("X", null).Should().Be("value");
     }
 }

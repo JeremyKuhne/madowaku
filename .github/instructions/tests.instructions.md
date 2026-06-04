@@ -4,21 +4,29 @@ applyTo: "madowaku.tests/**/*.cs"
 
 # Test conventions (`madowaku.tests/`)
 
-Path-specific rules for the xUnit v3 test project. The general `AGENTS.md`
+Path-specific rules for the MSTest test project. The general `AGENTS.md`
 rules (coding style, whitespace, file header) still apply.
 
 ## Framework
 
-- xUnit v3 with the **Microsoft Testing Platform** runner
-  (`UseMicrosoftTestingPlatformRunner` is set in the csproj). Run tests
-  with `dotnet test`; do not invoke `vstest` directly.
+- **MSTest** with the **Microsoft Testing Platform** runner
+  (`EnableMSTestRunner` is set in the csproj). Run tests with
+  `dotnet test`; do not invoke `vstest` directly.
+- Tests run with **method-level parallelism**. The assembly-level
+  `[assembly: Parallelize(Workers = 0, Scope = ExecutionScope.MethodLevel)]`
+  attribute lives in `AssemblyInfo.cs`. Do not rely on shared mutable
+  static state between test methods; if a test cannot run in parallel,
+  mark it `[DoNotParallelize]`.
 - Target frameworks: `net10.0-windows10.0.22000.0` and `net481`. All
   tests must build and pass on both.
-- `Xunit` is available via a project-level `<Using>`; `using Xunit;` is
-  unnecessary.
-- `FluentAssertions` is referenced. Either `Assert.*` (xUnit) or
-  `.Should().*` (FluentAssertions) is acceptable; pick one style per
-  file and stay consistent within it.
+- `Microsoft.VisualStudio.TestTools.UnitTesting` is available via a
+  project-level `<Using>`, so `[TestClass]` / `[TestMethod]` need no
+  explicit `using`.
+- **AwesomeAssertions** (a FluentAssertions fork) is globally used via
+  `global using AwesomeAssertions;` in `GlobalUsings.cs`. Assert with
+  `.Should().*` only; do not use MSTest's native `Assert.*`. Use
+  `FluentActions.Invoking(() => ...).Should().Throw<T>()` for exception
+  assertions.
 
 ## Naming and structure
 
@@ -27,8 +35,8 @@ rules (coding style, whitespace, file header) still apply.
 - Mirror the source layout: a test for `madowaku/Windows/Win32/Foo.cs`
   lives at `madowaku.tests/Windows/Win32/FooTests.cs` with namespace
   matching the production type.
-- One `public class FooTests` per type under test. Multiple `[Fact]`s
-  per class is fine.
+- One `[TestClass] public class FooTests` per type under test. Multiple
+  `[TestMethod]`s per class is fine.
 - Do **not** add "Arrange / Act / Assert" comments. The structure should
   be obvious from the code.
 
@@ -55,8 +63,10 @@ rules (coding style, whitespace, file header) still apply.
 
 ## What not to do
 
-- Do not introduce a separate test SDK (MSTest, NUnit) alongside xUnit.
+- Do not introduce a separate test SDK (xUnit, NUnit) alongside MSTest.
+- Do not use MSTest's native `Assert.*`; use AwesomeAssertions
+  `.Should().*` throughout.
 - Do not gate tests on a specific machine, locale, or installed SDK
-  without a clear `[Fact(Skip = "...")]` reason.
+  without a clear `[Ignore("...")]` reason.
 - Do not use `Thread.Sleep` for synchronization; use the appropriate
-  xUnit / `Task`-based primitives.
+  `Task`-based primitives.

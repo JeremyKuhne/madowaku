@@ -4,57 +4,58 @@
 
 namespace Windows.Win32.Foundation;
 
+[TestClass]
 public class StringParameterArrayTests
 {
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_NullArray_ProducesNullPointer()
     {
         using StringParameterArray array = new(null);
         char** ptr = array;
-        Assert.True(ptr is null);
+        (ptr is null).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_EmptyArray_ProducesNullPointer()
     {
         using StringParameterArray array = new([]);
         char** ptr = array;
-        Assert.True(ptr is null);
+        (ptr is null).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_PopulatedArray_PointersPointToPinnedStrings()
     {
         string[] values = ["alpha", "beta", "gamma"];
         using StringParameterArray array = new(values);
         char** ptr = array;
-        Assert.False(ptr is null);
+        (ptr is null).Should().BeFalse();
 
         for (int i = 0; i < values.Length; i++)
         {
             string actual = new(ptr[i]);
-            Assert.Equal(values[i], actual);
+            actual.Should().Be(values[i]);
         }
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_SbyteDoublePointer_NonNullForPopulated()
     {
         string[] values = ["x"];
         using StringParameterArray array = new(values);
         sbyte** ptr = array;
-        Assert.False(ptr is null);
+        (ptr is null).Should().BeFalse();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_SbyteDoublePointer_NullForEmpty()
     {
         using StringParameterArray array = new(null);
         sbyte** ptr = array;
-        Assert.True(ptr is null);
+        (ptr is null).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public void Dispose_NullArray_DoesNotThrow()
     {
         StringParameterArray array = new(null);

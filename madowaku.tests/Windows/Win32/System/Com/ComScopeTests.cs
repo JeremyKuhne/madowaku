@@ -4,56 +4,57 @@
 
 namespace Windows.Win32.System.Com;
 
+[TestClass]
 public class ComScopeTests
 {
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_NullPointer_IsNullTrue()
     {
         using ComScope<IUnknown> scope = new((IUnknown*)null);
-        Assert.True(scope.IsNull);
-        Assert.True(scope.Pointer is null);
+        scope.IsNull.Should().BeTrue();
+        (scope.Pointer is null).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_VoidNull_IsNullTrue()
     {
         using ComScope<IUnknown> scope = new((void*)null);
-        Assert.True(scope.IsNull);
+        scope.IsNull.Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_TStar_NullPointer_ReturnsNull()
     {
         using ComScope<IUnknown> scope = new((IUnknown*)null);
         IUnknown* p = scope;
-        Assert.True(p is null);
+        (p is null).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_VoidStar_NullPointer_ReturnsNull()
     {
         using ComScope<IUnknown> scope = new((IUnknown*)null);
         void* p = scope;
-        Assert.True(p is null);
+        (p is null).Should().BeTrue();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_Nint_NullPointer_ReturnsZero()
     {
         using ComScope<IUnknown> scope = new((IUnknown*)null);
         nint p = scope;
-        Assert.Equal(0, p);
+        p.Should().Be((nint)0);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ImplicitOperator_TStarStar_NonNull()
     {
         using ComScope<IUnknown> scope = new((IUnknown*)null);
         IUnknown** pp = scope;
-        Assert.False(pp is null);
+        (pp is null).Should().BeFalse();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Dispose_NullPointer_DoesNotThrow()
     {
         ComScope<IUnknown> scope = new((IUnknown*)null);

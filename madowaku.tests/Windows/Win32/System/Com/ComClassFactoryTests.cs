@@ -7,58 +7,58 @@ using Windows.Win32.Foundation;
 
 namespace Windows.Win32.System.Com;
 
+[TestClass]
 public class ComClassFactoryTests
 {
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_RegisteredClsid_CreateInstance_ReturnsInterface()
     {
         // StdGlobalInterfaceTable is always registered.
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
         using ComScope<IUnknown> unknown = factory.CreateInstance<IUnknown>();
-        Assert.False(unknown.IsNull);
+        unknown.IsNull.Should().BeFalse();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void TryCreateInstance_ReturnsSuccess()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
         using ComScope<IUnknown> unknown = factory.TryCreateInstance<IUnknown>(out HRESULT hr);
-        Assert.True(hr.Succeeded);
-        Assert.False(unknown.IsNull);
+        hr.Succeeded.Should().BeTrue();
+        unknown.IsNull.Should().BeFalse();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ComScope_QueryInterface_ToIUnknown_Succeeds()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
         using ComScope<IUnknown> unknown = factory.CreateInstance<IUnknown>();
         using ComScope<IUnknown> requeried = unknown.QueryInterface<IUnknown>();
-        Assert.False(requeried.IsNull);
+        requeried.IsNull.Should().BeFalse();
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void ComScope_TryQueryInterface_ToIUnknown_Succeeds()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
         using ComScope<IUnknown> unknown = factory.CreateInstance<IUnknown>();
         using ComScope<IUnknown> requeried = unknown.TryQueryInterface<IUnknown>(out HRESULT hr);
-        Assert.True(hr.Succeeded);
-        Assert.False(requeried.IsNull);
+        hr.Succeeded.Should().BeTrue();
+        requeried.IsNull.Should().BeFalse();
     }
 
-    [Fact]
+    [TestMethod]
     public void Constructor_FilePath_NonexistentDll_ThrowsWin32Exception()
     {
-        Win32Exception ex = Assert.Throws<Win32Exception>(
-            () => new ComClassFactory("madowaku-no-such-dll.dll", CLSID.FileOpenDialog));
+        Win32Exception ex = FluentActions.Invoking(
+            () => new ComClassFactory("madowaku-no-such-dll.dll", CLSID.FileOpenDialog))
+            .Should().Throw<Win32Exception>().Which;
 
         // ERROR_MOD_NOT_FOUND = 126, ERROR_FILE_NOT_FOUND = 2, ERROR_PATH_NOT_FOUND = 3
-        Assert.True(
-            ex.NativeErrorCode is 126 or 2 or 3,
-            $"Unexpected NativeErrorCode {ex.NativeErrorCode}");
+        ex.NativeErrorCode.Should().BeOneOf(126, 2, 3);
     }
 
-    [Fact]
+    [TestMethod]
     public unsafe void Constructor_Hmodule_KnownExport_ExposesClassId()
     {
         // Explicitly load ole32.dll so the test isn't order-/environment-dependent.
@@ -67,10 +67,10 @@ public class ComClassFactoryTests
         try
         {
             using ComClassFactory factory = new(ole32, CLSID.StdGlobalInterfaceTable);
-            Assert.Equal(CLSID.StdGlobalInterfaceTable, factory.ClassId);
+            factory.ClassId.Should().Be(CLSID.StdGlobalInterfaceTable);
 
             using ComScope<IUnknown> unknown = factory.CreateInstance<IUnknown>();
-            Assert.False(unknown.IsNull);
+            unknown.IsNull.Should().BeFalse();
         }
         finally
         {

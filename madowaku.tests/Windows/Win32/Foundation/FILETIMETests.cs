@@ -4,23 +4,24 @@
 
 namespace Windows.Win32.Foundation;
 
+[TestClass]
 public class FILETIMETests
 {
-    [Fact]
+    [TestMethod]
     public void ExplicitCast_DateTimeRoundTrip_PreservesValue()
     {
         DateTime original = new DateTime(2025, 5, 11, 13, 45, 30, DateTimeKind.Utc).ToLocalTime();
         FILETIME ft = (FILETIME)original;
         DateTime roundTripped = (DateTime)ft;
-        Assert.Equal(original, roundTripped);
+        roundTripped.Should().Be(original);
     }
 
-    [Fact]
+    [TestMethod]
     public void ExplicitCast_FromDateTime_PopulatesLowAndHighParts()
     {
         DateTime value = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc).ToLocalTime();
         FILETIME ft = (FILETIME)value;
         long combined = ((long)ft.dwHighDateTime << 32) | ft.dwLowDateTime;
-        Assert.Equal(value.ToFileTime(), combined);
+        combined.Should().Be(value.ToFileTime());
     }
 }

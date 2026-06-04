@@ -34,8 +34,8 @@ jobs:
 
         dotnet test --no-build `
           --results-directory "$resultsDir" `
-          --report-xunit-trx `
-          --show-live-output on
+          --report-trx `
+          --output Detailed
     - name: Test release
       run: |
         $resultsDir = Join-Path $PWD.Path 'artifacts/test-results/release'
@@ -43,8 +43,8 @@ jobs:
 
         dotnet test -c Release --no-build `
           --results-directory "$resultsDir" `
-          --report-xunit-trx `
-          --show-live-output on `
+          --report-trx `
+          --output Detailed `
           --coverage `
           --coverage-output-format cobertura `
           --coverage-settings "$PWD/.config/coverage.settings.xml"
