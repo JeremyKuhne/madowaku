@@ -51,7 +51,7 @@ internal static unsafe class IID
     public static ref readonly Guid GetRef<T>() where T : unmanaged, IComIID
     {
 #if NET
-        return ref Unsafe.AsRef(in T.Guid);
+        return ref T.Guid;
 #else
         return ref default(T).Guid;
 #endif
