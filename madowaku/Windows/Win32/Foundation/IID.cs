@@ -28,19 +28,37 @@ internal static unsafe class IID
         }
     }
 
+    // We cast away the "readonly" here as there is no way to communicate that through a pointer and
+    // Marshal APIs take the Guid as ref. Even though none of our usages actually change the state.
+
+    /// <summary>
+    ///  Gets a pointer to the IID <see cref="Guid"/> for the given <typeparamref name="T"/>.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Guid Get<T>() where T : unmanaged, IComIID
+    public static Guid* Get<T>() where T : unmanaged, IComIID
     {
-#if NETFRAMEWORK
-        // In .NET Framework we need to use the interface to get the Guid.
-        return default(T).Guid;
+#if NET
+        return (Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in T.Guid));
 #else
-        return T.Guid;
+        return (Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in default(T).Guid));
 #endif
     }
 
     /// <summary>
-    ///  Empty <see cref="Guid"/>.
+    ///  Gets a reference to the IID <see cref="Guid"/> for the given <typeparamref name="T"/>.
     /// </summary>
-    public static Guid* Empty() => (Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in IID_NULL));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ref readonly Guid GetRef<T>() where T : unmanaged, IComIID
+    {
+#if NET
+        return ref Unsafe.AsRef(in T.Guid);
+#else
+        return ref default(T).Guid;
+#endif
+    }
+
+    /// <summary>
+    ///  Empty <see cref="Guid"/> (GUID_NULL in docs).
+    /// </summary>
+    public static Guid* NULL() => (Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in IID_NULL));
 }

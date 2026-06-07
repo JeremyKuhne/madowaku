@@ -100,9 +100,8 @@ public readonly unsafe ref struct ComScope<T> where T : unmanaged, IComIID
     /// </summary>
     public ComScope<TInterface> TryQueryInterface<TInterface>(out HRESULT result) where TInterface : unmanaged, IComIID
     {
-        Guid iid = IID.Get<TInterface>();
         ComScope<TInterface> scope = new(null);
-        result = ((IUnknown*)Pointer)->QueryInterface(&iid, scope);
+        result = ((IUnknown*)Pointer)->QueryInterface(IID.Get<TInterface>(), scope);
         return scope;
     }
 

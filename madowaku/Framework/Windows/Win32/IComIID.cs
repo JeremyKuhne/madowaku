@@ -17,6 +17,6 @@ namespace Windows.Win32
         /// <summary>
         ///  The identifier (IID) GUID for this interface.
         /// </summary>
-        Guid Guid { get; }
+        ref readonly Guid Guid { get; }
     }
 }

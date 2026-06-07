@@ -44,11 +44,9 @@ internal static unsafe class GlobalInterfaceTable
         where TInterface : unmanaged, IComIID
     {
         uint cookie;
-        Guid iid = IID.Get<TInterface>();
-
         s_globalInterfaceTable->RegisterInterfaceInGlobal(
             (IUnknown*)@interface,
-            &iid,
+            IID.Get<TInterface>(),
             &cookie).ThrowOnFailure();
 
         return cookie;
@@ -61,9 +59,8 @@ internal static unsafe class GlobalInterfaceTable
     public static ComScope<TInterface> GetInterface<TInterface>(uint cookie, out HRESULT result)
         where TInterface : unmanaged, IComIID
     {
-        Guid iid = IID.Get<TInterface>();
         ComScope<TInterface> @interface = new(null);
-        result = s_globalInterfaceTable->GetInterfaceFromGlobal(cookie, &iid, (void**)&@interface);
+        result = s_globalInterfaceTable->GetInterfaceFromGlobal(cookie, IID.Get<TInterface>(), (void**)&@interface);
         return @interface;
     }
 

@@ -52,7 +52,11 @@ attaches it to every generated COM struct **only on .NET 7+**. On net472:
 
   public unsafe partial struct IUnknown : IComIID
   {
-      readonly Guid IComIID.Guid => IID_Guid; // CsWin32-emitted field, always present
+      readonly ref readonly Guid IComIID.Guid
+      {
+          [MethodImpl(MethodImplOptions.AggressiveInlining)]
+          get => ref Unsafe.AsRef(in IID_Guid); // CsWin32-emitted field, always present
+      }
   }
   ```
 

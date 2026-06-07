@@ -9,5 +9,9 @@ namespace Windows.Win32.System.Com;
 /// </summary>
 public unsafe partial struct IUnknown : IComIID
 {
-    readonly Guid IComIID.Guid => IID_Guid;
+    readonly ref readonly Guid IComIID.Guid
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ref Unsafe.AsRef(in IID_Guid);
+    }
 }
