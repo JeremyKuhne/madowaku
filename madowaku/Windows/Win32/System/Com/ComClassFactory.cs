@@ -113,9 +113,8 @@ public sealed unsafe class ComClassFactory : IDisposable
     public ComScope<TInterface> TryCreateInstance<TInterface>(out HRESULT result)
         where TInterface : unmanaged, IComIID
     {
-        Guid iid = IID.Get<TInterface>();
         ComScope<TInterface> scope = default;
-        result = _classFactory->CreateInstance(null, &iid, scope);
+        result = _classFactory->CreateInstance(null, IID.Get<TInterface>(), scope);
         return scope;
     }
 
