@@ -88,7 +88,7 @@ watch the workflow, and create the GitHub release.
 
 - [versioning.md](versioning.md) &mdash; establishing the prior version, the
   prerelease channel decision, the `Major.Minor.Patch` bump table, the
-  `AssemblyVersion` gotcha, the exact tag format, and the "no guard" warning.
+  `AssemblyVersion` gotcha, the exact tag format, and the tag-format guard.
 - [release-steps.md](release-steps.md) &mdash; creating and pushing the
   annotated tag, `workflow_dispatch` recovery, the GitHub release notes
   template, and aftercare.

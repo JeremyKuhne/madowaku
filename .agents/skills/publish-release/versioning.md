@@ -2,7 +2,7 @@
 
 Detail for the [publish-release](SKILL.md) skill. Covers establishing the prior
 version, the prerelease channel decision, the `Major.Minor.Patch` bump, the
-`AssemblyVersion` gotcha, the exact tag format, and the missing-guard warning.
+`AssemblyVersion` gotcha, the exact tag format, and the tag-format guard.
 
 ## 1. Establish the prior version
 
@@ -25,7 +25,8 @@ Record the prior version (e.g. `0.1.0-alpha.3`).
 > `.` after `v`. MinVer (prefix `v`) cannot parse it, so it is **silently
 > ignored** for versioning. When establishing the prior version, take the
 > newest tag that is *well-formed* (here `v0.1.0-alpha.2`), not merely the
-> newest tag. See the "No guard" warning in section 4.
+> newest tag. The publish workflow now rejects such tags &mdash; see the
+> "Tag-format guard" section in section 4.
 
 ## 2. Decide the prerelease channel (alpha / beta / rc / stable)
 
@@ -35,8 +36,9 @@ prompt** the user with the current state explicit:
 > "The last well-formed release was an **alpha** (`v0.1.0-alpha.2`). Should
 > this also be an alpha release, or are you promoting to beta / rc / stable?"
 
-Use `vscode_askQuestions` with these options (mark the matching-prior option
-as `recommended: true`):
+Present these options (however your agent surface asks the user a multiple-
+choice question), and mark the option matching the prior channel as the
+recommended default:
 
 - `Stay in alpha` &mdash; bug fixes / additive work during early development.
 - `Promote to beta` &mdash; feature-complete for the upcoming Minor; only
