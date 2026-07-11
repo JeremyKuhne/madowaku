@@ -1,6 +1,6 @@
 ---
 name: cswin32-com
-description: 'Guides struct-based COM interop in madowaku using CsWin32 patterns. Consult when working with ComScope<T>, IComIID, IID.Get<T>(), delegate* unmanaged vtables, CoCreateInstance / CoGetClassObject, the per-struct IComIID net472 polyfill, or manually defining COM interfaces not in Win32 metadata (e.g. CLR hosting ICLRMetaHost, ICLRRuntimeInfo).'
+description: 'Guides struct-based COM interop in madowaku using CsWin32 patterns. Consult when working with ComScope, IComIID, IID.Get, delegate* unmanaged vtables, CoCreateInstance / CoGetClassObject, the per-struct IComIID net472 polyfill, or manually defining COM interfaces not in Win32 metadata (e.g. CLR hosting ICLRMetaHost, ICLRRuntimeInfo).'
 argument-hint: 'Describe the COM interface or activation pattern you are working with.'
 ---
 

@@ -1,0 +1,25 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 4 * * 1'   # weekly Monday scan
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@<SHA> # v6.0.3
+      - uses: github/codeql-action/init@<SHA> # v4.36.2
+        with:
+          languages: csharp
+      - uses: github/codeql-action/autobuild@<SHA> # v4.36.2
+      - uses: github/codeql-action/analyze@<SHA> # v4.36.2
