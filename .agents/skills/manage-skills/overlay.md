@@ -23,12 +23,16 @@ bundled `scripts/Validate-Skills.ps1`, and `assets/overlay.md.tmpl` are a
 - **The catalog is** [.agents/skills/README.md](../README.md); add or update its
   inventory row and disambiguation in the same change as any vendor, tweak, or
   new skill.
-- **Born-local skills (never upstreamed):**
-  [`cswin32-com`](../cswin32-com/SKILL.md),
-  [`cswin32-interop`](../cswin32-interop/SKILL.md), and
-  [`publish-release`](../publish-release/SKILL.md). These are specific to
-  madowaku's structure and carry no `github-*` provenance; leave them out of the
-  commons.
+- **Born-local (never upstreamed):**
+  [`publish-release`](../publish-release/SKILL.md) is specific to madowaku's
+  structure and carries no `github-*` provenance; leave it out of the commons.
+- **Portable cores pending promotion:**
+  [`cswin32-interop`](../cswin32-interop/SKILL.md) and
+  [`cswin32-com`](../cswin32-com/SKILL.md) are generic cores reconciled from
+  madowaku's and dotnet/msbuild's CsWin32 skills, each with a madowaku
+  `overlay.md`. They carry portfolio `metadata` but no provenance yet
+  (`core-pin: pending-promotion`); a separate change upstreams them to the
+  commons and re-vendors them here with a pin.
 - **Frontmatter validation**: run the bundled
   [scripts/Validate-Skills.ps1](scripts/Validate-Skills.ps1) on a skill
   directory. The repo's own agent-file checks live in

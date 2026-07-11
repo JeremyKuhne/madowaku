@@ -15,8 +15,8 @@ For full patterns and recipes, consult:
   &mdash; P/Invoke generation, TFM gating, `PInvoke` vs
   `PInvokeMadowaku`, the `ComWrappers` shim, polyfill layout.
 - [`cswin32-com`](../../.agents/skills/cswin32-com/SKILL.md) &mdash;
-  `ComScope<T>`, `IComIID`, `IID.Get<T>()`, `delegate* unmanaged`
-  vtables, the per-struct net472 polyfill recipe.
+  `ComScope<T>`, `IComIID` across TFMs, `IID.Get<T>()`, `delegate* unmanaged`
+  vtables, manual COM structs.
 
 ## Non-negotiables
 
@@ -41,10 +41,12 @@ For full patterns and recipes, consult:
   hierarchy under `Framework/` mirrors the namespace:
   `Framework/System/Runtime/InteropServices/ComWrappers.cs` &rarr;
   `namespace System.Runtime.InteropServices;`.
-- The per-struct `IComIID` polyfill lives at
-  `madowaku/Framework/Windows/Win32/IComIID.cs` and is declared once;
-  individual COM structs add their `IComIID` implementation in a partial
-  next to the CsWin32-generated struct.
+- **`IComIID` needs no polyfill.** CsWin32 (0.3.298, pinned in
+  `Directory.Packages.props`) emits `IComIID` on every TFM and attaches it to
+  each generated COM struct, so there is no hand-authored `IComIID` interface or
+  per-struct partial. Only a **manual** COM struct (an interface not in Win32
+  metadata) implements `IComIID` itself, spelling out both the `#if NET`
+  static-abstract and `#else` instance arms.
 
 ## TFM gating
 

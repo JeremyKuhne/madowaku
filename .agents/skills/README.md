@@ -11,18 +11,30 @@ overlap.
 
 ## Inventory
 
-Each skill is either **born-local** (specific to madowaku; no upstream, no
-provenance) or **vendored** from the shared commons
+Each skill is one of three kinds: **born-local** (specific to madowaku; no
+upstream, no provenance), a **portable core pending promotion** (reconciled here
+to be upstreamed to the commons, paired with a local `overlay.md`), or
+**vendored** from the shared commons
 [JeremyKuhne/agent-skills](https://github.com/JeremyKuhne/agent-skills) at a
-pinned ref, with a thin repo-specific `overlay.md` beside the pinned core. See
+pinned ref (also with an `overlay.md`). See
 [the vendoring model](#vendoring-model) below.
+
+### Portable cores (pending promotion to the commons)
+
+Generic CsWin32 cores (thin `SKILL.md` plus sibling pages) reconciled from
+madowaku's and dotnet/msbuild's CsWin32 skills, each with a madowaku `overlay.md`.
+They carry portfolio `metadata` but no `github-*` provenance yet; a separate
+change will upstream them to the commons and re-vendor them here with a pin.
+
+| Skill | Trigger phrasing |
+| ----- | ---------------- |
+| [cswin32-interop](./cswin32-interop/SKILL.md) | "replace `[DllImport]` with CsWin32", the generated `PInvoke.*` / `HANDLE` / `HRESULT` / `BOOL` types, `NativeMethods.txt` / `NativeMethods.json`, blittable signatures, TFM / Windows-interop gating |
+| [cswin32-com](./cswin32-com/SKILL.md) | struct-based COM with `ComScope`, activate via `CoCreateInstance` / a class factory, `delegate* unmanaged` vtables, manual COM structs (WMI / Fusion / CLR hosting), `IComIID` across TFMs, migrating off `[ComImport]`, mocking struct COM |
 
 ### Born-local
 
 | Skill | Trigger phrasing |
 | ----- | ---------------- |
-| [cswin32-interop](./cswin32-interop/SKILL.md) | "add a P/Invoke", "replace `[DllImport]`", "use CsWin32 for X", "`PInvoke` vs `PInvokeMadowaku`", net472 vs modern .NET CsWin32 gating, the `ComWrappers` polyfill |
-| [cswin32-com](./cswin32-com/SKILL.md) | "use `ComScope<T>`", "wire up `IComIID`", "activate a COM object", "manually define an `ICLR*` / `IWbem*` / `IMetaData*` interface", `IID.Get<T>()`, `delegate* unmanaged` vtables, per-struct net472 polyfill |
 | [publish-release](./publish-release/SKILL.md) | "publish a new version", "release alpha.N", "ship a beta", "cut a release", "promote alpha to beta", "tag and publish" |
 
 ### Vendored (commons `v0.10.0`, unless noted)
@@ -56,9 +68,13 @@ core plus a thin repo-specific **overlay**:
 - **Overlay** &mdash; `overlay.md` beside the core holds madowaku paths, project
   names, and cross-references to other skills. Its frontmatter records the
   `core-pin` it was reviewed against.
-- **Born-local** &mdash; `cswin32-com`, `cswin32-interop`, and `publish-release`
-  are specific to madowaku's structure, carry no provenance, and are never
-  upstreamed.
+- **Portable core pending promotion** &mdash; `cswin32-interop` and `cswin32-com`
+  are generic cores reconciled here (with madowaku overlays) to be upstreamed to
+  the commons. They carry portfolio `metadata` but no `github-*` provenance and
+  use `core-pin: pending-promotion` until a separate change vendors them.
+- **Born-local** &mdash; `publish-release` is specific to madowaku's structure
+  (the `KlutzyNinja.Madowaku` release-tag flow), carries no provenance, and is
+  never upstreamed.
 
 All but one vendored core are pinned to the commons `v0.10.0` tag.
 `github-actions-cost-optimization` postdates that tag, so it is pinned to commit

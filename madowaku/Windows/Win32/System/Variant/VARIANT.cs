@@ -31,17 +31,6 @@ public unsafe partial struct VARIANT : IDisposable
     public bool Byref => vt.AreFlagsSet(VT_BYREF);
 
     /// <summary>
-    ///  Gets a reference to the <see cref="VARENUM"/> value type field.
-    /// </summary>
-    /// <remarks>
-    ///  <para>
-    ///   Use <see cref="Type"/> to read the type as some of the bits overlap with <see cref="VT_DECIMAL"/> data.
-    ///  </para>
-    /// </remarks>
-    [UnscopedRef]
-    public ref VARENUM vt => ref Anonymous.Anonymous.vt;
-
-    /// <summary>
     ///  Gets a reference to the data union of this <see cref="VARIANT"/>.
     /// </summary>
     [UnscopedRef]
