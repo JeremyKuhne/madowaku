@@ -8,6 +8,11 @@
   "MD032": false,
   "MD033": false,
   "MD041": false,
+  // MD060 (table-column-style) is disabled to match the commons lint profile the
+  // vendored skill cores under .agents/skills/ are authored to; their tables use
+  // a pipe-spacing style MD060's "compact" default rejects, and vendored cores
+  // must not be hand-edited (that would drift from their pinned upstream).
+  "MD060": false,
   "no-trailing-spaces": true,
   "no-hard-tabs": true
 }
