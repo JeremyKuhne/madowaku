@@ -55,12 +55,14 @@ polyfill: adding a generated COM type to
   (On 0.3.287+ the generator also auto-emits `[CLSCompliant(false)]` for a
   consumer that does assert CLS compliance.)
 
-## CCW is not available on net472
+## `UnwrapCCW` is not available on net472
 
-The `ComWrappers` shim (see the [cswin32-interop](../cswin32-interop/overlay.md)
-overlay) returns `null`, so CCW-based managed-to-COM (`UnwrapCCW`) yields
-`COR_E_OBJECTDISPOSED` on net472. Gate any such surface `#if NET`. This also means
-the core's CCW-based test-mocking bridge is a modern-.NET-only technique here.
+Classic COM-callable wrappers work on net472 - the core's test-mocking bridge
+uses `Marshal.GetComInterfaceForObject`, which is fine here. What does **not**
+work is CsWin32's `ComWrappers`-based `UnwrapCCW`: the `ComWrappers` shim (see the
+[cswin32-interop](../cswin32-interop/overlay.md) overlay) returns `null`, so
+`UnwrapCCW` yields `COR_E_OBJECTDISPOSED` on net472. Gate any surface that relies
+on `UnwrapCCW` with `#if NET`.
 
 ## Cross-references
 

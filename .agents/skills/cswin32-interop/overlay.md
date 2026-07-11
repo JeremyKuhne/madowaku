@@ -60,9 +60,9 @@ references `ComWrappers.ComInterfaceDispatch` - a .NET 5+ type. madowaku ships a
 Windows-only shim at
 [madowaku/Framework/System/Runtime/InteropServices/ComWrappers.cs](../../../madowaku/Framework/System/Runtime/InteropServices/ComWrappers.cs)
 whose `GetInstance<T>` always returns `null`, so `UnwrapCCW` on net472 yields
-`COR_E_OBJECTDISPOSED`. Do not expose CCW-based managed-to-COM scenarios on
-net472; gate that surface `#if NET`. See the
-[cswin32-com](../cswin32-com/overlay.md) overlay.
+`COR_E_OBJECTDISPOSED`. Do not expose surfaces that rely on `UnwrapCCW` on
+net472; gate them `#if NET`. (Classic `Marshal`-based CCWs are unaffected.) See
+the [cswin32-com](../cswin32-com/overlay.md) overlay.
 
 ## Concrete bindings
 
