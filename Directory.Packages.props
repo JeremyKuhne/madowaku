@@ -4,7 +4,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="KlutzyNinja.Touki" Version="0.3.0-alpha.1" />
+    <PackageVersion Include="KlutzyNinja.Touki" Version="0.4.0-alpha.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
     <PackageVersion Include="Microsoft.Build" Version="17.14.8" />

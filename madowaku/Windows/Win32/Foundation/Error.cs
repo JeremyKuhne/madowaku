@@ -189,7 +189,7 @@ public static unsafe class Error
             FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_ALLOCATE_BUFFER
             | FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_FROM_SYSTEM;
 
-        if (args == null || args.Length == 0)
+        if (args is null || args.Length == 0)
         {
             flags.SetFlags(FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_IGNORE_INSERTS);
         }
