@@ -50,17 +50,29 @@ private static ComScope<ISomething> Acquire()
 
 ## BSTR - COM strings
 
-A COM `BSTR` out-param is owned by the caller. Scope it like a pointer -
-`using BSTR s = default;` - and read it before scope exit; `Dispose` calls
-`SysFreeString`. Because `BSTR.Dispose` writes through the storage in place, the
-`using` must be on the storage location, not a method-returned copy (the same
-rule as `ComScope<T>`).
+A COM `BSTR` out-param is owned by the caller and must be freed with
+`SysFreeString` (equivalently `Marshal.FreeBSTR`). CsWin32 generates `BSTR` as a
+plain value - it does **not** implement `IDisposable` - so free it explicitly:
 
 ```csharp
-using BSTR version = default;
-instance.Pointer->GetVersion(&version).ThrowOnFailure();
-string managed = version.ToString();   // SysFreeString runs at scope exit
+BSTR version = default;
+try
+{
+    instance.Pointer->GetVersion(&version).ThrowOnFailure();
+    string managed = version.ToString();
+}
+finally
+{
+    Marshal.FreeBSTR((nint)version.Value);
+}
 ```
+
+A repo may extend `BSTR` with `IDisposable` (a `Dispose` that calls
+`SysFreeString` / `FreeBSTR` and clears the field), enabling the same scoped
+shape as `ComScope<T>` - `using BSTR version = default;` - the recommended
+convenience where available. Because such a `Dispose` writes through the storage
+in place, the `using` must be on the storage location, not a method-returned
+copy.
 
 ## A COM pointer that outlives a method
 

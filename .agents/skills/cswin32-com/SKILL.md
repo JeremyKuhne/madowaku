@@ -32,9 +32,10 @@ the paired **cswin32-interop** skill.
    hosting / metadata), define a manual struct in its own file - see
    [manual-structs.md](manual-structs.md).
 2. **Lifetime:** `using ComScope<T> scope = new();` for every transient COM
-   pointer, and `using BSTR s = default;` for every COM `BSTR` out-param. Never
-   write the pre-`ComScope` `T* p; try { ... } finally { p->Release(); }` shape;
-   it leaks on every early return. See [lifetime.md](lifetime.md).
+   pointer, and free every COM `BSTR` out-param (`SysFreeString` / `FreeBSTR`,
+   or a repo-provided scoped `BSTR` wrapper). Never write the pre-`ComScope`
+   `T* p; try { ... } finally { p->Release(); }` shape; it leaks on every early
+   return. See [lifetime.md](lifetime.md).
 3. **Activate** via a class-factory helper or `CoCreateInstance` with
    `IID.Get<T>()` - not `&localGuid`. See [Activation](#activation).
 4. **Call** via `scope.Pointer->Method(...)`. Pass `ComScope<T>` directly where
