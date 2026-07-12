@@ -19,30 +19,36 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
     steps:
-    - name: Validate tag format
+    - name: Resolve and validate release tag
+      id: release
       shell: pwsh
-      env:
-        EVENT_NAME: ${{ github.event_name }}
-        REF: ${{ github.ref }}
       run: |
-        if ($env:EVENT_NAME -eq 'push' -and -not $env:REF.StartsWith('refs/tags/')) {
-            throw "Publish must run from a tag ref, got '$($env:REF)'."
+        if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+          $event = Get-Content -Raw $env:GITHUB_EVENT_PATH | ConvertFrom-Json
+          $releaseTag = [string]$event.inputs.tag
+        } else {
+          if (-not $env:GITHUB_REF.StartsWith('refs/tags/')) {
+            throw "Publish must run from a tag ref, got '$($env:GITHUB_REF)'."
+          }
+          $releaseTag = $env:GITHUB_REF_NAME
         }
+
         $pattern = '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z.-]+)?$'
-        if ($env:RELEASE_TAG -cnotmatch $pattern) {
-          throw "Tag '$($env:RELEASE_TAG)' is not a valid version (expected v<major>.<minor>.<patch>[-prerelease])."
+        if ($releaseTag -cnotmatch $pattern) {
+          throw "Tag '$releaseTag' is not a valid version (expected v<major>.<minor>.<patch>[-prerelease])."
         }
-        Write-Host "Tag '$($env:RELEASE_TAG)' is valid."
+        Write-Host "Tag '$releaseTag' is valid."
+        "tag=$releaseTag" >> $env:GITHUB_OUTPUT
     - uses: actions/checkout@v5
       with:
         fetch-depth: 0
-        ref: ${{ env.RELEASE_TAG }}
+        ref: ${{ steps.release.outputs.tag }}
     - name: Verify checked out release tag
       shell: pwsh
+      env:
+        RELEASE_TAG: ${{ steps.release.outputs.tag }}
       run: |
         $tagCommit = git rev-list -n 1 $env:RELEASE_TAG
         $headCommit = git rev-parse HEAD
