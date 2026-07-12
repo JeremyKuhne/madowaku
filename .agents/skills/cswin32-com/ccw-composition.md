@@ -1,9 +1,9 @@
 # Cross-assembly CCW composition
 
-Detail for [cswin32-com](SKILL.md). Read this with the paired interop skill's
-[owner/extender composition](../cswin32-interop/composition.md) page when one
-package owns the generated COM structs and another package adds COM-callable
-wrappers or helper behavior.
+Detail for [cswin32-com](SKILL.md). The paired interop skill owns the general
+owner/extender package model; this page covers the COM-specific boundary when
+one package owns generated COM structs and another adds COM-callable wrappers or
+helper behavior.
 
 ## The owner owns generated partial hooks
 
@@ -112,6 +112,16 @@ by the test bridge in [migration-and-testing.md](migration-and-testing.md). A
 path that calls `Marshal.GetComInterfaceForObject` depends on built-in COM
 interop and is not a NativeAOT path; use `ComWrappers` for the AOT-capable CCW
 implementation.
+
+When a manual lifetime wrapper is generic on its vtable type, use that **exact
+same vtable type** in allocation and every callback that recovers the object or
+updates its reference count. Do not substitute a layout-compatible generated
+vtable type in `GetObject`, `AddRef`, or `Release`; generic type identity is part
+of the wrapper contract even when the current native layouts happen to match.
+
+Every AddRef'd pointer returned by a CCW helper is caller-owned. Scope it when
+passing it to `Advise` or another retaining API, and pair successful connection
+cookies with `Unadvise`; see [lifetime.md](lifetime.md).
 
 ## Validation
 

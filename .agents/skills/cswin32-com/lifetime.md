@@ -30,6 +30,30 @@ scope.Pointer->DoThing(...);
   `IEnumXxx::Next`, a factory method, an app-local `STDAPI Get*` (declare the
   `[DllImport]` with `T** pp`, not `out T*`, so the implicit operator binds).
 
+## Passing pointers to retaining APIs
+
+A helper that creates a CCW or queries an interface normally returns one owned,
+AddRef'd pointer. Passing that pointer to `Advise`, `SetClientSite`, or another
+API that retains it does **not** transfer the caller's reference. The retaining
+API adds its own reference; scope and release the caller's reference after the
+call:
+
+```csharp
+using ComScope<IEventSink> sink = new(GetComPointer<IEventSink>(managedSink));
+source.Pointer->Advise(sink.Pointer, &cookie).ThrowOnFailure();
+```
+
+The same scope is appropriate for a borrowed call such as a verb or callback:
+it keeps the pointer valid through the call and releases it immediately after.
+Do not leave the acquired pointer as an unscoped local merely because the callee
+also keeps a reference.
+
+A successful cookie-producing subscription is a second lifetime edge. Store the
+cookie and call `Unadvise(cookie)` before releasing the source object. Use a
+`try`/`finally` in disposal so failure to disconnect cannot prevent releasing the
+source pointer. If subscription failure is deliberately non-fatal, initialize
+the cookie to zero and skip disconnect when no cookie was issued.
+
 ## Ownership transfer out of a helper
 
 A helper that acquires a pointer can return `ComScope<T>` directly; intermediate

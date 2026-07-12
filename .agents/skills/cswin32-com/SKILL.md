@@ -1,7 +1,6 @@
 ---
 name: cswin32-com
-description: 'Guides struct-based COM interop using CsWin32 - AOT-compatible raw pointer calls without [ComImport] or built-in CLR marshalling; managed [ComImport] mirrors are limited to CCW bridges. Consult when working with ComScope, IID.Get, delegate* unmanaged vtables, CoCreateInstance or a class factory, IComIID across target frameworks, manually defining COM interfaces not in Win32 metadata (WMI, Fusion, CLR hosting/metadata), COM pointer lifetime in fields, cross-assembly CCWs, or mocking struct-based COM in tests. Paired with the cswin32-interop skill for the general P/Invoke layer and blittable-signature rules.'
-argument-hint: 'Describe the COM interface or activation pattern you are working with.'
+description: 'Guides struct-based COM interop using CsWin32 - AOT-compatible raw pointer calls without [ComImport] or built-in CLR marshalling; managed [ComImport] mirrors are limited to CCW bridges. Consult when working with ComScope, IID.Get, delegate* unmanaged vtables, CoCreateInstance or a class factory, IComIID across target frameworks, connection-point Advise/Unadvise ownership, caller-owned CCW references, manually defining COM interfaces not in Win32 metadata (WMI, Fusion, CLR hosting/metadata), COM pointer lifetime in fields, cross-assembly CCWs, or mocking struct-based COM in tests. Paired with the cswin32-interop skill for the general P/Invoke layer and blittable-signature rules.'
 license: MIT
 compatibility: Requires the .NET SDK and the Microsoft.Windows.CsWin32 source generator; Windows COM APIs.
 metadata:
@@ -36,7 +35,8 @@ that vtable methods also follow live in the paired **cswin32-interop** skill.
    pointer, and free every COM `BSTR` out-param (`SysFreeString` / `FreeBSTR`,
    or a repo-provided scoped `BSTR` wrapper). Never write the pre-`ComScope`
    `T* p; try { ... } finally { p->Release(); }` shape; it leaks on every early
-   return. See [lifetime.md](lifetime.md).
+    return. A pointer passed to a retaining API remains caller-owned until the
+    caller releases its reference. See [lifetime.md](lifetime.md).
 3. **Activate** via a class-factory helper or `CoCreateInstance` with
    `IID.Get<T>()` - not `&localGuid`. See [Activation](#activation).
 4. **Call** via `scope.Pointer->Method(...)`. Pass `ComScope<T>` directly where
@@ -50,9 +50,9 @@ that vtable methods also follow live in the paired **cswin32-interop** skill.
    [comiid-and-cls.md](comiid-and-cls.md) has the `IComIID` story that governs
    which TFMs `ComScope<T>` works on.
 7. **Compose across packages** at the owner boundary. The owner implements
-  generated partial hooks and publishes shared COM structs; extenders add
-  behavior with extension blocks or uniquely named CCW providers. See
-  [ccw-composition.md](ccw-composition.md).
+    generated partial hooks and publishes shared COM structs; extenders add
+    behavior with extension blocks or uniquely named CCW providers. See
+    [ccw-composition.md](ccw-composition.md).
 
 ## Activation
 

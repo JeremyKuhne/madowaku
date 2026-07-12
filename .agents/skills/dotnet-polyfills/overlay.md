@@ -31,6 +31,20 @@ portable core** from
   centralized in
   [Directory.Packages.props](../../../Directory.Packages.props).
 
+## Touki's place in the composition stack
+
+Touki is the fleet's broad managed foundation, below madowaku's Win32
+composition layer. Put a helper in Touki when it is a general buffer,
+collection, enum, text, compiler-support, or downlevel-runtime facility whose
+public contract does not require the canonical `Windows.Win32` surface. Put it
+in madowaku when it owns a shared Win32 type, native allocator/deallocator pair,
+COM lifetime abstraction, or generated `PInvoke` behavior.
+
+Madowaku references Touki directly. A downstream library also references Touki
+directly when its own source uses Touki APIs, even though madowaku depends on it
+transitively. This keeps package metadata honest and allows each layer to evolve
+without accidentally turning madowaku into a facade for generic utilities.
+
 ## Cross-references
 
 - [`cswin32-interop`](../cswin32-interop/SKILL.md) - the CsWin32 interop rules and
