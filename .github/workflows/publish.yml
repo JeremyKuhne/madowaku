@@ -6,29 +6,50 @@ on:
   push:
     tags: ['v*.*.*']        # fires on v0.1.0, v0.1.0-rc.1, etc.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish
+        required: true
+        type: string
 
 jobs:
   publish:
     name: ".NET / Publish"
     runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
     steps:
     - name: Validate tag format
       shell: pwsh
       env:
+        EVENT_NAME: ${{ github.event_name }}
         REF: ${{ github.ref }}
-        TAG: ${{ github.ref_name }}
       run: |
-        if (-not $env:REF.StartsWith('refs/tags/')) {
+        if ($env:EVENT_NAME -eq 'push' -and -not $env:REF.StartsWith('refs/tags/')) {
             throw "Publish must run from a tag ref, got '$($env:REF)'."
         }
         $pattern = '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z.-]+)?$'
-        if ($env:TAG -cnotmatch $pattern) {
-            throw "Tag '$($env:TAG)' is not a valid version (expected v<major>.<minor>.<patch>[-prerelease])."
+        if ($env:RELEASE_TAG -cnotmatch $pattern) {
+          throw "Tag '$($env:RELEASE_TAG)' is not a valid version (expected v<major>.<minor>.<patch>[-prerelease])."
         }
-        Write-Host "Tag '$($env:TAG)' is valid."
+        Write-Host "Tag '$($env:RELEASE_TAG)' is valid."
     - uses: actions/checkout@v5
-      with: { fetch-depth: 0 }
+      with:
+        fetch-depth: 0
+        ref: ${{ env.RELEASE_TAG }}
+    - name: Verify checked out release tag
+      shell: pwsh
+      run: |
+        $tagCommit = git rev-list -n 1 $env:RELEASE_TAG
+        $headCommit = git rev-parse HEAD
+        if (-not $tagCommit -or $tagCommit -ne $headCommit) {
+          throw "Tag '$($env:RELEASE_TAG)' points to '$tagCommit', but HEAD is '$headCommit'."
+        }
+        Write-Host "Publishing tag '$($env:RELEASE_TAG)' at '$headCommit'."
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
@@ -40,11 +61,16 @@ jobs:
       run: dotnet build -c Release --no-restore
     - name: Pack
       run: dotnet pack -c Release --no-build -o ./artifacts
+    - name: NuGet login
+      id: login
+      uses: NuGet/login@v1
+      with:
+        user: JeremyKuhne
     - name: Publish to NuGet
       run: |
         Get-ChildItem -Path ./artifacts -Filter *.nupkg | ForEach-Object {
             dotnet nuget push $_.FullName `
-                --api-key ${{ secrets.NUGET_API_KEY }} `
+                --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" `
                 --source https://api.nuget.org/v3/index.json `
                 --skip-duplicate
         }

@@ -21,9 +21,15 @@ Pushing the tag triggers the publish workflow. Watch the run:
 
 The workflow restores, builds Release, packs, and pushes every `.nupkg` it
 finds in `./artifacts` to nuget.org with
-`dotnet nuget push --skip-duplicate` using the `NUGET_API_KEY` repo secret
-(an API key, not OIDC). Only `KlutzyNinja.Madowaku` packs &mdash; the test and
-perf projects set `<IsPackable>false</IsPackable>`, so they produce no package.
+`dotnet nuget push --skip-duplicate`. The job has `id-token: write`, exchanges
+its GitHub OIDC token through `NuGet/login@v1`, and passes the returned
+short-lived API key to `dotnet nuget push`. The trusted publishing policy on
+nuget.org is bound to owner `JeremyKuhne`, repository `madowaku`, and workflow
+file `publish.yml` (the filename only, not `.github/workflows/publish.yml`), with
+the optional environment left blank. The action's required `user` input is the
+NuGet profile name `JeremyKuhne`, not an email address. Only
+`KlutzyNinja.Madowaku` packs &mdash; the test and perf projects set
+`<IsPackable>false</IsPackable>`, so they produce no package.
 
 > **The tag format is guarded.** [publish.yml](../../../.github/workflows/publish.yml)
 > validates the tag against the SemVer-with-`v`-prefix regex (and rejects
@@ -40,15 +46,13 @@ stream.
 
 ### Re-running the publish for an existing tag (`workflow_dispatch`)
 
-If a transient failure (NuGet outage, network blip) leaves a tag pushed but
-not published, [publish.yml](../../../.github/workflows/publish.yml) also
-accepts a manual `workflow_dispatch`. This workflow takes **no inputs** &mdash;
-instead, in the Actions UI choose **Run workflow** and select the **tag** ref
-(not a branch) from the ref dropdown. The job checks out that exact ref with
-`fetch-depth: 0`, so MinVer derives the intended version from the tag.
-
-Select the **tag**, not `main` or a branch: dispatching against a branch makes
-MinVer compute a `*.<height>` fallback and would publish a wrong version.
+If a transient or authentication failure leaves a tag pushed but not published,
+[publish.yml](../../../.github/workflows/publish.yml) accepts a manual
+`workflow_dispatch`. Run the workflow from `main` and enter the existing release
+tag in the required `tag` input. The job validates that input, checks out the
+annotated tag with full history, and verifies `HEAD` matches the tag before
+building, so MinVer derives the intended version without moving or recreating
+the tag.
 
 ## 2. Create the GitHub release
 
