@@ -28,8 +28,8 @@ change will upstream them to the commons and re-vendor them here with a pin.
 
 | Skill | Trigger phrasing |
 | ----- | ---------------- |
-| [cswin32-interop](./cswin32-interop/SKILL.md) | "replace `[DllImport]` with CsWin32", the generated `PInvoke.*` / `HANDLE` / `HRESULT` / `BOOL` types, `NativeMethods.txt` / `NativeMethods.json`, blittable signatures, TFM / Windows-interop gating |
-| [cswin32-com](./cswin32-com/SKILL.md) | struct-based COM with `ComScope`, activate via `CoCreateInstance` / a class factory, `delegate* unmanaged` vtables, manual COM structs (WMI / Fusion / CLR hosting), `IComIID` across TFMs, migrating off `[ComImport]`, mocking struct COM |
+| [cswin32-interop](./cswin32-interop/SKILL.md) | "replace `[DllImport]` with CsWin32", generated `PInvoke.*` / Win32 types, "which package owns this helper?", split a public owner from downstream extenders, native allocator ownership, byte/element sizes, `NativeMethods.*`, blittable signatures, TFM gating |
+| [cswin32-com](./cswin32-com/SKILL.md) | struct-based COM with `ComScope`, caller-owned CCW references, `Advise` / `Unadvise`, activation, raw vtables, manual COM structs, `IComIID` across TFMs, cross-assembly CCWs, mocking struct COM |
 
 ### Born-local
 

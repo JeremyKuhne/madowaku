@@ -53,6 +53,34 @@ existing madowaku `PInvoke` surface. If absent, add the API / constant / enum to
 `NativeMethods.txt` and verify its generated shape under
 `artifacts/obj/madowaku/.../generated/Microsoft.Windows.CsWin32/...`.
 
+## Concrete support-library stack
+
+The portable core's [library layering](library-layering.md) maps to this fleet
+as follows:
+
+- **Touki is the managed foundation.** It owns cross-domain helpers such as
+  `BufferScope<T>`, allocation-free enum operations, and downlevel runtime
+  polyfills. Touki may use an internal CsWin32 projection for implementation,
+  but it does not publish the fleet's canonical Win32 type identity.
+- **madowaku is the Win32 composition owner.** It publishes `PInvoke`, generated
+  Win32 types, common ownership helpers, `ComScope<T>`, `AgileComPointer<T>`,
+  and shared `SAFEARRAY` / `VARIANT` behavior. Windows-specific helpers that are
+  useful across domain libraries belong here.
+- **Domain libraries are extenders.** They reference madowaku, generate their
+  additional APIs with `extensionReceiver`, and keep UI frameworks, adapters,
+  and product policy local. An extender that directly uses Touki buffers or
+  enum helpers references Touki directly instead of relying on transitivity.
+
+Choose Touki when the API remains useful without a public `Windows.Win32`
+surface. Choose madowaku when the helper owns a shared Win32 projection,
+allocator/lifetime contract, or COM abstraction. Keep behavior in the extender
+when it encodes one domain's windowing, accessibility, dialog, or control model.
+
+Release bottom-up: Touki first when its public surface changes, then madowaku,
+then the extender. Restore each published prerelease from nuget.org into an
+empty package root before moving to the next layer; a local package cache does
+not prove the dependency can be consumed externally.
+
 ## Generation mode: keep the source generator
 
 CsWin32 0.3.298 supports `<CsWin32RunAsBuildTask>true</CsWin32RunAsBuildTask>`,
@@ -100,7 +128,10 @@ the [cswin32-com](../cswin32-com/overlay.md) overlay.
   all TFMs before pushing - net472 RyuJIT and Release-mode inlining surface bugs
   Debug does not. For a downstream extender change, also pack both layers and
   compile a clean-cache consumer that references only the extender package and
-  calls one madowaku-owned and one extender-owned `PInvoke` member.
+  calls one madowaku-owned and one extender-owned `PInvoke` member. The
+  [thirtytwo owner/extender migration](https://github.com/JeremyKuhne/thirtytwo/pull/20)
+  validated this flow with madowaku `0.4.0-alpha.1`, including nuspec inspection
+  and a consumer that had no local madowaku source.
 
 ## Cross-references
 

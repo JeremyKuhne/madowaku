@@ -4,6 +4,8 @@ Detail for [cswin32-interop](SKILL.md). Use this model when one package owns the
 public CsWin32 projection and another package adds APIs to that same callable
 surface. This is different from sharing one internal projection with friend
 assemblies: each layer runs CsWin32, but only one layer owns the receiver type.
+For the broader managed-foundation / Win32-owner / domain-extender package
+stack and release order, see [library-layering.md](library-layering.md).
 
 ## Choose the ownership boundary first
 
@@ -66,6 +68,10 @@ into the extender assembly.
   friendly generated overload can become ambiguous with a downstream helper;
   call the raw pointer overload explicitly or rename the helper rather than
   introducing another facade.
+- Re-audit native ownership whenever a helper or call shape moves between
+  layers. Generated overloads do not preserve allocator, COM reference, or
+  byte/element obligations by themselves; use
+  [ownership-and-units.md](ownership-and-units.md).
 
 ## Generated XML documentation diagnostics
 
@@ -90,4 +96,6 @@ compiles at least:
 Restore into a clean package cache when reusing a local version number. This
 catches missing transitive dependencies, stale packages, duplicate generated
 types, inaccessible receivers, and composition that worked only through project
-references.
+references. Inspect the packed dependency graph too: an extender that directly
+uses a foundation library should declare it directly, even when the owner also
+depends on it.

@@ -62,6 +62,14 @@ cannot provide real CCW vtables. Shared imported COM structs and lifecycle
 helpers likewise stay in madowaku; downstream packages add behavior with
 extension blocks or use uniquely named implementation-only CCW provider types.
 
+The thirtytwo migration exercised this boundary with a local `IDispatchCcw`
+provider while runtime pointers remained madowaku's imported `IDispatch`. It
+also exposed a recurring ownership rule: pointers returned by an extender's CCW
+helper are AddRef'd caller references. Wrap them in madowaku `ComScope<T>` when
+passing them to `Advise`, `SetClientSite`, or borrowed calls such as `DoVerb`.
+For successful subscriptions, store the cookie and call `Unadvise` before
+disposing the source pointer.
+
 ## Manual structs and CLS compliance
 
 - **Manual COM structs** for interfaces not in Win32 metadata (e.g. CLR
