@@ -20,12 +20,13 @@ MinVer is referenced directly in
 `<MinVerTagPrefix>v</MinVerTagPrefix>`; there is no `Directory.Build.targets`
 and no per-project override (only one package ships).
 
-The publish workflow fires when a `v*.*.*` tag is pushed.
-[publish.yml](../../../.github/workflows/publish.yml) validates the tag against
-a SemVer-with-`v`-prefix regex (and rejects non-tag refs) as its first step, so
-a malformed tag such as `v.0.1.0-alpha.3` fails fast before any pack/push. The
-`v*.*.*` trigger glob is *not* the guard &mdash; it matches the stray dot too;
-the validation step is what stops a typo. See the "Tag-format guard" section in
+The publish workflow fires when a `v*.*.*` tag is pushed. It can also publish an
+existing tag through `workflow_dispatch` after a transient or authentication
+failure. [publish.yml](../../../.github/workflows/publish.yml) validates the tag
+against a SemVer-with-`v`-prefix regex as its first step, so a malformed tag such
+as `v.0.1.0-alpha.3` fails fast before any pack/push. The `v*.*.*` trigger glob
+is *not* the guard &mdash; it matches the stray dot too; the validation step is
+what stops a typo. See the "Tag-format guard" section in
 [versioning.md](versioning.md).
 
 **Approval scope.** "Publish a release" authorizes preparing the tag and

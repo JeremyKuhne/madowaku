@@ -6,29 +6,71 @@ on:
   push:
     tags: ['v*.*.*']        # fires on v0.1.0, v0.1.0-rc.1, etc.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish
+        required: true
+        type: string
 
 jobs:
   publish:
     name: ".NET / Publish"
     runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
-    - name: Validate tag format
+    - name: Resolve and validate release tag
+      id: release
+      shell: pwsh
+      run: |
+        if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+          if ($env:GITHUB_REF -ne 'refs/heads/main') {
+            throw "Manual publish must run from 'refs/heads/main', got '$($env:GITHUB_REF)'."
+          }
+
+          $event = Get-Content -Raw $env:GITHUB_EVENT_PATH | ConvertFrom-Json
+          $releaseTag = [string]$event.inputs.tag
+        } else {
+          if (-not $env:GITHUB_REF.StartsWith('refs/tags/')) {
+            throw "Publish must run from a tag ref, got '$($env:GITHUB_REF)'."
+          }
+          $releaseTag = $env:GITHUB_REF_NAME
+        }
+
+        $pattern = '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z.-]+)?$'
+        if ($releaseTag -cnotmatch $pattern) {
+          throw "Tag '$releaseTag' is not a valid version (expected v<major>.<minor>.<patch>[-prerelease])."
+        }
+        Write-Host "Tag '$releaseTag' is valid."
+        "tag=$releaseTag" >> $env:GITHUB_OUTPUT
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+        ref: ${{ steps.release.outputs.tag }}
+    - name: Verify checked out release tag
       shell: pwsh
       env:
-        REF: ${{ github.ref }}
-        TAG: ${{ github.ref_name }}
+        RELEASE_TAG: ${{ steps.release.outputs.tag }}
       run: |
-        if (-not $env:REF.StartsWith('refs/tags/')) {
-            throw "Publish must run from a tag ref, got '$($env:REF)'."
+        $verificationRef = "refs/release-tags/$($env:RELEASE_TAG)"
+        git fetch --force --no-tags origin "refs/tags/$($env:RELEASE_TAG):$verificationRef"
+        if ($LASTEXITCODE -ne 0) {
+          throw "Unable to fetch tag '$($env:RELEASE_TAG)' for verification."
         }
-        $pattern = '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z.-]+)?$'
-        if ($env:TAG -cnotmatch $pattern) {
-            throw "Tag '$($env:TAG)' is not a valid version (expected v<major>.<minor>.<patch>[-prerelease])."
+
+        $tagType = git cat-file -t $verificationRef
+        if ($tagType -ne 'tag') {
+          throw "Release tag '$($env:RELEASE_TAG)' must be annotated, but its object type is '$tagType'."
         }
-        Write-Host "Tag '$($env:TAG)' is valid."
-    - uses: actions/checkout@v5
-      with: { fetch-depth: 0 }
+
+        $tagCommit = git rev-list -n 1 $verificationRef
+        $headCommit = git rev-parse HEAD
+        if (-not $tagCommit -or $tagCommit -ne $headCommit) {
+          throw "Tag '$($env:RELEASE_TAG)' points to '$tagCommit', but HEAD is '$headCommit'."
+        }
+        Write-Host "Publishing tag '$($env:RELEASE_TAG)' at '$headCommit'."
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
@@ -40,11 +82,16 @@ jobs:
       run: dotnet build -c Release --no-restore
     - name: Pack
       run: dotnet pack -c Release --no-build -o ./artifacts
+    - name: NuGet login
+      id: login
+      uses: NuGet/login@v1
+      with:
+        user: JeremyKuhne
     - name: Publish to NuGet
       run: |
         Get-ChildItem -Path ./artifacts -Filter *.nupkg | ForEach-Object {
             dotnet nuget push $_.FullName `
-                --api-key ${{ secrets.NUGET_API_KEY }} `
+                --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" `
                 --source https://api.nuget.org/v3/index.json `
                 --skip-duplicate
         }
