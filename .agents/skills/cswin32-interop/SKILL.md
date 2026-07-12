@@ -54,9 +54,9 @@ it - see the paired **cswin32-com** skill, whose vtable methods follow the same
    so every `[DllImport]` and every COM vtable method must be blittable. The
    full rule set is in [blittable-signatures.md](blittable-signatures.md).
 7. **Audit ownership and size units.** Generated wrappers do not decide which
-  allocator frees an output, whether a COM reference remains caller-owned, or
-  whether a length is bytes or elements. Record and test those contracts using
-  [ownership-and-units.md](ownership-and-units.md).
+    allocator frees an output, whether a COM reference remains caller-owned, or
+    whether a length is bytes or elements. Record and test those contracts using
+    [ownership-and-units.md](ownership-and-units.md).
 
 ## The Windows-interop compile gate
 
