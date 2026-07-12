@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Jeremy W Kuhne
+// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -26,7 +26,7 @@ internal static unsafe class GlobalInterfaceTable
 
         fixed (IGlobalInterfaceTable** git = &s_globalInterfaceTable)
         {
-            PInvokeMadowaku.CoCreateInstance(
+            PInvoke.CoCreateInstance(
                 &clsid,
                 pUnkOuter: null,
                 CLSCTX.CLSCTX_INPROC_SERVER,

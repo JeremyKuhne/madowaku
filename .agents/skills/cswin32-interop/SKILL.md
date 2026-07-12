@@ -1,6 +1,6 @@
 ---
 name: cswin32-interop
-description: 'Guides CsWin32 P/Invoke interop in a multi-targeted .NET library. Consult when replacing [DllImport] with source-generated PInvoke.* calls, working with the generated Windows.Win32 projections (HANDLE / HMODULE / HRESULT / BOOL and the typed enum/constant types), configuring NativeMethods.txt / NativeMethods.json, gating Windows-only code across target frameworks, or choosing between CsWin32 and [LibraryImport]. Paired with the cswin32-com skill for the struct-based COM layer.'
+description: 'Guides CsWin32 P/Invoke interop in a multi-targeted .NET library. Consult when replacing [DllImport] with source-generated PInvoke.* calls, working with generated Windows.Win32 projections (HANDLE / HMODULE / HRESULT / BOOL and typed enum/constant types), configuring NativeMethods.txt / NativeMethods.json, composing a public PInvoke across owner/extender packages with extensionReceiver, gating Windows-only code across target frameworks, or choosing between CsWin32 and [LibraryImport]. Paired with the cswin32-com skill for the struct-based COM layer.'
 argument-hint: 'Describe the Windows API or interop code you are migrating or adding.'
 license: MIT
 compatibility: Requires the .NET SDK and the Microsoft.Windows.CsWin32 source generator; projects Windows APIs.
@@ -37,9 +37,10 @@ it - see the paired **cswin32-com** skill, whose vtable methods follow the same
 2. **Use the generated types directly** (`HANDLE`, `HMODULE`, `HRESULT.S_OK`,
    `FILE_FLAGS_AND_ATTRIBUTES`, ...). Never keep a parallel local copy of a
    Win32 enum or struct CsWin32 already projects.
-3. **Call the generated method directly** - no thin wrapper. When the generator
-   runs in one project, its types reach friend assemblies via
-   `InternalsVisibleTo`.
+3. **Call the generated method directly** - no thin wrapper. Within one
+  ownership layer, generate once and share internal types with friend
+  assemblies. When a downstream package intentionally extends a public owner,
+  use the [owner/extender composition](composition.md) model instead.
 4. **Prefer CsWin32 for Windows APIs.** Reserve `[LibraryImport]` (or, on older
    targets, `[DllImport]`) for genuinely non-Windows native calls such as
    `libc`.
@@ -73,8 +74,25 @@ multi-targets frameworks has **no** platform gate - the cross-cut there is
 - **`NativeMethods.json`** - generator options. `allowMarshaling: false` (raw
   blittable signatures, no marshaller) and `useSafeHandles: false` are the
   interop-friendly defaults these skills assume.
-- Run the generator in a single project and share via `InternalsVisibleTo`
-  rather than adding CsWin32 to every project.
+- Run the generator in a single project within an ownership layer and share via
+  `InternalsVisibleTo` rather than adding CsWin32 to every implementation
+  project. A package that extends another package's public projection is a
+  separate layer: configure `className` / `extensionReceiver` as described in
+  [composition.md](composition.md).
+
+### Source generator versus build task
+
+The Roslyn source generator is the default. Setting
+`CsWin32RunAsBuildTask=true` replaces it with an MSBuild task that writes `.cs`
+files under the intermediate output directory and adds them to `Compile`; the
+source generator stands down. Treat this as an opt-in for a specific build
+ordering, generated-file, or tooling requirement, not as a general upgrade.
+
+Before keeping build-task mode, clean and build every TFM, compare the emitted
+public API, and measure clean-build time. It can be materially slower. It also
+does not make an `allowMarshaling: false` project more AOT-safe by itself, so do
+not enable `DisableRuntimeMarshalling` merely because generation moved to the
+task.
 
 ## Sibling pages
 
@@ -84,5 +102,8 @@ multi-targets frameworks has **no** platform gate - the cross-cut there is
 - [types-and-constants.md](types-and-constants.md) - using the generated
   handle / enum / constant projections, "grep the metadata before redefining",
   type conversions, FILETIME, and native integers.
+- [composition.md](composition.md) - composing one public `PInvoke` across an
+  owner package and downstream extender, including constants, XML docs, and
+  package verification.
 - [gating.md](gating.md) - multi-TFM / multi-platform guards, `CA1416`, a
   stack-first scratch buffer, and verifying the guarded build.

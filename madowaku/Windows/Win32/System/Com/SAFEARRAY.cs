@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Jeremy W Kuhne
+// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -59,7 +59,7 @@ public unsafe partial struct SAFEARRAY
             VARENUM vt = VT_EMPTY;
             fixed (SAFEARRAY* pThis = &this)
             {
-                PInvokeMadowaku.SafeArrayGetVartype(pThis, &vt).ThrowOnFailure();
+                PInvoke.SafeArrayGetVartype(pThis, &vt).ThrowOnFailure();
                 return vt;
             }
         }

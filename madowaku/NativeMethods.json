@@ -3,7 +3,7 @@
     "public": true,
     "allowMarshaling": false,
     "useSafeHandles": false,
-    "className": "PInvokeMadowaku",
+    "className": "PInvoke",
     "comInterop": {
         "preserveSigMethods": [
             "*"

@@ -5,17 +5,17 @@
 namespace Windows.Win32.Foundation;
 
 /// <summary>
-///  Represents a pointer to a wide string (null-terminated Unicode string).
+///  Represents a pointer to a constant null-terminated UTF-16 string.
 /// </summary>
-public unsafe partial struct PWSTR
+public unsafe partial struct PCWSTR
 {
     /// <summary>
-    ///  <see langword="true"/> if the pointer is null.
+    ///  Gets a value indicating whether the pointer is null.
     /// </summary>
     public bool IsNull => Value is null;
 
     /// <summary>
-    ///  Calls <see cref="PInvoke.LocalFree(HLOCAL)"/> on the pointer if it is not null.
+    ///  Frees the pointer with <c>LocalFree</c> when it is not null.
     /// </summary>
     public void LocalFree()
     {

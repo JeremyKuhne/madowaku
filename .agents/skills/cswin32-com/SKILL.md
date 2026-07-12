@@ -1,6 +1,6 @@
 ---
 name: cswin32-com
-description: 'Guides struct-based COM interop using CsWin32 - AOT-compatible, no [ComImport] and no built-in CLR marshalling. Consult when working with ComScope, IID.Get, delegate* unmanaged vtables, CoCreateInstance or a class factory, IComIID across target frameworks, manually defining COM interfaces not in Win32 metadata (WMI, Fusion, CLR hosting/metadata), COM pointer lifetime in fields, or mocking struct-based COM in tests. Paired with the cswin32-interop skill for the general P/Invoke layer and blittable-signature rules.'
+description: 'Guides struct-based COM interop using CsWin32 - AOT-compatible raw pointer calls without [ComImport] or built-in CLR marshalling; managed [ComImport] mirrors are limited to CCW bridges. Consult when working with ComScope, IID.Get, delegate* unmanaged vtables, CoCreateInstance or a class factory, IComIID across target frameworks, manually defining COM interfaces not in Win32 metadata (WMI, Fusion, CLR hosting/metadata), COM pointer lifetime in fields, cross-assembly CCWs, or mocking struct-based COM in tests. Paired with the cswin32-interop skill for the general P/Invoke layer and blittable-signature rules.'
 argument-hint: 'Describe the COM interface or activation pattern you are working with.'
 license: MIT
 compatibility: Requires the .NET SDK and the Microsoft.Windows.CsWin32 source generator; Windows COM APIs.
@@ -19,11 +19,12 @@ metadata:
 If `overlay.md` exists beside this file, read it before acting; it contains
 repository-specific bindings. This core remains usable without it.
 
-Struct-based COM interop on top of CsWin32: raw `delegate*` vtable calls, no
-`[ComImport]` and no built-in CLR marshalling, so it is AOT- and
-trimming-friendly. This skill covers the COM-specific layer; the general P/Invoke
-layer and the blittable-signature rules that vtable methods also follow live in
-the paired **cswin32-interop** skill.
+Struct-based COM interop on top of CsWin32: raw `delegate*` vtable calls and no
+built-in CLR marshalling on the native pointer surface, so it is AOT- and
+trimming-friendly. A managed `[ComImport]` mirror is allowed only as a narrow
+CCW bridge; runtime calls still use the generated struct. This skill covers the
+COM-specific layer; the general P/Invoke layer and the blittable-signature rules
+that vtable methods also follow live in the paired **cswin32-interop** skill.
 
 ## Workflow
 
@@ -48,6 +49,10 @@ the paired **cswin32-interop** skill.
 6. **Gate** by target framework only where a member needs a newer feature -
    [comiid-and-cls.md](comiid-and-cls.md) has the `IComIID` story that governs
    which TFMs `ComScope<T>` works on.
+7. **Compose across packages** at the owner boundary. The owner implements
+  generated partial hooks and publishes shared COM structs; extenders add
+  behavior with extension blocks or uniquely named CCW providers. See
+  [ccw-composition.md](ccw-composition.md).
 
 ## Activation
 
@@ -82,3 +87,6 @@ instance.Pointer->DoThing(...);
 - [migration-and-testing.md](migration-and-testing.md) - the error-handling
   parity table when migrating off `[ComImport]`, and mocking struct-based COM in
   tests via a CCW bridge.
+- [ccw-composition.md](ccw-composition.md) - owner-side `IUnknown` vtable
+  initialization, extending imported COM structs across assemblies, and local
+  CCW provider types.

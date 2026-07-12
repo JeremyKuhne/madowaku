@@ -41,7 +41,7 @@ public class HMODULETests
         }
         finally
         {
-            PInvokeMadowaku.FreeLibrary(module);
+            PInvoke.FreeLibrary(module);
         }
     }
 
@@ -85,7 +85,7 @@ public class HMODULETests
         }
         finally
         {
-            PInvokeMadowaku.FreeLibrary(module);
+            PInvoke.FreeLibrary(module);
         }
     }
 

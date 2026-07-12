@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Jeremy W Kuhne
+// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -53,7 +53,7 @@ public sealed unsafe class ComClassFactory : IDisposable
         //   [out] LPVOID* ppv
         // );
 
-        FARPROC proc = PInvokeMadowaku.GetProcAddress(module, ExportMethodName);
+        FARPROC proc = PInvoke.GetProcAddress(module, ExportMethodName);
 
         if (proc.IsNull)
         {
@@ -86,7 +86,7 @@ public sealed unsafe class ComClassFactory : IDisposable
         IClassFactory* classFactory;
         Guid iid = IClassFactory.IID_Guid;
 
-        PInvokeMadowaku.CoGetClassObject(
+        PInvoke.CoGetClassObject(
             &classId,
             CLSCTX.CLSCTX_INPROC_SERVER,
             (void*)null,
@@ -124,7 +124,7 @@ public sealed unsafe class ComClassFactory : IDisposable
         _classFactory->Release();
         if (_unloadModule && !_module.IsNull)
         {
-            PInvokeMadowaku.FreeLibrary(_module);
+            PInvoke.FreeLibrary(_module);
         }
     }
 }

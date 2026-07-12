@@ -201,10 +201,10 @@ not a license to skip the conversation.
 - Adhere to the repository's license and copyright.
 - CsWin32-generated P/Invoke lives under the `Windows.Win32` namespace via
   `NativeMethods.txt` / `NativeMethods.json`. Prefer the generated
-  `PInvoke` / `PInvokeMadowaku` surface over hand-written `[DllImport]`.
+  `PInvoke` surface over hand-written `[DllImport]`.
   See the [`cswin32-interop`](.agents/skills/cswin32-interop/SKILL.md) and
   [`cswin32-com`](.agents/skills/cswin32-com/SKILL.md) skills for
-  patterns, TFM gating, and the per-struct net472 polyfill recipe.
+  patterns and TFM gating.
 - For BenchmarkDotNet setup, authoring rules, and run guidance in
   `madowaku.perf`, see the
   [`performance-testing`](.agents/skills/performance-testing/SKILL.md)

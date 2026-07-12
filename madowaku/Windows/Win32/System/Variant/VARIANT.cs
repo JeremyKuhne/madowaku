@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Jeremy W Kuhne
+// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -71,7 +71,7 @@ public unsafe partial struct VARIANT : IDisposable
 
         fixed (void* t = &this)
         {
-            PInvokeMadowaku.PropVariantClear((PROPVARIANT*)t);
+            PInvoke.PropVariantClear((PROPVARIANT*)t);
         }
 
         vt = VT_EMPTY;

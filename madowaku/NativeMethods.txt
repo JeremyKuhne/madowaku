@@ -1,5 +1,6 @@
 BCryptGenRandom
 BSTR
+CloseHandle
 CoCreateInstance
 CoGetClassObject
 DLLVERSIONINFO
@@ -23,6 +24,7 @@ IGlobalInterfaceTable
 IUnknown
 LoadLibraryEx
 LocalFree
+LsaNtStatusToWinError
 PROPVARIANT
 PropVariantClear
 S_OK
