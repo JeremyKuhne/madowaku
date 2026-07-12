@@ -21,6 +21,14 @@ search the generated metadata; CsWin32 almost certainly already projects it:
 Add the name to `NativeMethods.txt` if not yet generated, then read the emitted
 `Windows.Win32.<Name>.g.cs` under the generator's output for the exact shape.
 
+In a layered `extensionReceiver` project, the real `const` remains on the
+extender's generated host (for example, `Interop.VALUE`); the member projected
+onto the owner's `PInvoke` is an extension property. Use the host in enum
+initializers, `case` labels, constant patterns, attributes, and optional defaults,
+because an extension property is not a compile-time constant. Use the unified
+`PInvoke.VALUE` surface in runtime expressions. See
+[composition.md](composition.md).
+
 ## Some flags are standalone constants, not enum members
 
 A Win32 `#define` that sits outside a `typedef enum` generates as an

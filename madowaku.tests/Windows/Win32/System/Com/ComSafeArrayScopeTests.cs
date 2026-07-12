@@ -29,7 +29,7 @@ public class ComSafeArrayScopeTests
     {
         // Build a 1-element VT_UNKNOWN SAFEARRAY manually and wrap it.
         SAFEARRAYBOUND bound = new() { cElements = 1, lLbound = 0 };
-        SAFEARRAY* array = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
+        SAFEARRAY* array = PInvoke.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
         (array is null).Should().BeFalse();
 
         using ComSafeArrayScope<IUnknown> scope = new(array);
@@ -42,7 +42,7 @@ public class ComSafeArrayScopeTests
     public unsafe void Length_NonEmptyArray_ReturnsCElements()
     {
         SAFEARRAYBOUND bound = new() { cElements = 3, lLbound = 0 };
-        SAFEARRAY* array = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
+        SAFEARRAY* array = PInvoke.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
         using ComSafeArrayScope<IUnknown> scope = new(array);
         scope.Length.Should().Be(3);
     }
@@ -51,7 +51,7 @@ public class ComSafeArrayScopeTests
     public unsafe void Indexer_NullEntry_ReturnsNullComScope()
     {
         SAFEARRAYBOUND bound = new() { cElements = 1, lLbound = 0 };
-        SAFEARRAY* array = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
+        SAFEARRAY* array = PInvoke.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
         using ComSafeArrayScope<IUnknown> scope = new(array);
 
         // Default entry is null; the indexer should return a ComScope wrapping null.
@@ -63,7 +63,7 @@ public class ComSafeArrayScopeTests
     public unsafe void ImplicitOperator_SafearrayDoublePointer_DereferencesToSafearrayPointer()
     {
         SAFEARRAYBOUND bound = new() { cElements = 1, lLbound = 0 };
-        SAFEARRAY* array = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
+        SAFEARRAY* array = PInvoke.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bound);
         using ComSafeArrayScope<IUnknown> scope = new(array);
         SAFEARRAY** pp = scope;
         (pp is null).Should().BeFalse();

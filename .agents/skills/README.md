@@ -91,7 +91,7 @@ Both touch CsWin32. They are mutually exclusive by **surface**:
 
 - **P/Invoke functions, Win32 structs/enums/constants, `HANDLE`/`HMODULE`/
   `HRESULT`/`BOOL`, TFM gating, the `ComWrappers` polyfill, the
-  `PInvoke` vs `PInvokeMadowaku` split** &rarr; `cswin32-interop`.
+  public `PInvoke` owner/extender surface** &rarr; `cswin32-interop`.
 - **COM interfaces &mdash; `ComScope<T>`, `IComIID` (emitted across all
   TFMs), `IID.Get<T>()`, manual struct-based interfaces (CLR hosting,
   metadata, etc.), `delegate* unmanaged` vtables, `CoCreateInstance` /

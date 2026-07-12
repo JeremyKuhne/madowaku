@@ -34,14 +34,33 @@ polyfill: adding a generated COM type to
   [AgileComPointer](../../../madowaku/Windows/Win32/System/Com/AgileComPointer.cs),
   backed by
   [GlobalInterfaceTable](../../../madowaku/Windows/Win32/System/Com/GlobalInterfaceTable.cs).
-- **Activation call:** `PInvokeMadowaku.CoCreateInstance` /
-  `PInvokeMadowaku.CoGetClassObject` - but check Touki's `PInvoke` first (see the
-  [cswin32-interop](../cswin32-interop/overlay.md) overlay's "Two PInvoke
-  classes").
+- **Activation call:** `PInvoke.CoCreateInstance` /
+  `PInvoke.CoGetClassObject` on madowaku's public generated surface (see the
+  [cswin32-interop](../cswin32-interop/overlay.md) overlay's "One public PInvoke
+  surface").
 - **`BSTR`** is extended with `IDisposable` at
   [madowaku/Windows/Win32/Foundation/BSTR.cs](../../../madowaku/Windows/Win32/Foundation/BSTR.cs);
   [SafeArrayScope](../../../madowaku/Windows/Win32/System/Com/SafeArrayScope.cs)
   and friends sit beside the COM helpers.
+
+## Owner-side CCW vtable hook
+
+madowaku is the owner described by
+[ccw-composition.md](ccw-composition.md). Its modern .NET build implements the
+`PopulateIUnknownImpl<TComInterface>` partial method declared by CsWin32's
+generated `ComHelpers` in
+[ComHelpers.cs](../../../madowaku/Windows/Win32/System/Com/ComHelpers.cs). The
+implementation derives from `ComWrappers`, calls `GetIUnknownImpl`, and writes
+the canonical `QueryInterface`, `AddRef`, and `Release` entry points into the
+generated vtable.
+
+Keep this hook in madowaku. A downstream extender's generated `IVTable` support
+calls the owner assembly's `ComHelpers.PopulateIUnknown<T>()`; partial methods do
+not span assemblies, so an implementation in the extender cannot satisfy the
+owner declaration. The hook is `#if NET` because the net472 `ComWrappers` shim
+cannot provide real CCW vtables. Shared imported COM structs and lifecycle
+helpers likewise stay in madowaku; downstream packages add behavior with
+extension blocks or use uniquely named implementation-only CCW provider types.
 
 ## Manual structs and CLS compliance
 

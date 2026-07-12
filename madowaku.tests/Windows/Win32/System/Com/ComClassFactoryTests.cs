@@ -74,7 +74,7 @@ public class ComClassFactoryTests
         }
         finally
         {
-            PInvokeMadowaku.FreeLibrary(ole32);
+            PInvoke.FreeLibrary(ole32);
         }
     }
 }

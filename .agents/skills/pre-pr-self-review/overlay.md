@@ -24,7 +24,7 @@ skill. The `SKILL.md` is a **pinned copy of the portable core** from
 - **No `Enum.HasFlag`** (boxes on net472); use the Touki enum extension methods.
 - **`nint` / `nuint`, never `IntPtr` / `UIntPtr`**; `HANDLE` / `HRESULT` / `BOOL`
   and friends at interop boundaries.
-- **Interop APIs go through the generated `PInvoke` / `PInvokeMadowaku` surface**
+- **Interop APIs go through the generated `PInvoke` surface**
   (`NativeMethods.txt`), not hand-written `[DllImport]`.
 - **A perf claim needs a [madowaku.perf](../../../madowaku.perf/madowaku.perf.csproj)
   benchmark** (or an explicit "not measured" note).

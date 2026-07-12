@@ -55,3 +55,10 @@ mock must now behave like real COM:
 - **Throw `COMException` on bad input; do not `Assert`** inside the mock - an
   assertion exception escapes the code-under-test's `catch (COMException)`, while
   a `COMException` becomes a failing HRESULT it handles normally.
+
+The managed `[ComImport]` interface in this bridge is deliberately not the
+runtime pointer API. Keep native calls on the generated struct. This classic
+marshaller bridge is for tests or other built-in-COM paths, not NativeAOT. In an
+owner/extender package design, the owner must also provide the generated
+`PopulateIUnknownImpl` partial hook before an extender's `IVTable` provider can
+construct a CCW; see [ccw-composition.md](ccw-composition.md).

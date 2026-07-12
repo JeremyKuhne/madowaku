@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Jeremy W Kuhne
+// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -27,13 +27,13 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     ///  <paramref name="incrementRefCount"/> is <see langword="true"/>.
     /// </summary>
     /// <returns>The found instance or <see cref="Null"/>.</returns>
-    /// <inheritdoc cref="PInvokeMadowaku.GetModuleHandleEx(uint, PCWSTR, HMODULE*)"/>
+    /// <inheritdoc cref="PInvoke.GetModuleHandleEx(uint, PCWSTR, HMODULE*)"/>
     public static HMODULE FromAddress(void* address, bool incrementRefCount = false)
     {
         HMODULE hmodule;
-        PInvokeMadowaku.GetModuleHandleEx(
-            PInvokeMadowaku.GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
-                | (incrementRefCount ? 0 : PInvokeMadowaku.GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT),
+        PInvoke.GetModuleHandleEx(
+            PInvoke.GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+                | (incrementRefCount ? 0 : PInvoke.GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT),
             (PCWSTR)address,
             &hmodule);
 
@@ -44,12 +44,12 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     ///  Gets the module for the launching executable. Do not release this handle.
     /// </summary>
     /// <returns>The found instance or <see cref="Null"/>.</returns>
-    /// <inheritdoc cref="PInvokeMadowaku.GetModuleHandleEx(uint, PCWSTR, HMODULE*)"/>
+    /// <inheritdoc cref="PInvoke.GetModuleHandleEx(uint, PCWSTR, HMODULE*)"/>
     public static HMODULE GetLaunchingExecutable()
     {
         HMODULE hmodule;
-        PInvokeMadowaku.GetModuleHandleEx(
-            PInvokeMadowaku.GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        PInvoke.GetModuleHandleEx(
+            PInvoke.GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
             (PCWSTR)null,
             &hmodule);
 
@@ -61,15 +61,15 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     ///  <paramref name="incrementRefCount"/> is <see langword="true"/>.
     /// </summary>
     /// <returns>The found instance or <see cref="Null"/>.</returns>
-    /// <inheritdoc cref="PInvokeMadowaku.GetModuleHandleEx(uint, PCWSTR, HMODULE*)"/>
+    /// <inheritdoc cref="PInvoke.GetModuleHandleEx(uint, PCWSTR, HMODULE*)"/>
     public static HMODULE FromName(string name, bool incrementRefCount = false)
     {
         fixed (char* n = name)
         {
             HMODULE hmodule;
 
-            PInvokeMadowaku.GetModuleHandleEx(
-                incrementRefCount ? 0 : PInvokeMadowaku.GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            PInvoke.GetModuleHandleEx(
+                incrementRefCount ? 0 : PInvoke.GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                 (PCWSTR)n,
                 &hmodule);
 
@@ -82,7 +82,7 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     /// </summary>
     public static HMODULE LoadModule(string filePath, LOAD_LIBRARY_FLAGS flags = default)
     {
-        HMODULE module = PInvokeMadowaku.LoadLibraryEx(filePath, flags);
+        HMODULE module = PInvoke.LoadLibraryEx(filePath, flags);
         if (module.IsNull)
         {
             Error.ThrowLastError();
@@ -96,7 +96,7 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     /// </summary>
     public Version GetDllVersion()
     {
-        FARPROC proc = PInvokeMadowaku.GetProcAddress(this, DllGetVersionMethodName);
+        FARPROC proc = PInvoke.GetProcAddress(this, DllGetVersionMethodName);
 
         if (proc.IsNull)
         {
@@ -127,7 +127,7 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     /// </summary>
     public FARPROC GetProcAddress(string procName)
     {
-        FARPROC proc = PInvokeMadowaku.GetProcAddress(this, procName);
+        FARPROC proc = PInvoke.GetProcAddress(this, procName);
         if (proc.IsNull)
         {
             Error.ThrowLastError();

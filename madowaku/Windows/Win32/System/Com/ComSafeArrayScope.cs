@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Jeremy W Kuhne
+// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -11,7 +11,7 @@ namespace Windows.Win32.System.Com;
 
 /// <summary>
 ///  Helper to scope lifetime of a <see cref="SAFEARRAY"/> created via
-///  <see cref="PInvokeMadowaku.SafeArrayCreate(VARENUM, uint, SAFEARRAYBOUND*)"/>
+///  <see cref="PInvoke.SafeArrayCreate(VARENUM, uint, SAFEARRAYBOUND*)"/>
 ///  Destroys the <see cref="SAFEARRAY"/> (if any) when disposed. Note that this scope currently only works for a
 ///  one dimensional <see cref="SAFEARRAY"/>.
 /// </summary>
@@ -67,7 +67,7 @@ public readonly unsafe ref struct ComSafeArrayScope<T> where T : unmanaged, ICom
         TReturn result;
         fixed (int* pIndices = indices)
         {
-            PInvokeMadowaku.SafeArrayGetElement(Value, pIndices, &result).ThrowOnFailure();
+            PInvoke.SafeArrayGetElement(Value, pIndices, &result).ThrowOnFailure();
         }
 
         return result;
@@ -102,7 +102,7 @@ public readonly unsafe ref struct ComSafeArrayScope<T> where T : unmanaged, ICom
 
         if (safeArray is not null)
         {
-            PInvokeMadowaku.SafeArrayDestroy(safeArray).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(safeArray).ThrowOnFailure();
         }
     }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Jeremy W Kuhne
+// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -454,7 +454,7 @@ public partial class VariantTests
         bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
         bounds[1] = new SAFEARRAYBOUND { cElements = 3, lLbound = 0 };
 
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_I4, 2, bounds);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(VARENUM.VT_I4, 2, bounds);
         (psa is null).Should().BeFalse();
 
         try
@@ -468,7 +468,7 @@ public partial class VariantTests
                     Span<int> idx = [i, j];
                     fixed (int* p = idx)
                     {
-                        PInvokeMadowaku.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
+                        PInvoke.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
                     }
                 }
             }
@@ -501,7 +501,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -702,13 +702,13 @@ public partial class VariantTests
     private static unsafe SAFEARRAY* CreateSafeArray<T>(VARENUM vt, T[] values) where T : unmanaged
     {
         SAFEARRAYBOUND bound = new() { cElements = (uint)values.Length, lLbound = 0 };
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(vt, 1, &bound);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(vt, 1, &bound);
         (psa is null).Should().BeFalse();
         for (int i = 0; i < values.Length; i++)
         {
             T value = values[i];
             int index = i;
-            PInvokeMadowaku.SafeArrayPutElement(psa, &index, &value).ThrowOnFailure();
+            PInvoke.SafeArrayPutElement(psa, &index, &value).ThrowOnFailure();
         }
 
         return psa;
@@ -718,7 +718,7 @@ public partial class VariantTests
         where T : unmanaged
     {
         SAFEARRAYBOUND bounds = new() { cElements = (uint)values.Length, lLbound = 5 };
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(safeArrayType, 1, &bounds);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(safeArrayType, 1, &bounds);
         (psa is null).Should().BeFalse();
 
         try
@@ -727,7 +727,7 @@ public partial class VariantTests
             {
                 int absoluteIndex = i + 5;
                 T value = values[i];
-                PInvokeMadowaku.SafeArrayPutElement(psa, &absoluteIndex, &value).ThrowOnFailure();
+                PInvoke.SafeArrayPutElement(psa, &absoluteIndex, &value).ThrowOnFailure();
             }
 
             VARIANT variant = new() { vt = VARENUM.VT_ARRAY | variantType };
@@ -741,7 +741,7 @@ public partial class VariantTests
         {
             if (psa is not null)
             {
-                PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+                PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
             }
         }
     }
@@ -937,7 +937,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -954,7 +954,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -971,7 +971,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -988,7 +988,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1005,7 +1005,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1022,7 +1022,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1039,7 +1039,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1056,7 +1056,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1074,7 +1074,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1094,7 +1094,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1112,7 +1112,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1133,7 +1133,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1147,7 +1147,7 @@ public partial class VariantTests
         using SafeArrayScope<object> source481 = new(1);
         VARIANT inner481 = (VARIANT)1;
         int idx481 = 0;
-        PInvokeMadowaku.SafeArrayPutElement(source481.Value, &idx481, &inner481).ThrowOnFailure();
+        PInvoke.SafeArrayPutElement(source481.Value, &idx481, &inner481).ThrowOnFailure();
         VARIANT v481 = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_VARIANT };
         v481.data.parray = source481.Value;
         FluentActions.Invoking(() => v481.ToObject()).Should().Throw<ArgumentException>();
@@ -1157,8 +1157,8 @@ public partial class VariantTests
         VARIANT two = (VARIANT)2;
         int idx0 = 0;
         int idx1 = 1;
-        PInvokeMadowaku.SafeArrayPutElement(source.Value, &idx0, &one).ThrowOnFailure();
-        PInvokeMadowaku.SafeArrayPutElement(source.Value, &idx1, &two).ThrowOnFailure();
+        PInvoke.SafeArrayPutElement(source.Value, &idx0, &one).ThrowOnFailure();
+        PInvoke.SafeArrayPutElement(source.Value, &idx1, &two).ThrowOnFailure();
 
         VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_VARIANT };
         v.data.parray = source.Value;
@@ -1185,7 +1185,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1193,7 +1193,7 @@ public partial class VariantTests
     public unsafe void ToObject_Array_NonZeroLowerBound_PreservesBounds()
     {
         SAFEARRAYBOUND bound = new() { cElements = 3, lLbound = 5 };
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_I4, 1, &bound);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(VARENUM.VT_I4, 1, &bound);
         (psa is null).Should().BeFalse();
 
         try
@@ -1202,7 +1202,7 @@ public partial class VariantTests
             {
                 int abs = i + 5;
                 int value = i * 10;
-                PInvokeMadowaku.SafeArrayPutElement(psa, &abs, &value).ThrowOnFailure();
+                PInvoke.SafeArrayPutElement(psa, &abs, &value).ThrowOnFailure();
             }
 
             VARIANT v = new() { vt = VARENUM.VT_ARRAY | VARENUM.VT_I4 };
@@ -1219,7 +1219,7 @@ public partial class VariantTests
         {
             if (psa is not null)
             {
-                PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+                PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
             }
         }
     }
@@ -1286,7 +1286,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1303,7 +1303,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1311,7 +1311,7 @@ public partial class VariantTests
     public unsafe void ToObject_Array_VT_UNKNOWN_EmptySafeArray_ReturnsEmptyObjectArray()
     {
         SAFEARRAYBOUND bounds = new() { cElements = 0, lLbound = 0 };
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bounds);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(VARENUM.VT_UNKNOWN, 1, &bounds);
         (psa is null).Should().BeFalse();
 
         try
@@ -1324,7 +1324,7 @@ public partial class VariantTests
         {
             if (psa is not null)
             {
-                PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+                PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
             }
         }
     }
@@ -1333,7 +1333,7 @@ public partial class VariantTests
     public unsafe void ToObject_Array_VT_DISPATCH_EmptySafeArray_ReturnsEmptyObjectArray()
     {
         SAFEARRAYBOUND bounds = new() { cElements = 0, lLbound = 0 };
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_DISPATCH, 1, &bounds);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(VARENUM.VT_DISPATCH, 1, &bounds);
         (psa is null).Should().BeFalse();
 
         try
@@ -1346,7 +1346,7 @@ public partial class VariantTests
         {
             if (psa is not null)
             {
-                PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+                PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
             }
         }
     }
@@ -1364,7 +1364,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1381,7 +1381,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1398,7 +1398,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1408,7 +1408,7 @@ public partial class VariantTests
         SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[2];
         bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
         bounds[1] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_BSTR, 2, bounds);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(VARENUM.VT_BSTR, 2, bounds);
         try
         {
             for (int i = 0; i < 2; i++)
@@ -1419,7 +1419,7 @@ public partial class VariantTests
                     Span<int> idx = [i, j];
                     fixed (int* p = idx)
                     {
-                        PInvokeMadowaku.SafeArrayPutElement(psa, p, (void*)(nint)b).ThrowOnFailure();
+                        PInvoke.SafeArrayPutElement(psa, p, (void*)(nint)b).ThrowOnFailure();
                     }
                 }
             }
@@ -1442,7 +1442,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1453,7 +1453,7 @@ public partial class VariantTests
         bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
         bounds[1] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
         bounds[2] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_R8, 3, bounds);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(VARENUM.VT_R8, 3, bounds);
         try
         {
             for (int i = 0; i < 2; i++)
@@ -1466,7 +1466,7 @@ public partial class VariantTests
                         Span<int> idx = [i, j, k];
                         fixed (int* p = idx)
                         {
-                            PInvokeMadowaku.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
+                            PInvoke.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
                         }
                     }
                 }
@@ -1500,7 +1500,7 @@ public partial class VariantTests
         }
         finally
         {
-            PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+            PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
         }
     }
 
@@ -1510,7 +1510,7 @@ public partial class VariantTests
         SAFEARRAYBOUND* bounds = stackalloc SAFEARRAYBOUND[2];
         bounds[0] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
         bounds[1] = new SAFEARRAYBOUND { cElements = 2, lLbound = 0 };
-        SAFEARRAY* psa = PInvokeMadowaku.SafeArrayCreate(VARENUM.VT_UI4, 2, bounds);
+        SAFEARRAY* psa = PInvoke.SafeArrayCreate(VARENUM.VT_UI4, 2, bounds);
         (psa is null).Should().BeFalse();
 
         try
@@ -1523,7 +1523,7 @@ public partial class VariantTests
                     Span<int> idx = [i, j];
                     fixed (int* p = idx)
                     {
-                        PInvokeMadowaku.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
+                        PInvoke.SafeArrayPutElement(psa, p, &value).ThrowOnFailure();
                     }
                 }
             }
@@ -1548,7 +1548,7 @@ public partial class VariantTests
         {
             if (psa is not null)
             {
-                PInvokeMadowaku.SafeArrayDestroy(psa).ThrowOnFailure();
+                PInvoke.SafeArrayDestroy(psa).ThrowOnFailure();
             }
         }
     }

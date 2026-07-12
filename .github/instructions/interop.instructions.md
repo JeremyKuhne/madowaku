@@ -12,8 +12,8 @@ rules still apply.
 For full patterns and recipes, consult:
 
 - [`cswin32-interop`](../../.agents/skills/cswin32-interop/SKILL.md)
-  &mdash; P/Invoke generation, TFM gating, `PInvoke` vs
-  `PInvokeMadowaku`, the `ComWrappers` shim, polyfill layout.
+  &mdash; P/Invoke generation, TFM gating, the public `PInvoke` surface,
+  the `ComWrappers` shim, polyfill layout.
 - [`cswin32-com`](../../.agents/skills/cswin32-com/SKILL.md) &mdash;
   `ComScope<T>`, `IComIID` across TFMs, `IID.Get<T>()`, `delegate* unmanaged`
   vtables, manual COM structs.
@@ -22,7 +22,7 @@ For full patterns and recipes, consult:
 
 - **No hand-written `[DllImport]` for APIs available in Win32 metadata.**
   Add the function to `NativeMethods.txt` and call it through the
-  generated `PInvoke` / `PInvokeMadowaku` surface instead.
+  generated `PInvoke` surface instead.
 - **Use `nint` / `nuint`**, never `IntPtr` / `UIntPtr`.
 - **Use `HANDLE`, `HMODULE`, `HRESULT`, `BOOL` and friends** from
   `Windows.Win32.Foundation` rather than raw `int` / `nint` at interop

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Jeremy W Kuhne
+// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -79,7 +79,7 @@ public unsafe partial struct VARIANT
         arrayType.ClearFlags(VT_ARRAY);
         Array array = CreateArrayFromSafeArray(psa, arrayType);
 
-        HRESULT hr = PInvokeMadowaku.SafeArrayLock(psa);
+        HRESULT hr = PInvoke.SafeArrayLock(psa);
         Debug.Assert(hr == HRESULT.S_OK);
 
         try
@@ -233,7 +233,7 @@ public unsafe partial struct VARIANT
         }
         finally
         {
-            hr = PInvokeMadowaku.SafeArrayUnlock(psa);
+            hr = PInvoke.SafeArrayUnlock(psa);
             Debug.Assert(hr == HRESULT.S_OK);
         }
 
@@ -497,7 +497,7 @@ public unsafe partial struct VARIANT
         if (vt == VT_RECORD)
         {
             using ComScope<IRecordInfo> record = new(null);
-            PInvokeMadowaku.SafeArrayGetRecordInfo(psa, record).ThrowOnFailure();
+            PInvoke.SafeArrayGetRecordInfo(psa, record).ThrowOnFailure();
             elementType = GetRecordElementType(record);
         }
 
