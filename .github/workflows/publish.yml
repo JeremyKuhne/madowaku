@@ -54,7 +54,18 @@ jobs:
       env:
         RELEASE_TAG: ${{ steps.release.outputs.tag }}
       run: |
-        $tagCommit = git rev-list -n 1 $env:RELEASE_TAG
+        $verificationRef = "refs/release-tags/$($env:RELEASE_TAG)"
+        git fetch --force --no-tags origin "refs/tags/$($env:RELEASE_TAG):$verificationRef"
+        if ($LASTEXITCODE -ne 0) {
+          throw "Unable to fetch tag '$($env:RELEASE_TAG)' for verification."
+        }
+
+        $tagType = git cat-file -t $verificationRef
+        if ($tagType -ne 'tag') {
+          throw "Release tag '$($env:RELEASE_TAG)' must be annotated, but its object type is '$tagType'."
+        }
+
+        $tagCommit = git rev-list -n 1 $verificationRef
         $headCommit = git rev-parse HEAD
         if (-not $tagCommit -or $tagCommit -ne $headCommit) {
           throw "Tag '$($env:RELEASE_TAG)' points to '$tagCommit', but HEAD is '$headCommit'."
