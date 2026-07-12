@@ -26,6 +26,10 @@ jobs:
       shell: pwsh
       run: |
         if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+          if ($env:GITHUB_REF -ne 'refs/heads/main') {
+            throw "Manual publish must run from 'refs/heads/main', got '$($env:GITHUB_REF)'."
+          }
+
           $event = Get-Content -Raw $env:GITHUB_EVENT_PATH | ConvertFrom-Json
           $releaseTag = [string]$event.inputs.tag
         } else {
