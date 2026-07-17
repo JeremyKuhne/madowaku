@@ -1,8 +1,8 @@
 ---
 name: cswin32-interop
-description: 'Guides CsWin32 P/Invoke interop in a multi-targeted .NET library. Consult when replacing [DllImport] with source-generated PInvoke.* calls, working with generated Windows.Win32 projections (HANDLE / HMODULE / HRESULT / BOOL and typed enum/constant types), configuring NativeMethods.txt / NativeMethods.json, composing a public PInvoke across foundation/owner/extender packages with extensionReceiver, deciding which support library owns a helper, auditing native allocation and byte/element lengths, gating Windows-only code across target frameworks, or choosing between CsWin32 and [LibraryImport]. Paired with the cswin32-com skill for the struct-based COM layer.'
+description: 'Guides CsWin32 P/Invoke interop in a multi-targeted .NET 10 and .NET Framework library. Consult when replacing [DllImport] with source-generated PInvoke.* calls, working with generated Windows.Win32 projections (HANDLE / HMODULE / HRESULT / BOOL and typed enum/constant types), configuring NativeMethods.txt / NativeMethods.json, composing a public PInvoke across foundation/owner/extender packages with extensionReceiver, deciding which support library owns a helper, auditing native allocation and byte/element lengths, selecting compile-time / runtime / analyzer guards for Windows-only code, or choosing between CsWin32 and [LibraryImport]. Paired with the cswin32-com skill for the struct-based COM layer.'
 license: MIT
-compatibility: Requires the .NET SDK and the Microsoft.Windows.CsWin32 source generator; projects Windows APIs.
+compatibility: Requires the .NET SDK and the Microsoft.Windows.CsWin32 source generator; projects Windows APIs across .NET 10 and .NET Framework. Owner/extender composition requires C# 14.
 metadata:
   portability: portable
   applicability: dotnet
@@ -30,19 +30,23 @@ it - see the paired **cswin32-com** skill, whose vtable methods follow the same
 
 ## Rules
 
-1. **Replace `[DllImport]` with `PInvoke.*`.** Delete the old declaration and
-   any hand-written struct/enum/constant it depended on - the generator emits
-   projected equivalents. See [types-and-constants.md](types-and-constants.md).
+1. **Replace a hand-written `[DllImport]` with `PInvoke.*` when CsWin32 can
+  project the API.** After verifying the generated declaration and supporting
+  types, delete their hand-written equivalents. Keep a source-generated
+  `[LibraryImport]` on .NET 10 and `[DllImport]` on .NET Framework for an
+  export absent from the available Win32 metadata. See
+  [types-and-constants.md](types-and-constants.md).
 2. **Use the generated types directly** (`HANDLE`, `HMODULE`, `HRESULT.S_OK`,
    `FILE_FLAGS_AND_ATTRIBUTES`, ...). Never keep a parallel local copy of a
    Win32 enum or struct CsWin32 already projects.
 3. **Call the generated method directly** - no thin wrapper. Within one
-  ownership layer, generate once and share internal types with friend
-  assemblies. When a downstream package intentionally extends a public owner,
-  use the [owner/extender composition](composition.md) model instead.
-4. **Prefer CsWin32 for Windows APIs.** Reserve `[LibraryImport]` (or, on older
-   targets, `[DllImport]`) for genuinely non-Windows native calls such as
-   `libc`.
+   ownership layer, generate once and share internal types with friend
+   assemblies. When a downstream package intentionally extends a public owner,
+   use the [owner/extender composition](composition.md) model instead.
+4. **Prefer CsWin32 for Windows APIs present in its metadata.** Use
+  `[LibraryImport]` (or `[DllImport]` on .NET Framework) for private, custom,
+  or otherwise unprojectable Windows exports and for non-Windows native calls
+  such as `libc`. Keep those signatures blittable under the same rules.
 5. **Preserve the original error-handling contract when migrating.** Check the
    old declaration for `PreserveSig` / `SetLastError` / `BOOL` / `HRESULT`
    semantics and reproduce them: `PreserveSig=false` becomes
@@ -54,21 +58,22 @@ it - see the paired **cswin32-com** skill, whose vtable methods follow the same
    so every `[DllImport]` and every COM vtable method must be blittable. The
    full rule set is in [blittable-signatures.md](blittable-signatures.md).
 7. **Audit ownership and size units.** Generated wrappers do not decide which
-    allocator frees an output, whether a COM reference remains caller-owned, or
-    whether a length is bytes or elements. Record and test those contracts using
-    [ownership-and-units.md](ownership-and-units.md).
+   allocator frees an output, whether a COM reference remains caller-owned, or
+   whether a length is bytes or elements. Record and test those contracts using
+   [ownership-and-units.md](ownership-and-units.md).
 
-## The Windows-interop compile gate
+## Platform and target-framework guards
 
-CsWin32 output is Windows-only. A cross-platform or source-buildable library
-gates its Windows-interop code behind a repo-specific compile symbol (the
-"Windows-interop gate") plus, on any code path that also has a non-Windows
-branch, a runtime `IsWindows` check. A Windows-only library that still
-multi-targets frameworks has **no** platform gate - the cross-cut there is
-**target framework**, not platform. Either way,
-[gating.md](gating.md) covers guard selection, the correct nesting order,
-`CA1416`, and verifying the guarded build. Your overlay names the concrete gate
-(or states there is none).
+CsWin32 projects Windows APIs, but compile inclusion, runtime reachability, and
+the public platform contract are separate decisions. Generated declarations can
+live in a cross-platform assembly; reachable calls still need a recognized
+Windows runtime guard or a Windows-only API context. Exclude source at compile
+time only when a target intentionally omits that interop surface or one of its
+dependencies. In the .NET 10 / .NET Framework target model, use `NET` for the
+.NET 10 leg and `NETFRAMEWORK` for the Framework leg. See
+[gating.md](gating.md) for the decision table, `CA1416`, and guarded-build
+verification. An overlay records the concrete TFMs and any repository-specific
+compile symbol or source-item condition.
 
 ## Configuration
 
@@ -91,11 +96,11 @@ files under the intermediate output directory and adds them to `Compile`; the
 source generator stands down. Treat this as an opt-in for a specific build
 ordering, generated-file, or tooling requirement, not as a general upgrade.
 
-Before keeping build-task mode, clean and build every TFM, compare the emitted
-public API, and measure clean-build time. It can be materially slower. It also
-does not make an `allowMarshaling: false` project more AOT-safe by itself, so do
-not enable `DisableRuntimeMarshalling` merely because generation moved to the
-task.
+Before keeping build-task mode, clean and build all .NET 10 and .NET Framework
+TFMs, compare the emitted public API, and measure clean-build time. It can be
+materially slower. It also does not make an `allowMarshaling: false` project
+more AOT-safe by itself, so do not enable `DisableRuntimeMarshalling` merely
+because generation moved to the task.
 
 ## Sibling pages
 
@@ -114,5 +119,5 @@ task.
 - [ownership-and-units.md](ownership-and-units.md) - matching native allocators
   and deallocators, caller-owned COM references, failure cleanup, and
   byte-versus-element conversions.
-- [gating.md](gating.md) - multi-TFM / multi-platform guards, `CA1416`, a
-  stack-first scratch buffer, and verifying the guarded build.
+- [gating.md](gating.md) - source inclusion, runtime and TFM guards, `CA1416`, a
+  stack-first scratch-buffer strategy, and guarded-build verification.

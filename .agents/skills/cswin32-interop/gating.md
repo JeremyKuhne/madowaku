@@ -1,95 +1,89 @@
-# Gating and guarded builds
+# Platform and target-framework guards
 
-Detail for [cswin32-interop](SKILL.md). CsWin32 output is Windows-only. How you
-gate it depends on whether the library is cross-platform / source-buildable or
-Windows-only but multi-targeted.
+Detail for [cswin32-interop](SKILL.md). CsWin32 projects Windows APIs. Decide
+source inclusion, runtime reachability, and the platform contract independently;
+one guard does not automatically satisfy all three.
 
-## The two cross-cuts
+## Choose the guard from the constraint
 
-- **Platform.** A cross-platform or source-buildable library compiles its
-  Windows-interop code only behind a repo-specific compile symbol (the
-  "Windows-interop gate") and takes a runtime `IsWindows` check on any code path
-  that also has a non-Windows branch. Both are required.
-- **TFM.** A Windows-only library that multi-targets frameworks has no platform
-  gate; the cross-cut is target framework (for example an older `net472` /
-  `netstandard` leg versus a modern .NET leg). Guard only the members that
-  depend on a newer language or runtime feature.
+| Constraint | Compile-time action | Runtime action |
+| --- | --- | --- |
+| Windows-specific TFM or assembly | Usually none; the assembly already carries the platform context. | None unless the API requires a newer Windows version than the assembly contract. |
+| Cross-platform assembly; declarations compile on both runtime families | None. | Guard every reachable call with a recognized Windows check, or annotate the containing API as Windows-only. |
+| A target intentionally omits the interop source or one of its dependencies | Exclude whole files with conditional `Compile` items, or use a documented project symbol for smaller regions. | Still guard calls on any included target that can run cross-platform. |
+| A member exists only on the .NET 10 leg | Use `#if NET`. | Independent of the platform guard. |
+| A member or polyfill exists only on .NET Framework | Use a Framework-only source folder or `#if NETFRAMEWORK`. | Independent of the platform guard. |
 
-Your overlay names the concrete gate, or states there is none. Keep this core's
-guidance gate-name-agnostic.
+Generated P/Invoke declarations are not themselves a reason to remove source
+from non-Windows builds. Use compile-time exclusion only when the project has a
+real source or dependency constraint. When a whole file is conditional, prefer
+an MSBuild item condition over a whole-file `#if`. Namespace `using` directives
+and private helpers referenced only by a conditional region must use the same
+condition. The overlay names any custom symbol or item condition.
 
-## Nest the guards in the right order
+For a cross-platform binary, use a guard recognized by the platform analyzer:
 
 ```csharp
-#if WINDOWS_INTEROP_GATE
-    if (IsWindows)
-    {
-        PInvoke.GetFileAttributesEx(fullPath, out WIN32_FILE_ATTRIBUTE_DATA data);
-    }
+#if NET
+if (OperatingSystem.IsWindows())
+#else
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 #endif
-    // cross-platform fallback
+{
+  _ = PInvoke.GetCurrentProcessId();
+}
+else
+{
+  // Cross-platform fallback.
+}
 ```
 
-The compile gate is **outside**, the runtime check **inside**. The inverse -
-`if (IsWindows) { #if ... #endif }` - leaves dead code (or a missing return
-value) when the symbol is undefined. A file that is entirely Windows-only is
-better excluded from the non-Windows build via `<Compile Remove>` than wrapped
-in a whole-file `#if`.
-
-## Guard selection
-
-| Guard | Use for | Runtime OS check |
-| --- | --- | --- |
-| Windows-interop gate only | Multi-TFM Windows calls present on every framework | Yes |
-| gate plus "modern-only" (`&& NET`) | Members needing .NET 7+ features: static-abstract interface members, some `delegate*` conventions, real `ComWrappers` | Yes |
-| gate plus "not netstandard" | CsWin32 types unavailable on `netstandard` | Yes |
-| framework-only (`#if !NET`) | Code that exists only for the old framework leg, usually a polyfill - inherently Windows | No |
-
-Namespace `using` directives for gated types must live inside the same guard.
+Use `OperatingSystem.IsWindows()` on .NET 10 and
+`RuntimeInformation.IsOSPlatform(OSPlatform.Windows)` on .NET Framework. If the
+interop call is also conditionally compiled, keep the compile condition outside
+the runtime branch so the fallback remains complete when that source is absent.
 
 ## CA1416 platform compatibility
 
 For a cross-platform assembly, satisfy the analyzer semantically rather than
 suppressing it:
 
-- `if (IsWindows)` satisfies `[SupportedOSPlatform]`; `if (IsUnixLike)`
-  satisfies `[UnsupportedOSPlatform("windows")]`. **Never** use `!IsWindows` -
-  use an explicit `else if (IsUnixLike)`.
-- Put a versioned `[SupportedOSPlatform("windows6.1")]` on methods that call
-  CsWin32 APIs. `CS0592` forbids the attribute on a `partial struct` - put it on
-  individual members instead.
-- Reserve `#pragma warning disable CA1416` for static local functions, which the
-  analyzer cannot flow into.
+- Use `OperatingSystem.IsWindows()` or
+  `RuntimeInformation.IsOSPlatform(OSPlatform.Windows)`. Annotate a custom
+  boolean field, property, or method with
+  `[SupportedOSPlatformGuard("windows")]` before relying on it as a guard.
+- Apply `[SupportedOSPlatform("windows")]` to an assembly, type, or member when
+  its contract is Windows-only. The attribute is valid on structs. Include a
+  version only when the API has that real minimum, and match the documented
+  version instead of applying one baseline to every CsWin32 call.
+- Use `#pragma warning disable CA1416` only as a narrow, justified last resort
+  when a recognized guard or platform annotation cannot express the contract.
 
 ## A stack-first scratch buffer
 
-Win32 string and buffer APIs want a caller-allocated span with a length retry. A
-stack-first buffer with an `ArrayPool<T>` fallback keeps the common case
-allocation-free:
+Win32 string and buffer APIs often want caller-allocated storage followed by a
+length retry. Check for a CsWin32 `Span<T>` convenience overload before writing
+a `fixed` block. For a bounded common case, start with a small stack span and
+rent from `ArrayPool<T>` when the required length exceeds it. Choose the stack
+size from element size, call depth, measured workloads, and the repository's
+stack budget; there is no universal byte cutoff.
 
-```csharp
-using BufferScope<char> buffer = new(stackalloc char[(int)PInvoke.MAX_PATH]);
-int length = (int)PInvoke.GetShortPathName(path, buffer.AsSpan());
-if (length > buffer.Length)
-{
-    buffer.EnsureCapacity(length);
-    length = (int)PInvoke.GetShortPathName(path, buffer.AsSpan());
-}
-```
-
-Always `using` it (it is a `ref struct`), never `stackalloc` more than about
-1024 bytes, and check for a CsWin32 convenience overload (e.g.
-`GetShortPathName(string, Span<char>)`) before writing a `fixed` block. The
-`scratch-buffer-strategy` skill covers choosing the strategy; the concrete
-buffer type and its location are repo-specific - see the overlay.
+A repository may provide a disposable `ref struct` that combines the stack and
+pool paths. Always dispose that scope so a rented array is returned. The
+`scratch-buffer-strategy` skill covers the choice when installed, and the
+overlay names any concrete helper. On retry, preserve the native API's exact
+length semantics: bytes versus elements, and whether the required count includes
+a terminator or header.
 
 ## Verify the guarded build
 
-Anything referenced **only** inside the Windows-interop gate must itself be
-inside it, or the build that undefines the symbol breaks - most often on
-warnings-as-errors. Watch for `IDE0005` (unused `using`), `IDE0051` / `IDE0052`
-(unused private members), `CA1823` (an unused private field, e.g. a constant
-read only inside the guard), and `CS1587` (an XML doc comment left before a
-now-gated member). The same applies to a polyfill behind `#if !NET` consumed
-only from gated code. Build **both** configurations - symbol defined and
-undefined - before pushing.
+Anything referenced **only** inside a compile condition must itself be inside
+that condition, or the excluded build can fail under warnings-as-errors. Watch
+for `IDE0005` (unused `using`), `IDE0051` / `IDE0052` (unused private members),
+`CA1823` (an unused private field), and `CS1587` (an XML doc comment left before
+a conditional member).
+
+Build all .NET 10 and .NET Framework TFMs and every custom-symbol state that
+changes source inclusion. For a cross-platform binary, also execute an
+unsupported-OS path and verify it takes the fallback without loading or calling
+the Windows API.

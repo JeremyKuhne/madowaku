@@ -20,11 +20,12 @@ threw automatically. Preserve the old throw-versus-return at each call site:
 rejection (e.g. `Create(path)` on bad input), keep the null-return only for that
 path; activation and QI failures still throw.
 
-**Do not throw when the caller swallows it.** If the top-level consumer wraps the
-whole chain in `catch (COMException) { }`, inner helpers must return `default` /
-`false` / empty rather than constructing a `COMException` only to have it
-discarded - throwing there allocates, walks the stack, and hides the HRESULT for
-no benefit.
+**A swallowing caller does not define a shared helper's contract.** If the
+operation documents an expected "absent" result, an exception-free
+`Try*` / `false` / `default` path can avoid allocation and preserve the raw
+`HRESULT`. Otherwise retain `.ThrowOnFailure()` even when one top-level caller
+catches `COMException`. Change a shared helper only after auditing every caller
+and preserving its public failure contract.
 
 ## Mocking struct-based COM in tests
 
@@ -38,9 +39,15 @@ test:
 
 ```csharp
 // MockTypeLib : ComTypes.ITypeLib  (a normal managed class)
-IntPtr ccw = Marshal.GetComInterfaceForObject(mock, typeof(ComTypes.ITypeLib));
-try { walker.Analyze((ITypeLib*)ccw); }   // struct API; real QueryInterface works
-finally { Marshal.Release(ccw); }
+nint ccw = Marshal.GetComInterfaceForObject(mock, typeof(ComTypes.ITypeLib));
+try
+{
+  walker.Analyze((ITypeLib*)ccw);
+}
+finally
+{
+  Marshal.Release(ccw);
+}
 ```
 
 The CCW exposes a real vtable, so no hand-rolled native vtable is needed. But the

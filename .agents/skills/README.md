@@ -28,8 +28,11 @@ change will upstream them to the commons and re-vendor them here with a pin.
 
 | Skill | Trigger phrasing |
 | ----- | ---------------- |
-| [cswin32-interop](./cswin32-interop/SKILL.md) | "replace `[DllImport]` with CsWin32", generated `PInvoke.*` / Win32 types, "which package owns this helper?", split a public owner from downstream extenders, native allocator ownership, byte/element sizes, `NativeMethods.*`, blittable signatures, TFM gating |
-| [cswin32-com](./cswin32-com/SKILL.md) | struct-based COM with `ComScope`, caller-owned CCW references, `Advise` / `Unadvise`, activation, raw vtables, manual COM structs, `IComIID` across TFMs, cross-assembly CCWs, mocking struct COM |
+| [cswin32-interop](./cswin32-interop/SKILL.md) | "replace `[DllImport]` with CsWin32", generated `PInvoke.*` / Win32 types, "which package owns this helper?", split a public owner from downstream extenders, native allocator ownership, byte/element sizes, `NativeMethods.*`, blittable signatures, compile-time / runtime / analyzer guards |
+| [cswin32-com](./cswin32-com/SKILL.md) | struct-based COM with `ComScope`, caller-owned CCW references, `Advise` / `Unadvise`, activation, raw vtables, manual COM structs, `IComIID` across .NET 10 and .NET Framework, cross-assembly CCWs, mocking struct COM |
+
+`cswin32-com` declares `cswin32-interop` as a hard dependency; promote and
+install the pair together even though invocation remains surface-specific.
 
 ### Born-local
 
@@ -90,10 +93,10 @@ resulting files.
 Both touch CsWin32. They are mutually exclusive by **surface**:
 
 - **P/Invoke functions, Win32 structs/enums/constants, `HANDLE`/`HMODULE`/
-  `HRESULT`/`BOOL`, TFM gating, the `ComWrappers` polyfill, the
+  `HRESULT`/`BOOL`, platform and TFM guards, the `ComWrappers` polyfill, the
   public `PInvoke` owner/extender surface** &rarr; `cswin32-interop`.
-- **COM interfaces &mdash; `ComScope<T>`, `IComIID` (emitted across all
-  TFMs), `IID.Get<T>()`, manual struct-based interfaces (CLR hosting,
+- **COM interfaces &mdash; `ComScope<T>`, `IComIID` (emitted on .NET 10 and
+  .NET Framework), `IID.Get<T>()`, manual struct-based interfaces (CLR hosting,
   metadata, etc.), `delegate* unmanaged` vtables, `CoCreateInstance` /
   `CoGetClassObject`** &rarr; `cswin32-com`.
 

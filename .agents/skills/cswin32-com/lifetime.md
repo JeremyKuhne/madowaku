@@ -1,52 +1,60 @@
 # Lifetime and access
 
 Detail for [cswin32-com](SKILL.md). Struct-based COM has no runtime to release
-references for you; scope every pointer.
+references for you. Release every reference the caller owns, and never release a
+borrowed pointer without first acquiring a reference.
 
 ## Where a COM pointer may live
 
-A raw `T*` (a CsWin32 COM struct pointer) is allowed only as a local in an
-`unsafe` method, a parameter, or a field of a `ref struct`. **A raw `T*` field on
-a `class` or non-`ref` `struct` is forbidden** - it is an apartment-agility
-hazard and leaks its reference if the owner is finalized without disposing. Use
-the field-lifetime holder below instead.
+A raw `T*` (a CsWin32 COM struct pointer) is simplest as a local in an `unsafe`
+method, a parameter, or a field of a `ref struct`. Avoid storing one directly in
+a class or non-`ref` struct by default: the owner must track whether the pointer
+is owned or borrowed, enforce the interface's apartment and thread contract,
+release an owned reference on the correct apartment, and prevent access after
+disposal. A finalizer on an arbitrary thread is not a substitute for releasing
+an apartment-affine pointer on its owning apartment. Use a field-lifetime
+strategy below unless the type explicitly enforces all of those invariants.
 
 ## ComScope<T> - transient pointers
 
-A `ref struct`, always `using`'d, that calls `Release` on dispose. **The default
-for everything that does not outlive the current method.** It implicitly converts
-to `T**` and `void**`, so an out-param writes straight into the scope:
+The examples use a support-library `ref struct` that owns one AddRef'd reference
+and calls `Release` on dispose. Always use it in a `using` declaration. It is the
+default for an **owned** pointer that does not outlive the current method. The
+conventional type implicitly converts to `T**` and `void**`, so an out-param
+writes straight into the scope:
 
 ```csharp
 using ComScope<ISomething> scope = new();
-Guid iid = IID.Get<ISomething>();
-factory.Pointer->QueryInterface(&iid, scope).ThrowOnFailure();
+factory.Pointer->QueryInterface(IID.Get<ISomething>(), scope).ThrowOnFailure();
 scope.Pointer->DoThing(...);
 ```
 
 - Access methods via `scope.Pointer->Method(...)`; null-check with
   `scope.IsNull`.
-- Applies to *every* COM out-param - `CoCreateInstance`, `QueryInterface`,
-  `IEnumXxx::Next`, a factory method, an app-local `STDAPI Get*` (declare the
-  `[DllImport]` with `T** pp`, not `out T*`, so the implicit operator binds).
+- Applies to every COM out-param whose contract returns an owned reference -
+    `CoCreateInstance`, `QueryInterface`, many `IEnumXxx::Next` and factory
+    methods, and app-local `STDAPI Get*` functions. Read the contract before
+    scoping an unusual borrowed output. Declare raw outputs with `T**` when the
+    scope's implicit pointer-to-pointer conversion should bind.
 
 ## Passing pointers to retaining APIs
 
 A helper that creates a CCW or queries an interface normally returns one owned,
 AddRef'd pointer. Passing that pointer to `Advise`, `SetClientSite`, or another
-API that retains it does **not** transfer the caller's reference. The retaining
-API adds its own reference; scope and release the caller's reference after the
-call:
+API that retains it does **not** transfer the caller's reference. When the call
+succeeds and its contract retains the pointer, the callee acquires its own
+reference; scope and release the caller's reference after the call:
 
 ```csharp
-using ComScope<IEventSink> sink = new(GetComPointer<IEventSink>(managedSink));
+using ComScope<IEventSink> sink = new(AcquireOwnedCcwPointer<IEventSink>(managedSink));
 source.Pointer->Advise(sink.Pointer, &cookie).ThrowOnFailure();
 ```
 
-The same scope is appropriate for a borrowed call such as a verb or callback:
-it keeps the pointer valid through the call and releases it immediately after.
-Do not leave the acquired pointer as an unscoped local merely because the callee
-also keeps a reference.
+The same scope is appropriate when an **owned** pointer is passed to a
+non-retaining call such as a verb or callback: the scope releases the caller's
+reference afterward. A pointer that is itself borrowed is different. Do not put
+it in a releasing scope; keep its owner alive for the call, or call `AddRef`
+before creating an owned scope.
 
 A successful cookie-producing subscription is a second lifetime edge. Store the
 cookie and call `Unadvise(cookie)` before releasing the source object. Use a
@@ -66,11 +74,22 @@ private static ComScope<ISomething> Acquire()
 {
     ComScope<ISomething> result = new();
     Guid clsid = SomeCoClass.CLSID;
-    HRESULT hr = PInvoke.CoCreateInstance(
+    HRESULT createResult = PInvoke.CoCreateInstance(
         &clsid, null, CLSCTX.CLSCTX_INPROC_SERVER, IID.Get<ISomething>(), result);
-    return hr.Succeeded ? result : default;   // ownership flows to the caller
+    if (createResult.Failed)
+    {
+        result.Dispose();
+        return default;
+    }
+
+    return result;
 }
 ```
+
+Disposing the scope on failure covers APIs that leave a non-null output despite
+failing. On success, returning the scope transfers that one owned reference to
+the caller. The concrete support type must make `default` null and disposal a
+no-op for this shape to be valid.
 
 ## BSTR - COM strings
 
@@ -100,12 +119,20 @@ copy.
 
 ## A COM pointer that outlives a method
 
-When a COM pointer must be stored in a class field (the only legal way to keep
-one on a non-`ref` type), use a finalizable managed holder that registers the
-pointer in the Global Interface Table (thread-agile) and releases it on dispose,
-with the finalizer as a safety net. Access it by round-tripping a short-lived
-`ComScope<T>` back out of the holder for the duration of a call; hoist one scope
-to the top of a method when several calls share it. When the source pointer is
-already owned by a `ComScope<T>` that will release, register **without** taking
-ownership (the GIT adds its own reference); take ownership only when no other code
-path will release. The concrete holder type is repo-specific - see the overlay.
+Choose a holder that matches the interface's apartment contract:
+
+- A same-apartment owner may keep an owned pointer only when it enforces access
+    and deterministic disposal on that apartment.
+- For cross-apartment access, marshal the interface. A Global Interface Table
+    holder stores one registered reference and retrieves an apartment-appropriate
+    proxy into a short-lived owned scope for each call. The GIT does not make the
+    underlying object agile.
+- For an interface documented as agile, a holder may use an agile-reference or
+    equivalent strategy, but it must still own and release the correct reference.
+
+When the source pointer is already owned by a `ComScope<T>` that will release,
+register without taking that caller reference; the GIT acquires its own. Take
+ownership only when no other code path will release the source reference. Every
+holder needs deterministic disposal, and any finalizer fallback must be valid
+for the chosen marshalling strategy. The concrete holder type is
+repository-specific - see the overlay.

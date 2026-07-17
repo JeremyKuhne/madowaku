@@ -31,11 +31,11 @@ because an extension property is not a compile-time constant. Use the unified
 
 ## Some flags are standalone constants, not enum members
 
-A Win32 `#define` that sits outside a `typedef enum` generates as an
-`internal const` on the `PInvoke` class, not as an enum member. Add the
-**constant name** to `NativeMethods.txt` like any API, then OR it onto an enum
-of matching width and cast back where needed. Do not reintroduce a local `const`
-the generator already emits.
+A Win32 `#define` that sits outside a `typedef enum` generates as a `const` on
+the configured generated host, not as an enum member. Its visibility follows
+the CsWin32 `public` setting. Add the **constant name** to `NativeMethods.txt`
+like any API, then OR it onto an enum of matching width and cast back where
+needed. Do not reintroduce a local `const` the generator already emits.
 
 ## Match local types to the generated type
 
@@ -43,9 +43,11 @@ Declare the CsWin32 type and let it flow, instead of casting to `int` / `uint`
 at every use:
 
 ```csharp
-WIN32_ERROR result = PInvoke.RmStartSession(...);   // not int
-// Helpers take the typed value; cast to int only at a non-CsWin32 boundary,
-// e.g. new Win32Exception((int)result, ...).
+// Keep the generated type rather than storing the result as int.
+WIN32_ERROR result = PInvoke.RmStartSession(...);
+
+// Cast only at a non-CsWin32 boundary.
+Win32Exception exception = new((int)result, ...);
 ```
 
 The same applies to `HRESULT`, `BOOL`, `HANDLE`, and every flag enum. **Delete
@@ -74,14 +76,21 @@ type is the source of truth.
 `DateTime.FromFileTime((long)hi << 32 | lo)`. Note CsWin32 uses
 `ComTypes.FILETIME` (int fields) for COM members and
 `Windows.Win32.Foundation.FILETIME` (uint fields) for kernel ones; a shared
-extension usually targets `ComTypes.FILETIME`. Distinguish local-time sources
-(e.g. a process start time) from UTC sources (e.g. a file's last-write time)
-when converting.
+extension usually targets `ComTypes.FILETIME`. Read the producing API's time
+contract and choose the desired managed result deliberately. `GetFileTime` and
+the creation / exit outputs from `GetProcessTimes` are UTC-based timestamps: use
+`FromFileTimeUtc` to preserve UTC, or `FromFileTime` only when intentionally
+converting the result to local time. The kernel / user outputs from
+`GetProcessTimes` are elapsed 100-nanosecond durations, not dates; combine their
+64-bit values and convert them to `TimeSpan` ticks. Do not infer time-zone or
+duration semantics from the projected struct shape.
 
 ## Native integers
 
-Always use `nint` / `nuint`, never `IntPtr` / `UIntPtr`. Note that `nint` does
-not implement `IEquatable<nint>` on .NET Framework, so a generic method
-constrained `where T : unmanaged, IEquatable<T>` cannot be instantiated with
-`nint` for a cross-target call site - pick a concrete value type or split the
-path by TFM.
+Prefer `nint` / `nuint` for new native-sized values. Preserve
+`IntPtr` / `UIntPtr` where an existing public contract or managed API requires
+those names, and convert at that boundary rather than carrying both forms
+through the implementation. Note that `nint` does not implement
+`IEquatable<nint>` on .NET Framework, so a generic method constrained
+`where T : unmanaged, IEquatable<T>` cannot be instantiated with `nint` for a
+cross-target call site - pick a concrete value type or split the path by TFM.
