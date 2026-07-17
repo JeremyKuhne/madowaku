@@ -42,11 +42,11 @@ test:
 nint ccw = Marshal.GetComInterfaceForObject(mock, typeof(ComTypes.ITypeLib));
 try
 {
-  walker.Analyze((ITypeLib*)ccw);
+    walker.Analyze((ITypeLib*)ccw);
 }
 finally
 {
-  Marshal.Release(ccw);
+    Marshal.Release(ccw);
 }
 ```
 

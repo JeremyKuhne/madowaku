@@ -30,11 +30,11 @@ if (OperatingSystem.IsWindows())
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 #endif
 {
-  _ = PInvoke.GetCurrentProcessId();
+    _ = PInvoke.GetCurrentProcessId();
 }
 else
 {
-  // Cross-platform fallback.
+    // Cross-platform fallback.
 }
 ```
 
