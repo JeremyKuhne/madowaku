@@ -12,25 +12,33 @@ commons. It is **not yet vendored** - no `github-*` provenance, and `core-pin` i
 `pending-promotion` until the promotion change vendors it. Keep the core generic;
 madowaku specifics live here.
 
-## madowaku is on the modern IComIID story
+## madowaku uses 0.3.287+ IComIID generation
 
 madowaku pins **CsWin32 0.3.298** (see
 [Directory.Packages.props](../../../Directory.Packages.props)), which is **past
-0.3.287**, so the generator emits `IComIID` on **all** TFMs and attaches it to
-every generated COM struct automatically - the modern path in
-[comiid-and-cls.md](comiid-and-cls.md). There is **no** hand-authored `IComIID`
-polyfill: adding a generated COM type to
+0.3.287**, so the generator emits `IComIID` on all three madowaku library TFMs
+and attaches it to every generated COM struct automatically - the 0.3.287+ path
+in [comiid-and-cls.md](comiid-and-cls.md). There is **no** hand-authored
+`IComIID` polyfill: adding a generated COM type to
 [NativeMethods.txt](../../../madowaku/NativeMethods.txt) carries `IComIID` through
 `ComScope<T>` on net472 with nothing extra. `IID.Get<T>()`
 ([IID.cs](../../../madowaku/Windows/Win32/Foundation/IID.cs)) reads it via
-`T.Guid` on modern .NET and `default(T).Guid` on net472.
+`T.Guid` on .NET 10 and `default(T).Guid` on net472.
+
+Madowaku's `#if NET` branches select both .NET 10 legs, while its
+`#if NETFRAMEWORK` branches select net472.
 
 ## Activation and lifetime helpers (this repo)
 
+- **Owned-pointer scope and IID access:**
+  [ComScope](../../../madowaku/Windows/Win32/System/Com/ComScope{T}.cs) owns one
+  AddRef'd interface pointer and converts to `T**` / `void**` for output calls;
+  [IID](../../../madowaku/Windows/Win32/Foundation/IID.cs) exposes the
+  `Guid*`-returning `IID.Get<T>()` helper used by the core examples.
 - **Class factory:**
   [ComClassFactory](../../../madowaku/Windows/Win32/System/Com/ComClassFactory.cs)
   (activate via `CoGetClassObject` then `CreateInstance`).
-- **Field-lifetime holder:** the core's GIT-backed holder is
+- **Cross-apartment field holder:** the core's GIT-backed strategy maps to
   [AgileComPointer](../../../madowaku/Windows/Win32/System/Com/AgileComPointer.cs),
   backed by
   [GlobalInterfaceTable](../../../madowaku/Windows/Win32/System/Com/GlobalInterfaceTable.cs).
@@ -46,7 +54,7 @@ polyfill: adding a generated COM type to
 ## Owner-side CCW vtable hook
 
 madowaku is the owner described by
-[ccw-composition.md](ccw-composition.md). Its modern .NET build implements the
+[ccw-composition.md](ccw-composition.md). Its .NET 10 build implements the
 `PopulateIUnknownImpl<TComInterface>` partial method declared by CsWin32's
 generated `ComHelpers` in
 [ComHelpers.cs](../../../madowaku/Windows/Win32/System/Com/ComHelpers.cs). The
@@ -78,9 +86,10 @@ disposing the source pointer.
   arms itself (static-abstract under `#if NET`, instance under `#else`) - the
   generator attaches `IComIID` to *generated* structs, not manual ones.
 - **CLS compliance:** madowaku does not assert `[assembly: CLSCompliant(true)]`,
-  so `CS3016` on generated COM wrappers never arises and no suppression is needed.
-  (On 0.3.287+ the generator also auto-emits `[CLSCompliant(false)]` for a
-  consumer that does assert CLS compliance.)
+  so `CS3016` on its public generated COM wrappers does not arise and no
+  suppression or per-type partial is needed. CsWin32 does not auto-annotate
+  public wrappers; if madowaku adopts CLS compliance later, audit that public
+  projection and mark intentionally non-CLS wrappers explicitly.
 
 ## `UnwrapCCW` is not available on net472
 

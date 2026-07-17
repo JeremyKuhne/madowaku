@@ -16,16 +16,18 @@ These rules apply to both surfaces.
   call site: `iface->Method(...).ThrowOnFailure();`. Branch on the raw `hr` only
   when you handle a specific code (e.g. `ERROR_INSUFFICIENT_BUFFER`) before
   throwing.
-- **Use `T**`, not `out T*`,** for pointer outputs. `out` forces a marshalling
-  path and a `fixed` round-trip at every call site; `T**` is the raw blittable
-  shape.
+- **Prefer `T**` for raw pointer outputs and vtable signatures.** `out T*` is
+  also blittable and represents the same native indirection, but it introduces
+  managed by-reference syntax and cannot bind to helpers that expose `T**` or
+  `void**`. Keep `out T*` only when the hand-written declaration intentionally
+  wants C# definite-assignment semantics; match the raw ABI with `T**` by
+  default.
 - **Use `void*` for opaque / reserved parameters** and pass `null` literally -
-  never round-trip through `IntPtr.Zero` inside `unsafe`. `IntPtr` is fine only
-  at boundaries with the wider .NET surface (`Marshal.*`,
-  `SafeHandle.DangerousGetHandle`, public API).
-- **Prefer `nint` / `nuint` over `IntPtr` / `UIntPtr`** for native-sized
-  integers - better cast semantics with `int` / `long`, no `IntPtr.Zero`
-  ceremony, no boxing surprises.
+  never round-trip through `IntPtr.Zero` inside `unsafe`.
+- **Prefer `nint` / `nuint` for new native-sized values.** Keep
+  `IntPtr` / `UIntPtr` only where an existing public contract or managed API
+  requires those names (`Marshal.*`, `SafeHandle.DangerousGetHandle`, or a
+  compatibility-sensitive public API), and convert once at that boundary.
 - **Use the generated `PCWSTR` / `PWSTR` for wide strings,** never a managed
   `string`. The caller pins with `fixed (char* p = managedString)` (implicit on
   most overloads). Add the type to `NativeMethods.txt` if not yet generated.

@@ -17,7 +17,7 @@ Common pairs include:
 
 | Acquired value | Release operation |
 | --- | --- |
-| AddRef'd COM interface | `IUnknown::Release` (normally through `ComScope<T>`) |
+| AddRef'd COM interface | `IUnknown::Release` (prefer a repository-provided owned-pointer scope) |
 | COM task allocator memory, including many Shell PIDLs | `CoTaskMemFree` |
 | `LocalAlloc` memory | `LocalFree` |
 | `BSTR` | `SysFreeString` / `Marshal.FreeBSTR` |
@@ -67,17 +67,34 @@ ownership behavior.
 A helper that returns an AddRef'd COM pointer gives the caller one reference.
 Passing it to a method such as `Advise`, `SetClientSite`, or another retaining
 API does not transfer that caller reference. The callee adds its own reference
-when its contract retains the pointer; the caller still releases its reference:
+when its contract retains the pointer; the caller still releases its reference.
+In the example, `AcquireOwnedCcwPointer<T>()` is pseudocode for a repository
+helper that returns one caller-owned CCW interface pointer. Its implementation
+may use classic COM marshalling or `ComWrappers`; only the latter can support a
+NativeAOT path. Use the repository's owned-pointer scope when available;
+otherwise make the release explicit:
 
 ```csharp
-using ComScope<IEventSink> sink = new(GetComPointer<IEventSink>(managedSink));
-source->Advise(sink.Pointer, &cookie).ThrowOnFailure();
+IEventSink* sink = AcquireOwnedCcwPointer<IEventSink>(managedSink);
+try
+{
+    source->Advise(sink, &cookie).ThrowOnFailure();
+}
+finally
+{
+    if (sink is not null)
+    {
+        sink->Release();
+    }
+}
 ```
 
 Pair every successful cookie-producing `Advise` with `Unadvise(cookie)` before
-releasing the source object. Scope borrowed-call pointers too: even when the
-callee retains nothing, the scope keeps the pointer valid for the call and
-releases the caller reference afterward.
+releasing the source object. Do not confuse a non-retaining parameter with a
+borrowed pointer: an owned pointer passed to a non-retaining call still needs its
+caller reference released, while a pointer that is itself borrowed must not be
+released. Keep the borrowed pointer's owner alive for the whole call, or call
+`AddRef` first when an owned scope is required.
 
 ## Length parameters: bytes are not elements
 

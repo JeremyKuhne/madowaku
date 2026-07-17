@@ -15,8 +15,8 @@ assembly and compilation** as its declaration; an extender package cannot
 implement the owner's hook.
 
 If an owner publishes CCW-capable generated types, implement the hook in the
-owner. On modern .NET, a `ComWrappers` provider can copy the runtime's canonical
-`IUnknown` entry points into the generated vtable:
+owner. On the .NET 10 leg, a `ComWrappers` provider can copy the runtime's
+canonical `IUnknown` entry points into the generated vtable:
 
 ```csharp
 using System.Collections;
@@ -61,10 +61,11 @@ public static unsafe partial class ComHelpers
 }
 ```
 
-Gate this implementation on TFMs that provide real `ComWrappers`. Without the
-hook, generated vtable creation throws `NotImplementedException` when it sees an
-uninitialized `QueryInterface` slot; moving the same partial declaration into an
-extender does not fix it.
+Gate this implementation with `#if NET`; .NET Framework does not provide the
+real `ComWrappers` support needed to populate the vtable. Without the hook,
+generated vtable creation throws `NotImplementedException` when it sees an
+uninitialized `QueryInterface` slot; moving the same partial declaration into
+an extender does not fix it.
 
 ## Extend owner types; do not redeclare them
 
@@ -132,8 +133,8 @@ Test more than compilation:
 2. obtain a CCW pointer for a managed implementation and query the expected
    interface;
 3. call through the owner-generated pointer struct and verify HRESULT behavior;
-4. build every TFM so `ComWrappers`-dependent code is absent or explicitly
-   unsupported on down-level targets;
+4. build all .NET 10 and .NET Framework TFMs so `ComWrappers`-dependent code is
+    absent or explicitly unsupported on .NET Framework;
 5. pack the owner and extender and compile a consumer that references only the
    extender package.
 

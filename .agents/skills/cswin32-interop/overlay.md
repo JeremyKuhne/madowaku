@@ -13,16 +13,21 @@ promoted to the shared commons. It is **not yet vendored**, so it carries no
 will vendor it and add a real pin. Keep the core generic - everything
 madowaku-specific lives here.
 
-## The Windows-interop gate: there isn't one
+## Targeting model
 
-madowaku is a **Windows-only** library, so there is no `FEATURE_WINDOWSINTEROP`
-symbol, no source build, and no `IsWindows` runtime split. The cross-cut is
-purely **TFM**: code must compile on `net472`, `net10.0`, and
-`net10.0-windows10.0.22000.0` (see [AGENTS.md](../../../AGENTS.md)). Use `#if NET`
-only for members that need a .NET 7+ feature; net472-only code lives under
+madowaku is a **Windows-only** library. The cross-cut is purely **TFM**: code
+must compile on `net472`, `net10.0`, and
+`net10.0-windows10.0.22000.0` (see [AGENTS.md](../../../AGENTS.md)). `#if NET`
+selects both .NET 10 legs; `#if NETFRAMEWORK` selects net472. net472-only code
+lives under
 [madowaku/Framework/](../../../madowaku/Framework/), which is net472-scoped by
-`DefaultItemExcludes`, so no `#if NETFRAMEWORK` goes inside it. `CA1416` does not
-arise the way it does in a cross-platform repo.
+`DefaultItemExcludes`, so no `#if NETFRAMEWORK` goes inside it.
+
+The windows-qualified TFM supplies a Windows platform context. The unqualified
+net10 TFM deliberately suppresses `CA1416` in
+[madowaku.csproj](../../../madowaku/madowaku.csproj) because this package's
+contract is Windows-only; that suppression is a repository policy, not portable
+CsWin32 guidance.
 
 ## One public PInvoke surface
 
@@ -59,7 +64,7 @@ The portable core's [library layering](library-layering.md) maps to this fleet
 as follows:
 
 - **Touki is the managed foundation.** It owns cross-domain helpers such as
-  `BufferScope<T>`, allocation-free enum operations, and downlevel runtime
+  `BufferScope<T>`, allocation-free enum operations, and .NET Framework runtime
   polyfills. Touki may use an internal CsWin32 projection for implementation,
   but it does not publish the fleet's canonical Win32 type identity.
 - **madowaku is the Win32 composition owner.** It publishes `PInvoke`, generated
@@ -84,21 +89,22 @@ not prove the dependency can be consumed externally.
 ## Generation mode: keep the source generator
 
 CsWin32 0.3.298 supports `<CsWin32RunAsBuildTask>true</CsWin32RunAsBuildTask>`,
-but an alternating all-TFM Release spike on 2026-07-11 averaged 2.51 seconds for
-clean source-generator builds and 4.37 seconds for build-task mode (+1.86
-seconds, roughly 74%); incremental builds were effectively equal (1.59 versus
-1.54 seconds). Both modes emitted the same 96 top-level types and matching key
-interop constructs. madowaku therefore keeps the default Roslyn source
-generator. Do not enable build-task mode without a new concrete ordering or
-tooling need, an all-TFM API comparison, and fresh timing data after SDK or
-CsWin32 changes. `allowMarshaling: false` already supplies the raw AOT-friendly
-signatures; moving generation to an MSBuild task does not require
-`DisableRuntimeMarshalling`.
+but an alternating three-library-TFM Release spike on 2026-07-11 averaged 2.51
+seconds for clean source-generator builds and 4.37 seconds for build-task mode
+(+1.86 seconds, roughly 74%); incremental builds were effectively equal (1.59
+versus 1.54 seconds). Both modes emitted the same 96 top-level types and
+matching key interop constructs. madowaku therefore keeps the default Roslyn
+source generator. Do not enable build-task mode without a new concrete ordering
+or tooling need, an API comparison across all three library TFMs, and fresh
+timing data after SDK or CsWin32 changes. `allowMarshaling: false` already
+supplies the raw AOT-friendly signatures; moving generation to an MSBuild task
+does not require `DisableRuntimeMarshalling`.
 
 ## Polyfills: Touki first
 
 BCL polyfills come from the `KlutzyNinja.Touki` package, not this repo. If a
-modern `System.*` API is missing on net472, add it upstream in Touki, not here.
+`System.*` API available on .NET 10 is missing on net472, add it upstream in
+Touki, not here.
 The narrow exception is **Windows-only** shims (Win32 / COM / CsWin32), which live
 under [madowaku/Framework/](../../../madowaku/Framework/), the folder mirror of
 the BCL namespace being polyfilled. Source preference: a Microsoft package, then
@@ -109,8 +115,9 @@ last resort. The core's stack-first buffer is Touki's `BufferScope<T>` (from the
 ## ComWrappers / CCW polyfill (net472)
 
 CsWin32 unconditionally emits `Windows.Win32.ComHelpers.UnwrapCCW<T1, T2>`, which
-references `ComWrappers.ComInterfaceDispatch` - a .NET 5+ type. madowaku ships a
-Windows-only shim at
+references `ComWrappers.ComInterfaceDispatch`. The type is available on
+madowaku's .NET 10 legs but not on net472, so madowaku ships a Windows-only shim
+at
 [madowaku/Framework/System/Runtime/InteropServices/ComWrappers.cs](../../../madowaku/Framework/System/Runtime/InteropServices/ComWrappers.cs)
 whose `GetInstance<T>` always returns `null`, so `UnwrapCCW` on net472 yields
 `COR_E_OBJECTDISPOSED`. Do not expose surfaces that rely on `UnwrapCCW` on
@@ -122,13 +129,18 @@ the [cswin32-com](../cswin32-com/overlay.md) overlay.
 - **Enum flags:** use the Touki enum extensions (`AreFlagsSet`,
   `IsOnlyOneFlagSet`, `AreAnyFlagsSet`, `SetFlags`, `ClearFlags`) - never
   `Enum.HasFlag` (it boxes on net472).
+- **Native integers:** use `nint` / `nuint`, never `IntPtr` / `UIntPtr`, per
+  [AGENTS.md](../../../AGENTS.md). Convert only when a managed API requires the
+  named BCL type.
 - **`HMODULE`** has helpers at
   [madowaku/Windows/Win32/Foundation/HMODULE.cs](../../../madowaku/Windows/Win32/Foundation/HMODULE.cs).
 - **Verification:** `dotnet build -c Release` and `dotnet test -c Release` across
-  all TFMs before pushing - net472 RyuJIT and Release-mode inlining surface bugs
-  Debug does not. For a downstream extender change, also pack both layers and
-  compile a clean-cache consumer that references only the extender package and
-  calls one madowaku-owned and one extender-owned `PInvoke` member. The
+  all three library TFMs and both test TFMs before pushing. The net481 test
+  runtime exercises the net472 library under Framework RyuJIT, where
+  Release-mode inlining surfaces bugs Debug does not. For a downstream extender
+  change, also pack both layers and compile a clean-cache consumer that
+  references only the extender package and calls one madowaku-owned and one
+  extender-owned `PInvoke` member. The
   [thirtytwo owner/extender migration](https://github.com/JeremyKuhne/thirtytwo/pull/20)
   validated this flow with madowaku `0.4.0-alpha.1`, including nuspec inspection
   and a consumer that had no local madowaku source.
@@ -136,5 +148,5 @@ the [cswin32-com](../cswin32-com/overlay.md) overlay.
 ## Cross-references
 
 - [`cswin32-com`](../cswin32-com/SKILL.md) - the struct-based COM layer.
-- [`dotnet-polyfills`](../dotnet-polyfills/SKILL.md) - the downlevel polyfill
+- [`dotnet-polyfills`](../dotnet-polyfills/SKILL.md) - the .NET Framework polyfill
   stack behind the "Touki first" policy.

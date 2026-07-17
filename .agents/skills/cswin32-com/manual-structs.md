@@ -2,8 +2,10 @@
 
 Detail for [cswin32-com](SKILL.md). For an interface not in Win32 metadata (WMI,
 Fusion, Setup Configuration, CLR hosting / metadata), hand-write a struct that
-lays out the vtable yourself. Put each interface in its own file, excluded from
-any source-only or non-Windows build.
+lays out the vtable yourself. Put each interface in its own file. Include or
+exclude that file using the same platform and target-framework decisions as the
+paired interop skill; a cross-platform assembly may compile the declaration as
+long as reachable calls remain Windows-only.
 
 ## Shape
 
@@ -42,7 +44,7 @@ internal unsafe struct IAssemblyCache : IComIID
 
 - **`delegate* unmanaged[Stdcall]`** for the function-pointer cast. IDL
   `STDMETHODCALLTYPE` is `__stdcall` on Win32; the wrong convention silently
-  corrupts the stack. This works on the old framework leg too (it lowers to an IL
+  corrupts the stack. This works on .NET Framework too (it lowers to an IL
   `calli`).
 - **Vtable slots are exact and IUnknown-relative:** slot 0 = `QueryInterface`,
   1 = `AddRef`, 2 = `Release`, 3+ = interface methods in IDL order. When the
@@ -50,19 +52,22 @@ internal unsafe struct IAssemblyCache : IComIID
   `v2` method after three `IUnknown` and three `v1` methods is at slot 6). Unused
   slots may be omitted as long as the ones you call have the correct index.
 - **`IComIID` has two shapes** - a static-abstract `static ref readonly Guid
-  IComIID.Guid` on .NET 7+, and an instance `readonly ref readonly Guid
-  IComIID.Guid` down-level. A dual-target manual struct must spell out **both**
-  arms (`#if NET` / `#else`); a modern-only struct drops the `#else` and gates the
-  whole file `#if NET`. CsWin32 handles this automatically for *generated*
-  structs - see [comiid-and-cls.md](comiid-and-cls.md).
+  IComIID.Guid` on the .NET 10 leg, and an instance
+  `readonly ref readonly Guid IComIID.Guid` on .NET Framework. A dual-target
+  manual struct spells out **both** arms (`#if NET` / `#else`). A .NET 10-only
+  struct needs no conditional; a Framework-only struct uses only the
+  instance form. CsWin32 handles this automatically for *generated* structs -
+  see [comiid-and-cls.md](comiid-and-cls.md).
 - **Use the generated `PCWSTR` / `PWSTR`** for wide-string parameters (add them
   to `NativeMethods.txt`); raw `char*` with `fixed` only where no typed
   equivalent exists.
 - **Vtable methods are blittable** - the same rules as any `[DllImport]`; see the
   blittable-signatures page of the paired cswin32-interop skill (`HRESULT`
-  return, `T**` not `out T*`, `void*`, typed enum parameters).
-- **`CS0592`** forbids `[SupportedOSPlatform]` on a struct - put it on individual
-  methods.
+  return, raw `T**` pointer outputs, `void*`, typed enum parameters).
+- **Platform annotations may be type- or member-level.**
+  `[SupportedOSPlatform]` is valid on structs. Apply it to the whole interface
+  struct when every member has the same Windows contract, or to individual
+  methods when versions differ.
 
 ## Strongly-typed handle and token wrappers
 
