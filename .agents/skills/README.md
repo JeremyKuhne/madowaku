@@ -50,13 +50,13 @@ Skills are authored once as a portable **core** in the commons and shared from
 there. madowaku holds a pinned, provenance-stamped **copy** of each vendored
 core plus a thin repo-specific **overlay**:
 
-- **Vendored core** &mdash; the `SKILL.md` (and its sibling pages) carry
+- **Vendored core** — the `SKILL.md` (and its sibling pages) carry
   `metadata.github-*` provenance (source repo, ref, tree SHA). It is a mirror of
   upstream; **do not hand-edit it**, or `gh skill update` will flag the drift.
-- **Overlay** &mdash; `overlay.md` beside the core holds madowaku paths, project
+- **Overlay** — `overlay.md` beside the core holds madowaku paths, project
   names, and cross-references to other skills. Its frontmatter records the
   `core-pin` it was reviewed against.
-- **Born-local** &mdash; `publish-release` is specific to madowaku's structure
+- **Born-local** — `publish-release` is specific to madowaku's structure
   (the `KlutzyNinja.Madowaku` release-tag flow), carries no provenance, and is
   never upstreamed.
 
@@ -73,12 +73,12 @@ Both touch CsWin32. They are mutually exclusive by **surface**:
 
 - **P/Invoke functions, Win32 structs/enums/constants, `HANDLE`/`HMODULE`/
   `HRESULT`/`BOOL`, platform and TFM guards, the `ComWrappers` polyfill, the
-  public `PInvoke` owner/extender surface** &rarr; `cswin32-interop`.
-- **COM interfaces &mdash; `ComScope<T>`, `IComIID` (emitted on .NET 10 and
+  public `PInvoke` owner/extender surface** → `cswin32-interop`.
+- **COM interfaces — `ComScope<T>`, `IComIID` (emitted on .NET 10 and
   .NET Framework), `IID.Get<T>()`, manual struct-based interfaces (Setup
   Configuration, private / third-party APIs, etc.), `delegate* unmanaged`
   vtables, `CoCreateInstance` /
-  `CoGetClassObject`** &rarr; `cswin32-com`.
+  `CoGetClassObject`** → `cswin32-com`.
 
 If a change adds both a new P/Invoke and a new COM type, run
 `cswin32-interop` first to add the P/Invoke surface, then `cswin32-com`
@@ -86,43 +86,43 @@ for the COM activation and per-struct partial.
 
 ### PR and release workflows: `create-pr` vs `address-pr-feedback` vs `publish-release`
 
-- **Open a new PR for in-progress work** &rarr; `create-pr`.
+- **Open a new PR for in-progress work** → `create-pr`.
 - **Iterate on an existing PR** (review comments, Copilot feedback, CI fixes)
-  &rarr; `address-pr-feedback`.
-- **Cut a `KlutzyNinja.Madowaku` release tag** (a tag, not a PR) &rarr;
+  → `address-pr-feedback`.
+- **Cut a `KlutzyNinja.Madowaku` release tag** (a tag, not a PR) →
   `publish-release` (born-local). All three honor the same publish boundary in
   [AGENTS.md](../../AGENTS.md).
 
 ### Performance cluster
 
-- **Measure** (author / run a BenchmarkDotNet benchmark, read results) &rarr;
+- **Measure** (author / run a BenchmarkDotNet benchmark, read results) →
   `performance-testing`.
 - **Tune net472/net481 codegen** (specialization, unrolling, BCL delegation)
-  &rarr; `framework-jit-optimization`.
+  → `framework-jit-optimization`.
 - **Choose a scratch buffer** (`stackalloc` vs `ArrayPool` vs `BufferScope<T>`)
-  &rarr; `scratch-buffer-strategy`.
-- **Read IL for hidden struct copies or boxing** &rarr; `il-copy-inspection`.
+  → `scratch-buffer-strategy`.
+- **Read IL for hidden struct copies or boxing** → `il-copy-inspection`.
 
 ### Skill and agent-file meta: `manage-skills` vs `agent-files-review`
 
-- **Catalog lifecycle** (discover, add, vendor, sync a skill) &rarr;
+- **Catalog lifecycle** (discover, add, vendor, sync a skill) →
   `manage-skills`.
 - **Validate one agent file's syntax and conventions** (frontmatter, mirror,
-  whitespace) &rarr; `agent-files-review`.
+  whitespace) → `agent-files-review`.
 
 ### `engineering-baseline` vs `github-actions-cost-optimization`
 
 - **Whole-repo nine-domain audit** (foundation, build, test, publish,
-  versioning, CI, supply chain, governance, agent enablement) &rarr;
+  versioning, CI, supply chain, governance, agent enablement) →
   `engineering-baseline`.
-- **CI runner cost specifically** (minutes, matrices, caches, artifacts) &rarr;
+- **CI runner cost specifically** (minutes, matrices, caches, artifacts) →
   `github-actions-cost-optimization`.
 
 ## Maintenance
 
 Freshness is tracked from git history, not from a manual column. CI warns
 (does not fail) when a skill directory has no commits in the last 90 days
-&mdash; see
+— see
 [.github/workflows/agent-files.yml](../../.github/workflows/agent-files.yml).
 
 A stale warning means "re-read this skill end-to-end against the current
@@ -133,7 +133,7 @@ codebase." Confirm:
 3. Every claim about the codebase is still true.
 
 The only way to clear the warning is to commit a change to the skill
-directory &mdash; ideally the result of a real review pass, but at minimum
+directory — ideally the result of a real review pass, but at minimum
 a whitespace touch with a commit message stating "verified still current."
 
 When adding a new skill, append a row to the inventory above in the same

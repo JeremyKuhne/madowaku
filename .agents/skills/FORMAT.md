@@ -36,5 +36,5 @@ Optional frontmatter fields: `argument-hint`, `user-invocable`,
 
 Vendor-neutral location for [Agent Skills](https://agentskills.io/).
 Discovered by GitHub Copilot (VS Code, CLI, cloud agent) and Claude Code.
-The `description` field is the trigger surface &mdash; phrase it around the
+The `description` field is the trigger surface — phrase it around the
 verbs and nouns a user would say when they need the skill.
