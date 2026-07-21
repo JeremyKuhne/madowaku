@@ -54,9 +54,24 @@ pwsh /path/to/New-DotnetRepo.ps1 `
 The script produces: `global.json`, `Directory.Build.props/.targets`,
 `Directory.Packages.props` (CPM on), a `dotnet new`-generated project and test
 project, `.gitignore`/`.gitattributes`/`.editorconfig`, `README.md`, `LICENSE`,
-`.github/workflows/` (ci, publish, codeql), `dependabot.yml`, `SECURITY.md`,
-`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, issue/PR templates, and `AGENTS.md`
-with its generated Copilot mirror.
+`.github/workflows/` (automatic CI, manual Full CI, publish, CodeQL, and the
+agent mirror), `dependabot.yml`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
+`CONTRIBUTING.md`, issue/PR templates, and `AGENTS.md` with its generated Copilot
+mirror.
+
+The workflow defaults are cost-aware without weakening the merge gate. A pull
+request or merge group gets one Release build/test job: standard Linux for
+modern-only projects and Windows when a legacy target framework must compile
+there. Maintainers run the manually dispatched Full CI workflow before every
+release and after SDK or build-tool changes; it covers Debug and Release in one
+job. CodeQL runs on pull requests, merge groups, and a weekly schedule. For a
+private repository with GitHub Code Security, enable it before the first pull
+request and require CodeQL results in the ruleset. Without that entitlement,
+replace CodeQL with a supported scanner and require its status check instead.
+None of these workflows repeats automatically after a strictly protected merge.
+If the remote ruleset later permits direct or bypass pushes, restore
+default-branch push triggers in CI, CodeQL (or its replacement), and the agent
+mirror before relying on that path.
 
 It also standardizes output paths to a top-level `artifacts/` tree:
 
@@ -120,11 +135,13 @@ The script creates an `AGENTS.md` stub, generates its Copilot mirror
 an `agent-files.yml` workflow that fails if the mirror drifts from `AGENTS.md`,
 and vendors a pinned starting skill tier into `.agents/skills/` via `gh skill`
 (`manage-skills`, `agent-files-review`, `create-pr`, `address-pr-feedback`,
-`security-review` by default; override with `-Skills` / `-SkillsRef`). When
+and `security-review` by default; override with `-Skills` / `-SkillsRef`). When
 `gh skill` is unavailable it records the pinned install commands instead of
-failing. The broader agent-file gate (skill-frontmatter validation, link
-checking) and vendoring any domain skills remain a handoff to the skill-lifecycle
-skill and the fleet onboarding runbook - do not reinvent that pipeline here.
+failing. Vendor the GitHub Actions cost optimization skill when the repository
+needs a measured workflow audit beyond these defaults. The broader agent-file
+gate (skill-frontmatter validation, link checking) and vendoring any domain
+skills remain a handoff to the skill-lifecycle skill and the fleet onboarding
+runbook - do not reinvent that pipeline here.
 
 ## 7. Validate locally
 
@@ -146,9 +163,15 @@ publishing verb.** Do not run them silently:
 - Replace `<SHA>` placeholders in workflows (see step 3).
 - `gh repo create <owner>/<name> --public --source . --remote origin`
 - `git init && git add -A && git commit -m "Initial scaffold" && git push -u origin main`
-- Branch protection / ruleset on `main`: require the `build` status check,
-  require pull requests, block force-push and deletion. Emit the exact
-  `gh api` call or ruleset JSON for review.
+- For a private repository, enable GitHub Code Security before the first pull
+    request. If it is unavailable, replace CodeQL with a supported scanner.
+- Branch protection / ruleset on `main`: require `build`, strict up-to-date
+    branches or a merge queue, and either CodeQL code-scanning results at
+    documented thresholds or the replacement scanner's status check; require pull
+    requests with no bypass path; block force-push and deletion. If a bypass path
+    is required, restore default-branch push validation in CI, CodeQL or its
+    replacement, and the agent mirror first. Emit the exact `gh api` call or
+    ruleset JSON for review.
 - Enable secret scanning and push protection (GitHub repo Settings > Security).
 - Register the trusted-publishing policy on nuget.org before the first publish.
 

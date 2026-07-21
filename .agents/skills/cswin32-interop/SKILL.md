@@ -1,18 +1,22 @@
 ---
-name: cswin32-interop
-description: 'Guides CsWin32 P/Invoke interop in a multi-targeted .NET 10 and .NET Framework library. Consult when replacing [DllImport] with source-generated PInvoke.* calls, working with generated Windows.Win32 projections (HANDLE / HMODULE / HRESULT / BOOL and typed enum/constant types), configuring NativeMethods.txt / NativeMethods.json, composing a public PInvoke across foundation/owner/extender packages with extensionReceiver, deciding which support library owns a helper, auditing native allocation and byte/element lengths, selecting compile-time / runtime / analyzer guards for Windows-only code, or choosing between CsWin32 and [LibraryImport]. Paired with the cswin32-com skill for the struct-based COM layer.'
-license: MIT
 compatibility: Requires the .NET SDK and the Microsoft.Windows.CsWin32 source generator; projects Windows APIs across .NET 10 and .NET Framework. Owner/extender composition requires C# 14.
+description: Guides CsWin32 P/Invoke interop in a multi-targeted .NET 10 and .NET Framework library. Consult when replacing [DllImport] with source-generated PInvoke.* calls, working with generated Windows.Win32 projections (HANDLE / HMODULE / HRESULT / BOOL and typed enum/constant types), configuring NativeMethods.txt / NativeMethods.json, composing a public PInvoke across foundation/owner/extender packages with extensionReceiver, deciding which support library owns a helper, auditing native allocation and byte/element lengths, selecting compile-time / runtime / analyzer guards for Windows-only code, or choosing between CsWin32 and [LibraryImport]. Not for managed-only changes with no native boundary. Paired with the cswin32-com skill for the struct-based COM layer.
+license: MIT
 metadata:
-  portability: portable
-  applicability: dotnet
-  binding: optional-overlay
-  risk: local-write
-  maturity: canary
-  requires: none
-  related: cswin32-com, dotnet-polyfills, scratch-buffer-strategy, security-review
+    applicability: dotnet
+    binding: optional-overlay
+    github-path: skills/cswin32-interop
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
+    github-repo: https://github.com/JeremyKuhne/agent-skills
+    github-tree-sha: 14960bec081ff29eaa9bf5593b7a6ca9d5201ae8
+    maturity: canary
+    portability: portable
+    related: cswin32-com, dotnet-polyfills, scratch-buffer-strategy, security-review
+    requires: none
+    risk: local-write
+name: cswin32-interop
 ---
-
 # CsWin32 P/Invoke interop
 
 If `overlay.md` exists beside this file, read it before acting; it contains

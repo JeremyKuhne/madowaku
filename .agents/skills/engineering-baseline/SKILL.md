@@ -6,18 +6,17 @@ metadata:
     applicability: dotnet
     binding: optional-overlay
     github-path: skills/engineering-baseline
-    github-pinned: v0.10.0
-    github-ref: refs/tags/v0.10.0
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
-    github-tree-sha: a5b695d91108206c115e7915dfafc1b3c54d3ada
+    github-tree-sha: b0e52e484192142c2b3083ee181b4f7a5b61b0d6
     maturity: canary
     portability: portable
-    related: manage-skills, security-review, create-pr
+    related: manage-skills, security-review, create-pr, github-actions-cost-optimization
     requires: none
     risk: remote-write
 name: engineering-baseline
 ---
-
 # Engineering baseline
 
 If `overlay.md` exists beside this file, read it before acting; it contains
@@ -33,11 +32,12 @@ The standard in one paragraph: a high-quality .NET repository is **buildable**
 (centralized, deterministic, analyzer-enforced), **tested** (with coverage and,
 where it applies, perf and fuzz surfaces), **publishable** (signed, SourceLinked,
 validated packages with rich metadata), **released** deterministically from tags,
-**gated** by CI with least-privilege tokens and pinned actions, **secured** by
-branch protection, dependency updates, and scanning, **governed** by the OSS
-community files, and **agent-enabled** with vendored skills and the agent-file
-gates. The [baseline](baseline.md) is that standard as a checklist; the
-[citation catalog](references/best-practices.md) is the *why* behind every line.
+**gated** by cost-aware CI with least-privilege tokens and pinned actions,
+**secured** by branch protection, dependency updates, and scanning,
+**governed** by the OSS community files, and **agent-enabled** with vendored
+skills and the agent-file gates. The [baseline](baseline.md) is that standard as
+a checklist; the [citation catalog](references/best-practices.md) is the *why*
+behind every line.
 
 ## When to use
 
@@ -107,10 +107,12 @@ When in doubt, stop and ask one yes/no question.
 ## Related skills
 
 Run a security review over any code the scaffold generates or the assessment
-adds, and use the repository's PR skills to publish the result. The
-agent-enablement domain hands off to the skill-lifecycle skill and the fleet
-onboarding runbook for vendoring the skill tier and wiring the agent-file gates.
-A consuming repository wires these concrete cross-references in its overlay.
+adds, and use the repository's PR skills to publish the result. Hand detailed
+workflow usage, billing, and matrix analysis to the GitHub Actions cost
+optimization skill. The agent-enablement domain hands off to the skill-lifecycle
+skill and the fleet onboarding runbook for vendoring the skill tier and wiring
+the agent-file gates. A consuming repository wires these concrete
+cross-references in its overlay.
 
 ## Sub-pages
 

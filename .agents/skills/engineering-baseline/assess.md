@@ -21,6 +21,8 @@ Read the repository's actual state before judging it. Gather, read-only:
   shippable one, whether test / perf / fuzz / analyzer projects are present.
 - `.github/`: workflows, `dependabot.yml`, `CODEOWNERS`, issue/PR templates,
   rulesets, `copilot-instructions.md`.
+- CI topology: triggers, matrices, runners, required status names, repeated
+  setup, caches/artifacts, and whether one merged change causes duplicate runs.
 - Agent wiring: `AGENTS.md`, the skills location, the agent-file validator and
   its CI gate.
 - Remote settings you can read without admin: read them from the repository's
@@ -128,10 +130,13 @@ Batch related local fixes into coherent commits with clear messages. Do not
 commit or push unless the user asks - preparing the changes is authorized;
 publishing them is not.
 
-## 5. Hand off the security and agent domains
+## 5. Hand off specialized domains
 
 - For domain 7 findings on code that handles untrusted input, run the security
   review skill rather than judging vulnerability shapes here.
+- For domain 6 findings about runner choice, matrices, duplicate triggers,
+  storage, or estimated spend, run the GitHub Actions cost optimization skill.
+  This baseline establishes the required shape; that skill measures and tunes it.
 - For domain 9 (vendoring the skill tier, wiring the validator and link checker,
   the drift loop), hand off to the skill-lifecycle skill and the fleet
   onboarding runbook - this skill confirms the gate exists; those own the how.

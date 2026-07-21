@@ -12,7 +12,7 @@ git tag -a v0.1.0-alpha.4 -m "v0.1.0-alpha.4"
 git push origin v0.1.0-alpha.4
 ```
 
-Do **not** use lightweight tags &mdash; annotated tags carry the tagger and
+Do **not** use lightweight tags — annotated tags carry the tagger and
 date that show up in GitHub releases.
 
 Pushing the tag triggers the publish workflow. Watch the run:
@@ -28,19 +28,19 @@ nuget.org is bound to owner `JeremyKuhne`, repository `madowaku`, and workflow
 file `publish.yml` (the filename only, not `.github/workflows/publish.yml`), with
 the optional environment left blank. The action's required `user` input is the
 NuGet profile name `JeremyKuhne`, not an email address. Only
-`KlutzyNinja.Madowaku` packs &mdash; the test and perf projects set
+`KlutzyNinja.Madowaku` packs — the test and perf projects set
 `<IsPackable>false</IsPackable>`, so they produce no package.
 
 > **The tag format is guarded.** [publish.yml](../../../.github/workflows/publish.yml)
 > validates the tag against the SemVer-with-`v`-prefix regex (and rejects
 > non-tag refs) before packing, so a malformed tag like `v.0.1.0-alpha.3`
 > fails fast instead of silently publishing a MinVer height fallback. Still
-> confirm the published version on nuget.org matches what you intended &mdash;
+> confirm the published version on nuget.org matches what you intended —
 > the guard catches *malformed*, not *wrong-but-well-formed*. See the
 > "Tag-format guard" section in [versioning.md](versioning.md).
 
 If the workflow fails, treat it like any CI failure: do **not** delete and
-re-push the tag without explicit user approval &mdash; that's destructive and
+re-push the tag without explicit user approval — that's destructive and
 the nuget.org publish is irreversible. Fix forward with the next tag in the
 stream.
 
@@ -72,7 +72,7 @@ gh release create v0.1.0-alpha.4 `
 ```
 
 If `gh` is not available or not authenticated, use the GitHub web UI
-(Releases &rarr; Draft a new release &rarr; choose the existing tag), or the
+(Releases → Draft a new release → choose the existing tag), or the
 GitHub MCP tools.
 
 ### Release notes template
@@ -121,13 +121,13 @@ Notes on the template:
 
 ## 3. Aftercare
 
-- This package is not dog-fooded by another project in the repo &mdash; the
+- This package is not dog-fooded by another project in the repo — the
   test and perf projects reference it by project reference, and
   [Directory.Packages.props](../../../Directory.Packages.props) pins
   *dependencies* (Touki, CsWin32, etc.), not `KlutzyNinja.Madowaku` itself. So
   there is no consumer version to bump after a release.
 - If you bumped `Major` (binary break), make sure the release notes call out
-  the `AssemblyVersion` move (`0.0.0.0` &rarr; `1.0.0.0`) so downstream
+  the `AssemblyVersion` move (`0.0.0.0` → `1.0.0.0`) so downstream
   binders know to rebuild.
 - The README's NuGet badge tracks nuget.org automatically; no manual edit is
   needed after publishing.

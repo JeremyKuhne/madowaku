@@ -1,6 +1,6 @@
 ---
 core: manage-skills
-core-pin: v0.10.0
+core-pin: v0.11.0
 ---
 
 # madowaku overlay - manage-skills
@@ -13,26 +13,23 @@ bundled `scripts/Validate-Skills.ps1`, and `assets/overlay.md.tmpl` are a
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.10.0 tag.**
+> **Pinned to the commons v0.11.0 tag.**
 
 ## madowaku bindings
 
-- **The commons is `JeremyKuhne/agent-skills`; madowaku pins to `v0.10.0`**
-  (the one exception is `github-actions-cost-optimization`, which postdates that
-  tag and is pinned to a commit SHA - see its overlay).
+- **The commons is `JeremyKuhne/agent-skills`; madowaku pins all vendored cores
+  to `v0.11.0`.**
 - **The catalog is** [.agents/skills/README.md](../README.md); add or update its
   inventory row and disambiguation in the same change as any vendor, tweak, or
   new skill.
 - **Born-local (never upstreamed):**
   [`publish-release`](../publish-release/SKILL.md) is specific to madowaku's
   structure and carries no `github-*` provenance; leave it out of the commons.
-- **Portable cores pending promotion:**
+- **CsWin32 domain cores:**
   [`cswin32-interop`](../cswin32-interop/SKILL.md) and
-  [`cswin32-com`](../cswin32-com/SKILL.md) are generic cores reconciled from
-  madowaku's and dotnet/msbuild's CsWin32 skills, each with a madowaku
-  `overlay.md`. They carry portfolio `metadata` but no provenance yet
-  (`core-pin: pending-promotion`); a separate change upstreams them to the
-  commons and re-vendors them here with a pin.
+  [`cswin32-com`](../cswin32-com/SKILL.md) are now vendored commons cores with
+  madowaku overlays. The COM core declares the interop core as a hard
+  dependency; install and update them at the same pin.
 - **Frontmatter validation**: run the bundled
   [scripts/Validate-Skills.ps1](scripts/Validate-Skills.ps1) on a skill
   directory. The repo's own agent-file checks live in

@@ -1,6 +1,6 @@
 ---
 core: pre-pr-self-review
-core-pin: v0.10.0
+core-pin: v0.11.0
 ---
 
 # madowaku overlay - pre-pr-self-review
@@ -11,7 +11,7 @@ skill. The `SKILL.md` is a **pinned copy of the portable core** from
 `metadata.github-*` provenance in its frontmatter). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.10.0 tag.**
+> **Pinned to the commons v0.11.0 tag.**
 
 ## madowaku recurring mistakes to self-check
 

@@ -1,19 +1,19 @@
 ---
 core: performance-testing
-core-pin: v0.10.0
+core-pin: v0.11.0
 ---
 
 # madowaku overlay - performance-testing
 
 Repository-specific companion to the vendored [performance-testing](SKILL.md)
 skill. The `SKILL.md` and its sibling pages (`authoring.md`, `running.md`,
-`interpreting-requests.md`, `interpreting-results.md`, `reading-codegen.md`) are
-a **pinned copy of the portable core** from
+`interpreting-requests.md`, `interpreting-results.md`, `reading-codegen.md`,
+`investigation-workflow.md`) are a **pinned copy of the portable core** from
 [JeremyKuhne/agent-skills](https://github.com/JeremyKuhne/agent-skills) (see the
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift. Everything madowaku-specific lives here.
 
-> **Pinned to the commons v0.10.0 tag.** Pull later upstream changes with
+> **Pinned to the commons v0.11.0 tag.** Pull later upstream changes with
 > `gh skill update performance-testing`, review the diff, then re-pin `core-pin`.
 
 ## Concrete bindings for the core's placeholders
@@ -48,6 +48,19 @@ dotnet run -c Release -f net481 --project madowaku.perf -- --filter *VariantConv
 
 `-c Release` is mandatory. Compare both TFMs before claiming a win, since the
 net481 and modern-.NET JITs differ significantly.
+
+## Reproducible investigations
+
+Use [investigation-workflow.md](investigation-workflow.md) when a performance
+question spans phases, compares an exact external source revision, evaluates
+multiple candidates, or must preserve a dirty-worktree experiment. Keep its
+ledger and reconstruction artifacts local unless the user explicitly approves
+publishing them and the source bundle contains no secret or unauthorized data.
+
+Madowaku does not currently vendor a repository-specific trace-analyzer skill.
+Use BenchmarkDotNet diagnosers and [reading-codegen.md](reading-codegen.md) for
+local drill-down. Do not claim source-line profile evidence without first wiring
+and validating an appropriate trace tool.
 
 ## madowaku specifics
 

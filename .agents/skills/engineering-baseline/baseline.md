@@ -107,8 +107,12 @@ literals.
   (MSTest `[assembly: Parallelize(Workers = 0, Scope = MethodLevel)]`; xunit.v3
   unlimited parallel threads). Why: fast feedback, and it surfaces hidden test
   ordering or shared-state bugs early.
-- **(core)** Tests run in CI on every push and pull request, in Release. Why:
-  Release codegen and timing differ from Debug; gate what ships.
+- **(core)** Tests run in Release on every merge candidate. Run them again on a
+  default-branch push only when a direct or bypass update can avoid equivalent
+  pre-merge validation; a pull request with strict up-to-date checks or a merge
+  queue should not pay for an identical post-merge run. Why: Release codegen and
+  timing differ from Debug; gate what ships without duplicating the same
+  candidate.
 - **(core)** Code coverage collected and reported, with a gate on patch
   coverage (new/changed lines). Why: a patch gate holds new code to a bar
   without fighting noise in the whole-project number.
@@ -162,8 +166,11 @@ literals.
 
 ## 6. CI/CD
 
-- **(core)** A build-and-test workflow triggered on push and pull request to the
-  default branch. Why: the gate that keeps the default branch green.
+- **(core)** A build-and-test workflow triggered for every merge candidate and
+  available for manual diagnosis. Add a default-branch push trigger only when
+  branch rules permit an update that bypasses equivalent pre-merge validation;
+  include `merge_group` when a merge queue is available. Why: gate every path to
+  the default branch without automatically testing the same change twice.
 - **(core)** A least-privilege token: top-level `permissions: contents: read`,
   with any write scope granted per-job. Why: limits blast radius if a workflow
   step is compromised.
@@ -172,8 +179,18 @@ literals.
   malicious code; a SHA cannot.
 - **(core)** Concurrency control that cancels superseded in-flight runs for a
   pull request. Why: saves runner time and surfaces only the latest result.
+- **(core)** The automatic matrix contains the minimum load-bearing Release
+  gates; Debug and expensive platform/architecture breadth run through a named
+  manual, scheduled, or release workflow with a named owner and occasion or
+  cadence when delayed detection is acceptable. Why: preserve the support
+  contract without charging every pull request for every dimension.
+- **(core)** Each job uses the least expensive runner that is proven compatible;
+  native behavior still executes on its required operating system and
+  architecture. Why: lightweight scripts do not need premium runners, while
+  cross-compilation does not replace native execution.
 - **(conditional: restorable dependencies)** Dependency caching keyed on the
-  lock/props files. Why: cuts CI time without staleness when versions change.
+  lock/props files and pointed at the directory the tool actually uses. Why:
+  cuts CI time without staleness or a cache that never captures restored data.
 - **(core)** A stable aggregate status-check name that branch protection can
   require, even when the matrix underneath changes. Why: keeps the required
   check name from breaking when the build matrix is edited.
@@ -199,14 +216,19 @@ literals.
   deprecation, and listing checks, and a license allowlist) rather than tracking
   latest. Why: a freshly published version is the least-vetted and the usual
   vector for a compromised release.
-- **(core)** Static analysis / code scanning (for example CodeQL) on a schedule
-  and on pull requests. Why: catches injectable and memory-safety bug classes
-  before merge.
+- **(core)** Static analysis / code scanning (for example CodeQL) on pull
+  requests (and `merge_group` when used) and on a schedule, with code-scanning
+  results required by merge protection at documented thresholds. Moving it to
+  schedule-only is an accepted divergence only after documenting the
+  delayed-detection security tradeoff, cadence, and alert owner. Why: catches
+  injectable and memory-safety bug classes before merge by default.
 - **(core)** Secret scanning and push protection enabled. Why: stops credentials
   from entering history.
 - **(core)** Branch protection or a repository ruleset on the default branch:
-  require the status check, require pull requests, block force-push and deletion.
-  Why: prevents direct, unreviewed, or history-rewriting changes to main.
+  require the status and code-scanning checks, require pull requests with no
+  bypass, require branches up to date or a merge queue, and block force-push and
+  deletion. Why: prevents direct, unreviewed, stale-base, or history-rewriting
+  changes to main.
 - **(conditional: untrusted input) (deferred)** Address the
   [OWASP Top Ten](https://owasp.org/www-project-top-ten/) classes for any code
   that handles untrusted input or runs as a service - the security-review skill

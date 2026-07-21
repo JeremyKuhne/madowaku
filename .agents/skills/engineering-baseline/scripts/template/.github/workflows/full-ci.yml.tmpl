@@ -1,24 +1,21 @@
-name: CI
+name: Full CI
 
+# Maintainers run this before each release and after SDK or build-tool changes.
 on:
-  pull_request:
-    branches: [main]
-  merge_group:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.merge_group.head_sha || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    name: build
+    name: Debug and Release
     runs-on: {{CI_RUNNER}}
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@<SHA> # v6.0.3
         with:
@@ -34,7 +31,9 @@ jobs:
         # SDK version comes from global.json
 
       - run: dotnet restore --locked-mode
-      - run: dotnet build --configuration Release --no-restore
+      - run: dotnet build --configuration Debug --no-restore
       # The global.json MTP runner treats --no-build as a test-app argument and
       # exits 5 with zero tests. CI=true keeps this implicit restore locked.
+      - run: dotnet test --configuration Debug
+      - run: dotnet build --configuration Release --no-restore
       - run: dotnet test --configuration Release

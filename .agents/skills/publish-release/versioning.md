@@ -21,11 +21,11 @@ but choosing a duplicate is almost always a mistake):
 Record the prior version (e.g. `0.1.0-alpha.3`).
 
 > **Watch the tag list for the historical `v.` typo.** The most recent tag in
-> this repo at the time of writing is `v.0.1.0-alpha.3` &mdash; note the stray
+> this repo at the time of writing is `v.0.1.0-alpha.3` — note the stray
 > `.` after `v`. MinVer (prefix `v`) cannot parse it, so it is **silently
 > ignored** for versioning. When establishing the prior version, take the
 > newest tag that is *well-formed* (here `v0.1.0-alpha.2`), not merely the
-> newest tag. The publish workflow now rejects such tags &mdash; see the
+> newest tag. The publish workflow now rejects such tags — see the
 > "Tag-format guard" section in section 4.
 
 ## 2. Decide the prerelease channel (alpha / beta / rc / stable)
@@ -40,24 +40,24 @@ Present these options (however your agent surface asks the user a multiple-
 choice question), and mark the option matching the prior channel as the
 recommended default:
 
-- `Stay in alpha` &mdash; bug fixes / additive work during early development.
-- `Promote to beta` &mdash; feature-complete for the upcoming Minor; only
+- `Stay in alpha` — bug fixes / additive work during early development.
+- `Promote to beta` — feature-complete for the upcoming Minor; only
   stabilization work expected.
-- `Promote to rc` &mdash; release candidate; only blocker bug fixes.
-- `Promote to stable` &mdash; drop the prerelease label entirely.
-- `Use a different label` &mdash; free-form.
+- `Promote to rc` — release candidate; only blocker bug fixes.
+- `Promote to stable` — drop the prerelease label entirely.
+- `Use a different label` — free-form.
 
 Channel rules of thumb:
 
-- Don't *skip* channels casually. `alpha` &rarr; `beta` &rarr; `rc` &rarr;
-  `stable` is the normal path. Going `alpha` &rarr; `stable` is allowed but
+- Don't *skip* channels casually. `alpha` → `beta` → `rc` →
+  `stable` is the normal path. Going `alpha` → `stable` is allowed but
   should be deliberate.
 - Once you ship a stable `Major.Minor.Patch`, the next prerelease must
-  bump *something* (`0.1.0` &rarr; `0.1.1-alpha.1` or `0.2.0-alpha.1`); you
+  bump *something* (`0.1.0` → `0.1.1-alpha.1` or `0.2.0-alpha.1`); you
   cannot ship `0.1.0-alpha.2` after `0.1.0` stable.
 - Do **not** mix channels backwards (no going from `beta` back to `alpha`
   for the same Major.Minor.Patch). If a beta turned out to need more
-  churn, bump the underlying version: `0.2.0-beta.3` &rarr; `0.3.0-alpha.1`.
+  churn, bump the underlying version: `0.2.0-beta.3` → `0.3.0-alpha.1`.
 
 ## 3. Decide `Major.Minor.Patch`
 
@@ -77,10 +77,10 @@ underlying `Major.Minor.Patch` portion.
 For pre-1.0, the user may treat **Major** and **Minor** as both "Minor"
 during alpha/beta. That is fine; just confirm the call out loud:
 
-> "This change adds a public type but you're still in 0.1.x alpha &mdash; bump
+> "This change adds a public type but you're still in 0.1.x alpha — bump
 > to 0.2.0-alpha.1 (treating it as Minor) or stay at 0.1.0-alpha.4?"
 
-### When `AssemblyVersion` changes &mdash; and why it matters
+### When `AssemblyVersion` changes — and why it matters
 
 MinVer's defaults (used as-is in this repo, no overrides) produce:
 
@@ -97,16 +97,16 @@ Only a **Major** bump changes `AssemblyVersion`. That has real consequences:
   stricter, and `madowaku.dll` is strong-named
   (`klutzyninja.snk`, see [madowaku/madowaku.csproj](../../../madowaku/madowaku.csproj)).
 - A change in `Version`/`FileVersion` *without* `AssemblyVersion` changing
-  is binary-compatible &mdash; consumers can drop the new DLL into an existing
+  is binary-compatible — consumers can drop the new DLL into an existing
   bin folder and it just works.
 
 **Therefore:** any binary breaking change *must* bump `Major`, even during
-0.x. Refusing to bump `Major` on a binary break &mdash; to "stay at 0.1.x"
-&mdash; silently keeps `AssemblyVersion = 0.0.0.0` across an incompatible
+0.x. Refusing to bump `Major` on a binary break — to "stay at 0.1.x"
+— silently keeps `AssemblyVersion = 0.0.0.0` across an incompatible
 boundary, which is a real foot-gun for downstream binders.
 
 When `Major` does bump, also note in the release that `AssemblyVersion`
-moved (`0.0.0.0` &rarr; `1.0.0.0`).
+moved (`0.0.0.0` → `1.0.0.0`).
 
 ## 4. Compose the tag
 
@@ -128,15 +128,15 @@ Examples (good):
 - `v0.2.0`
 - `v1.0.0-rc.1`
 
-Examples (malformed &mdash; do not create):
+Examples (malformed — do not create):
 
-- `v.0.1.0-alpha.4` &mdash; stray `.` after `v`. This is the exact defect in
+- `v.0.1.0-alpha.4` — stray `.` after `v`. This is the exact defect in
   the existing `v.0.1.0-alpha.3` tag; do not recreate it.
-- `0.1.0-alpha.4` &mdash; missing `v` prefix (MinVer's prefix is `v`).
-- `v0.1.0.alpha.4` &mdash; `.` instead of `-` before prerelease.
-- `v0.1` &mdash; missing patch component (the workflow glob `v*.*.*` requires
+- `0.1.0-alpha.4` — missing `v` prefix (MinVer's prefix is `v`).
+- `v0.1.0.alpha.4` — `.` instead of `-` before prerelease.
+- `v0.1` — missing patch component (the workflow glob `v*.*.*` requires
   three dot-separated segments).
-- `v01.02.03` &mdash; leading zeros in numeric identifiers.
+- `v01.02.03` — leading zeros in numeric identifiers.
 
 A well-formed tag matches this SemVer-with-`v`-prefix shape:
 
@@ -150,13 +150,13 @@ madowaku's [publish.yml](../../../.github/workflows/publish.yml) runs a
 **Validate tag format** step as the first thing in the publish job, before
 checkout. It rejects the run (fails fast, before any pack/push) when:
 
-- The ref is not a tag (`github.ref` must start with `refs/tags/`) &mdash; this
+- The ref is not a tag (`github.ref` must start with `refs/tags/`) — this
   catches a `workflow_dispatch` accidentally launched from `main` or a branch,
   which would otherwise make MinVer compute a `*.<height>` fallback and publish
   a wrong version.
 - The tag name does not match the SemVer-with-`v`-prefix regex above.
 
-The trigger glob (`tags: ['v*.*.*']`) is *not* the guard &mdash; `*` matches a
+The trigger glob (`tags: ['v*.*.*']`) is *not* the guard — `*` matches a
 stray dot, so a typo'd tag such as `v.0.1.0-alpha.3` still starts the workflow.
 The validation step is what actually stops it: that tag fails the regex and the
 job throws before packing.
@@ -164,7 +164,7 @@ job throws before packing.
 Even with the guard in place:
 
 - Still triple-check the tag string against the good examples above before
-  pushing &mdash; the guard prevents a *malformed* publish, not a *wrong but
+  pushing — the guard prevents a *malformed* publish, not a *wrong but
   well-formed* one (e.g. tagging `v0.2.0` when you meant `v0.1.1`).
 - After the workflow runs, confirm the published version on nuget.org matches
   the version you intended.

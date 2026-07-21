@@ -89,6 +89,10 @@ The cross-cutting standards the domain checks draw from.
 | Pin actions by full commit SHA | [Scorecard: Pinned-Dependencies](https://github.com/ossf/scorecard/blob/main/docs/checks.md#pinned-dependencies), [StepSecurity](https://github.com/step-security/harden-runner) | A tag is mutable and can be repointed at malicious code; a SHA cannot |
 | OIDC trusted publishing | [NuGet trusted publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing), [GitHub OIDC](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect) | Removes the standing long-lived secret that is the usual leak |
 | Concurrency and caching | [Concurrency](https://docs.github.com/en/actions/using-jobs/using-concurrency), [Caching](https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows) | Cancels superseded runs and cuts CI time |
+| Cost-aware topology and runner selection | [Actions runner pricing](https://docs.github.com/en/billing/reference/actions-runner-pricing), [Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions), [hosted-runner specifications](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) | Each job has independent setup and billing granularity; current rates and visibility-specific hardware make runner and matrix choices materially different even when public-repository allowances hide invoice cost |
+| Measure workflow and job usage | [Actions usage metrics](https://docs.github.com/en/enterprise-cloud@latest/organizations/collaborating-with-groups-in-organizations/viewing-usage-metrics-for-github-actions) | Job runtime, runner type, queue time, and failure rate distinguish actual hot spots from guesses |
+| Manual extended validation | [Manually running workflows](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow) | Expensive breadth can remain available without charging every change, provided it has an explicit trigger and owner |
+| Test the merge candidate | [Required status checks](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets#require-status-checks-to-pass-before-merging), [merge queues](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue) | Strict up-to-date checks or a merge queue prevent a green stale branch from merging as an untested combination |
 
 ## 7. Supply-chain and security
 
@@ -98,7 +102,7 @@ The cross-cutting standards the domain checks draw from.
 | A dependency-update tool | [Dependabot version updates](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuring-dependabot-version-updates), [Renovate](https://docs.renovatebot.com/) | Out-of-date dependencies accrue known-vulnerable flaws |
 | Single trusted feed (source mapping) | [Package source mapping](https://learn.microsoft.com/en-us/nuget/consume-packages/package-source-mapping) | Blocks dependency-confusion across configured feeds |
 | Adopt only vetted, quarantined versions | [Renovate: minimumReleaseAge](https://docs.renovatebot.com/configuration-options/#minimumreleaseage), [OpenSSF Concise Guide](https://github.com/ossf/wg-best-practices-os-developers/blob/main/docs/Concise-Guide-for-Developing-More-Secure-Software.md) | A freshly published version is least-vetted and the usual compromised-release vector |
-| Static analysis / code scanning | [CodeQL code scanning](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql), [Scorecard: SAST](https://github.com/ossf/scorecard/blob/main/docs/checks.md#sast) | Catches injectable and memory-safety bug classes before merge |
+| Static analysis / code scanning | [CodeQL code scanning](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql), [code-scanning merge protection](https://docs.github.com/en/code-security/code-scanning/managing-your-code-scanning-configuration/set-code-scanning-merge-protection), [Scorecard: SAST](https://github.com/ossf/scorecard/blob/main/docs/checks.md#sast) | Catches injectable and memory-safety bug classes and blocks the merge while required analysis is absent, pending, or over threshold |
 | Secret scanning + push protection | [About secret scanning](https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning), [About push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/about-push-protection) | Stops credentials from entering history |
 | `SECURITY.md` with private reporting | [GitHub: adding a security policy](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository), [Scorecard: Security-Policy](https://github.com/ossf/scorecard/blob/main/docs/checks.md#security-policy) | Gives reporters a safe path; a Scorecard signal |
 | Dependency vulnerability auditing | [NuGet audit](https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages) | Surfaces advisories against the restored graph at build time |
@@ -152,6 +156,17 @@ defects to flag.
 - **Coverage thresholds.** A strict whole-project gate is noisy on small or
   fast-moving repos; a patch gate on changed lines is the pragmatic default. The
   baseline requires *a* gate, not a specific number.
+- **Default-branch push validation.** A pull request with strict up-to-date
+  checks or a merge-queue ruleset with no bypass path validates the merge
+  candidate; repeating identical build/test work after merge is optional
+  confirmation. Keep the push trigger when administrators, automation, or direct
+  pushes can bypass equivalent pre-merge checks. Record the ruleset assumption
+  next to the workflow decision.
+- **Automatic matrix breadth.** Operating systems, architectures, target
+  frameworks, Debug builds, and Native AOT legs belong on every merge only when
+  they protect a merge-blocking invariant. It is reasonable to move lower-risk
+  breadth to a scheduled/manual or release workflow, but document the resulting
+  detection delay, cadence, and owner.
 - **Branch protection as code vs UI.** Classic branch protection is configured in
   the UI; [repository rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
   can be exported and version-controlled as JSON. Prefer as-code for

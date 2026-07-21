@@ -6,8 +6,8 @@ metadata:
     applicability: git-github
     binding: optional-overlay
     github-path: skills/address-pr-feedback
-    github-pinned: v0.10.0
-    github-ref: refs/tags/v0.10.0
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
     github-tree-sha: ceb544da854ef7ba911679b8af8bca2631150ef9
     maturity: canary
@@ -17,7 +17,6 @@ metadata:
     risk: remote-write
 name: address-pr-feedback
 ---
-
 # Address PR feedback
 
 If `overlay.md` exists beside this file, read it before acting; it contains

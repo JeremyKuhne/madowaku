@@ -88,7 +88,12 @@ param(
     [string] $FrameworkLegacy,
     [string] $License = 'MIT',
     [ValidateSet('mstest', 'xunit')] [string] $TestRunner = 'mstest',
-    [string[]] $Skills = @('manage-skills', 'agent-files-review', 'create-pr', 'address-pr-feedback', 'security-review'),
+    [string[]] $Skills = @(
+        'manage-skills',
+        'agent-files-review',
+        'create-pr',
+        'address-pr-feedback',
+        'security-review'),
     [string] $SkillsRef,
     [string] $SkillsRepo = 'JeremyKuhne/agent-skills'
 )
@@ -171,6 +176,7 @@ if ($SdkIsPrerelease) { Warn "host SDK $SdkVersion is a prerelease; global.json 
 
 $LegacyTfmLine     = if ($IsMultiTarget) { "`n    <LegacyTfm>$FrameworkLegacy</LegacyTfm>" } else { '' }
 $FrameworksDisplay = if ($IsMultiTarget) { "$Framework, $FrameworkLegacy" } else { $Framework }
+$CiRunner          = if ($IsMultiTarget) { 'windows-latest' } else { 'ubuntu-latest' }
 
 $installLines = if ($IsTool) {
     @('```shell', "dotnet tool install --global $PackageId", '```')
@@ -211,6 +217,7 @@ $tokens = @{
     DESCRIPTION        = $Description
     PACKAGE_ID         = $PackageId
     ARCHETYPE          = $Archetype
+    CI_RUNNER           = $CiRunner
     INSTALL_COMMAND    = $InstallCommand
     PACKAGE_VERSIONS   = $PackageVersionsXml
 }
@@ -613,14 +620,19 @@ Then, with explicit approval for each step, run:
      git branch -M main
      git push -u origin main
 
-  4. Branch protection (propose exact ruleset JSON or enable via GitHub web UI):
-     - Require status check:  build
-     - Require pull requests
-     - Block force-push and deletion
+  4. For a private repository, enable GitHub Code Security before the first pull
+     request. If it is unavailable, replace CodeQL with a supported scanner.
 
-  5. Enable secret scanning and push protection (GitHub repo Settings > Security).
+  5. Branch protection: require the build status check, branches up to date or a
+     merge queue, and either CodeQL code-scanning results at documented
+     thresholds or the replacement scanner's status check. Require pull requests
+     with no bypass path; block force-push and deletion. If a direct or bypass
+     push is required, restore default-branch push validation in ci.yml,
+     codeql.yml or its replacement, and agent-files.yml first.
 
-  6. Register trusted-publishing policy on nuget.org before the first publish:
+  6. Enable secret scanning and push protection (GitHub repo Settings > Security).
+
+  7. Register trusted-publishing policy on nuget.org before the first publish:
      Owner: $Owner  Repo: $Name  Workflow: publish.yml
      https://www.nuget.org/account/transform/trusted-publishers
 
