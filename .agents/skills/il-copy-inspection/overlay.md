@@ -1,6 +1,6 @@
 ---
 core: il-copy-inspection
-core-pin: v0.10.0
+core-pin: v0.11.0
 ---
 
 # madowaku overlay - il-copy-inspection
@@ -12,7 +12,7 @@ copy of the portable core** from
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.10.0 tag.**
+> **Pinned to the commons v0.11.0 tag.**
 
 ## madowaku bindings
 
@@ -20,8 +20,9 @@ copy of the portable core** from
   large mutable structs passed by value at the COM boundary - `VARIANT`,
   `SAFEARRAY`, `ComScope<T>`, `BSTR`, `PWSTR` - where a hidden defensive copy or
   a box silently costs allocations and correctness.
-- **Read IL on both targets.** A copy the modern-.NET JIT elides can persist on
-  the `net481` RyuJIT; inspect the framework build too.
+- **Read IL on both targets** to compare copies emitted by the C# compiler. To
+  determine whether the net481 RyuJIT retains or elides an emitted copy, inspect
+  machine code with `DisassemblyDiagnoser`; IL alone cannot answer that.
 - **Pair a finding with a benchmark** in
   [madowaku.perf](../../../madowaku.perf/madowaku.perf.csproj) before reshaping a
   hot type.
@@ -30,6 +31,8 @@ copy of the portable core** from
 
 - [`cswin32-com`](../cswin32-com/SKILL.md) - the struct-based COM interop that
   produces most of madowaku's copy-sensitive types.
+- [`framework-jit-optimization`](../framework-jit-optimization/SKILL.md) - the
+  machine-code layer that determines whether a JIT retained an emitted copy.
 - [`performance-testing`](../performance-testing/SKILL.md) - the harness that
   quantifies the copy or box the IL reveals.
 

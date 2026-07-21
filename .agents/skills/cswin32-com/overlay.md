@@ -1,16 +1,17 @@
 ---
 core: cswin32-com
-core-pin: pending-promotion
+core-pin: v0.11.0
 ---
 
 # madowaku overlay - cswin32-com
 
 Repository-specific companion to the [cswin32-com](SKILL.md) core. The `SKILL.md`
-and its sibling pages are a **portable core** reconciled from madowaku's and
-dotnet/msbuild's CsWin32 skills, authored here so it can be promoted to the shared
-commons. It is **not yet vendored** - no `github-*` provenance, and `core-pin` is
-`pending-promotion` until the promotion change vendors it. Keep the core generic;
-madowaku specifics live here.
+and its sibling pages are a **pinned copy of the portable core** from
+[JeremyKuhne/agent-skills](https://github.com/JeremyKuhne/agent-skills) (see the
+`metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
+`gh skill update` would flag the drift. Madowaku specifics live here.
+
+> **Pinned to the commons v0.11.0 tag.**
 
 ## madowaku uses 0.3.287+ IComIID generation
 
@@ -80,8 +81,8 @@ disposing the source pointer.
 
 ## Manual structs and CLS compliance
 
-- **Manual COM structs** for interfaces not in Win32 metadata (e.g. CLR
-  hosting / metadata such as `ICLRMetaHost`, `ICLRRuntimeInfo`) go in their own
+- **Manual COM structs** for interfaces not in Win32 metadata (for example,
+  Setup Configuration or private / third-party interfaces) go in their own
   files. A manual struct that must work on net472 spells out **both** `IComIID`
   arms itself (static-abstract under `#if NET`, instance under `#else`) - the
   generator attaches `IComIID` to *generated* structs, not manual ones.

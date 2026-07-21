@@ -6,8 +6,8 @@ metadata:
     applicability: dotnet
     binding: optional-overlay
     github-path: skills/il-copy-inspection
-    github-pinned: v0.10.0
-    github-ref: refs/tags/v0.10.0
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
     github-tree-sha: 07bce64dc12f798aeeec01aab716d26bbde5c0ed
     maturity: canary
@@ -17,7 +17,6 @@ metadata:
     risk: advisory
 name: il-copy-inspection
 ---
-
 # Inspecting IL for struct copies
 
 If `overlay.md` exists beside this file, read it before acting; it contains

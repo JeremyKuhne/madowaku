@@ -6,8 +6,8 @@ metadata:
     applicability: git-github
     binding: optional-overlay
     github-path: skills/github-actions-cost-optimization
-    github-pinned: 85325dbeb5d5c3e9be39b9f7725a25d971b77d8a
-    github-ref: 85325dbeb5d5c3e9be39b9f7725a25d971b77d8a
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
     github-tree-sha: 1fac6778d86ec0879641e2b593e881f49b43c648
     maturity: canary
@@ -17,7 +17,6 @@ metadata:
     risk: local-write
 name: github-actions-cost-optimization
 ---
-
 # GitHub Actions cost optimization
 
 If `overlay.md` exists beside this file, read it before acting; it contains

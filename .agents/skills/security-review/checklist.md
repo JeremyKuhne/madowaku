@@ -6,15 +6,15 @@ or *unchecked precondition* could push the code into the failure mode, not
 whether it currently does.
 
 The largest category - `unsafe` / `Unsafe.*` / `MemoryMarshal.*` and other
-caller-validated APIs (&sect;7) - lives in [unsafe-apis.md](unsafe-apis.md).
+caller-validated APIs (section 7) - lives in [unsafe-apis.md](unsafe-apis.md).
 
 When attention is limited, allocate it by tier:
 
-- **Critical (never skip):** &sect;1, &sect;4, [unsafe-apis.md](unsafe-apis.md).
-- **Standard (every member):** &sect;2, &sect;5, &sect;9.
-- **Conditional (when the code shape matches):** &sect;3 (allocates
-  proportional to input), &sect;6 (encoder uses in-band sentinels),
-  &sect;8 (path-handling API).
+- **Critical (never skip):** sections 1 and 4, [unsafe-apis.md](unsafe-apis.md).
+- **Standard (every member):** sections 2, 5, and 9.
+- **Conditional (when the code shape matches):** section 3 (allocates
+  proportional to input), section 6 (encoder uses in-band sentinels),
+  section 8 (path-handling API).
 
 ## 1. Length / size of inputs
 
@@ -47,7 +47,7 @@ outside. Specialized fast paths often bypass the affected code
 ## 3. Allocation pressure / memory DoS
 
 - Does work allocate proportional to (or worse than) input size?
-- Is the worst case bounded by an explicit cap (&sect;1) or only by
+- Is the worst case bounded by an explicit cap (section 1) or only by
   available memory?
 - Do buffers rent from `ArrayPool<T>.Shared` (good), allocate fresh
   per call (acceptable if bounded), or grow without limit (red flag)?
@@ -64,7 +64,7 @@ allocation count.
   alternation) that retries every wildcard on mismatch. Safe shape:
   **fixed savepoint slots** (each new wildcard overwrites the
   previous slot of the same kind), bounding the worst case to
-  O(n&middot;m).
+  O(n * m).
 - Hashtable attacks: are user-controlled keys hashed with a
   randomized hash (modern .NET `string.GetHashCode()` and
   `Dictionary<,>` are per-process randomized), or a deterministic one

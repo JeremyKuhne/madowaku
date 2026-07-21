@@ -1,6 +1,6 @@
 ---
 core: security-review
-core-pin: v0.10.0
+core-pin: v0.11.0
 ---
 
 # madowaku overlay - security-review
@@ -12,7 +12,7 @@ The `SKILL.md` and its sibling pages (`checklist.md`, `principles.md`,
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.10.0 tag.**
+> **Pinned to the commons v0.11.0 tag.**
 
 ## madowaku bindings
 

@@ -1,18 +1,22 @@
 ---
-name: cswin32-com
-description: 'Guides struct-based COM interop using CsWin32 - AOT-compatible raw pointer calls without [ComImport] or built-in CLR marshalling; managed [ComImport] mirrors are limited to CCW bridges. Consult when working with ComScope, IID.Get, delegate* unmanaged vtables, CoCreateInstance or a class factory, IComIID across .NET 10 and .NET Framework, connection-point Advise/Unadvise ownership, caller-owned CCW references, manually defining COM interfaces not in Win32 metadata (WMI, Fusion, CLR hosting/metadata), COM pointer lifetime in fields, cross-assembly CCWs, or mocking struct-based COM in tests. Paired with the cswin32-interop skill for the general P/Invoke layer and blittable-signature rules.'
-license: MIT
 compatibility: Requires the .NET SDK and the Microsoft.Windows.CsWin32 source generator; Windows COM APIs across .NET 10 and .NET Framework. Cross-assembly extension-block examples require C# 14.
+description: Guides struct-based COM interop using CsWin32 - AOT-compatible raw pointer calls without [ComImport] or built-in CLR marshalling; managed [ComImport] mirrors are limited to CCW bridges. Consult when working with ComScope, IID.Get, delegate* unmanaged vtables, CoCreateInstance or a class factory, IComIID across .NET 10 and .NET Framework, connection-point Advise/Unadvise ownership, caller-owned CCW references, manually defining COM interfaces absent from Win32 metadata, COM pointer lifetime in fields, cross-assembly CCWs, or mocking struct-based COM in tests. Not for ordinary RCW-based COM consumption with no raw struct pointers or CCW bridge. Paired with the cswin32-interop skill for the general P/Invoke layer and blittable-signature rules.
+license: MIT
 metadata:
-  portability: portable
-  applicability: dotnet
-  binding: optional-overlay
-  risk: local-write
-  maturity: canary
-  requires: cswin32-interop
-  related: security-review, il-copy-inspection
+    applicability: dotnet
+    binding: optional-overlay
+    github-path: skills/cswin32-com
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
+    github-repo: https://github.com/JeremyKuhne/agent-skills
+    github-tree-sha: 16f0e262ed5b4a11f90a91b70cb4b9ab473a3d1a
+    maturity: canary
+    portability: portable
+    related: security-review, il-copy-inspection
+    requires: cswin32-interop
+    risk: local-write
+name: cswin32-com
 ---
-
 # CsWin32 struct-based COM interop
 
 If `overlay.md` exists beside this file, read it before acting; it contains
@@ -43,8 +47,8 @@ NativeAOT path, while a `ComWrappers` implementation can be AOT-compatible.
 ## Workflow
 
 1. **In Win32 metadata?** If yes, add the interface name to `NativeMethods.txt`
-   and CsWin32 generates it. If not (WMI, Fusion, Setup Configuration, CLR
-   hosting / metadata), define a manual struct in its own file - see
+  and CsWin32 generates it. If not (for example, Setup Configuration or a
+  private / third-party interface), define a manual struct in its own file - see
    [manual-structs.md](manual-structs.md).
 2. **Lifetime:** `using ComScope<T> scope = new();` for every transient **owned**
    COM reference, and free every owned COM `BSTR` out-param (`SysFreeString` /

@@ -11,28 +11,11 @@ overlap.
 
 ## Inventory
 
-Each skill is one of three kinds: **born-local** (specific to madowaku; no
-upstream, no provenance), a **portable core pending promotion** (reconciled here
-to be upstreamed to the commons, paired with a local `overlay.md`), or
-**vendored** from the shared commons
+Each skill is one of two kinds: **born-local** (specific to madowaku; no
+upstream or provenance), or **vendored** from the shared commons
 [JeremyKuhne/agent-skills](https://github.com/JeremyKuhne/agent-skills) at a
 pinned ref (also with an `overlay.md`). See
 [the vendoring model](#vendoring-model) below.
-
-### Portable cores (pending promotion to the commons)
-
-Generic CsWin32 cores (thin `SKILL.md` plus sibling pages) reconciled from
-madowaku's and dotnet/msbuild's CsWin32 skills, each with a madowaku `overlay.md`.
-They carry portfolio `metadata` but no `github-*` provenance yet; a separate
-change will upstream them to the commons and re-vendor them here with a pin.
-
-| Skill | Trigger phrasing |
-| ----- | ---------------- |
-| [cswin32-interop](./cswin32-interop/SKILL.md) | "replace `[DllImport]` with CsWin32", generated `PInvoke.*` / Win32 types, "which package owns this helper?", split a public owner from downstream extenders, native allocator ownership, byte/element sizes, `NativeMethods.*`, blittable signatures, compile-time / runtime / analyzer guards |
-| [cswin32-com](./cswin32-com/SKILL.md) | struct-based COM with `ComScope`, caller-owned CCW references, `Advise` / `Unadvise`, activation, raw vtables, manual COM structs, `IComIID` across .NET 10 and .NET Framework, cross-assembly CCWs, mocking struct COM |
-
-`cswin32-com` declares `cswin32-interop` as a hard dependency; promote and
-install the pair together even though invocation remains surface-specific.
 
 ### Born-local
 
@@ -40,11 +23,13 @@ install the pair together even though invocation remains surface-specific.
 | ----- | ---------------- |
 | [publish-release](./publish-release/SKILL.md) | "publish a new version", "release alpha.N", "ship a beta", "cut a release", "promote alpha to beta", "tag and publish" |
 
-### Vendored (commons `v0.10.0`, unless noted)
+### Vendored (commons `v0.11.0`)
 
 | Skill | Trigger phrasing |
 | ----- | ---------------- |
-| [performance-testing](./performance-testing/SKILL.md) | "add a benchmark", "run perf tests", "compare allocations", "BenchmarkDotNet", "why is net481 slower/faster", "how long / how much memory" |
+| [cswin32-interop](./cswin32-interop/SKILL.md) | "replace `[DllImport]` with CsWin32", generated `PInvoke.*` / Win32 types, "which package owns this helper?", split a public owner from downstream extenders, native allocator ownership, byte/element sizes, `NativeMethods.*`, blittable signatures, compile-time / runtime / analyzer guards |
+| [cswin32-com](./cswin32-com/SKILL.md) | struct-based COM with `ComScope`, caller-owned CCW references, `Advise` / `Unadvise`, activation, raw vtables, manual COM structs, `IComIID` across .NET 10 and .NET Framework, cross-assembly CCWs, mocking struct COM; requires `cswin32-interop` at the same pin |
+| [performance-testing](./performance-testing/SKILL.md) | "add a benchmark", "run perf tests", "compare allocations", `BenchmarkDotNet`, multi-phase or exact-oracle investigations, dirty-source reproducibility, "why is net481 slower/faster", "how long / how much memory" |
 | [framework-jit-optimization](./framework-jit-optimization/SKILL.md) | optimize a `net481` / .NET Framework hot path, specialize a generic for primitives, diagnose a Framework micro-benchmark regression |
 | [scratch-buffer-strategy](./scratch-buffer-strategy/SKILL.md) | zeroed `stackalloc` vs `[SkipLocalsInit]` vs `BufferScope<T>` vs `ArrayPool`, "should I rent or stackalloc?", net481/net10 size crossovers |
 | [dotnet-polyfills](./dotnet-polyfills/SKILL.md) | "use a modern .NET API on .NET Framework", PolySharp / `System.Memory` / `Microsoft.Bcl.*`, "which package supplies this type downlevel", "is this already polyfilled" |
@@ -57,7 +42,7 @@ install the pair together even though invocation remains surface-specific.
 | [manage-skills](./manage-skills/SKILL.md) | "find a skill for X", "build a skill" / "create a skill", "update the skill", reconcile a local skill change against the commons vs a repo overlay |
 | [agent-files-review](./agent-files-review/SKILL.md) | review or validate changes to `AGENTS.md`, `*.instructions.md`, `*.prompt.md`, `*.agent.md`, `SKILL.md`, "fix the agent-files CI failure" |
 | [engineering-baseline](./engineering-baseline/SKILL.md) | "ensure this repo follows modern engineering best practices", "audit this repository", "bring this repo up to standard" |
-| [github-actions-cost-optimization](./github-actions-cost-optimization/SKILL.md) &mdash; pinned `@85325db` | "reduce CI cost / spend / minutes", optimize GitHub Actions triggers, matrices, runners, caches, artifacts |
+| [github-actions-cost-optimization](./github-actions-cost-optimization/SKILL.md) | "reduce CI cost / spend / minutes", optimize GitHub Actions triggers, matrices, runners, caches, artifacts |
 
 ## Vendoring model
 
@@ -71,20 +56,14 @@ core plus a thin repo-specific **overlay**:
 - **Overlay** &mdash; `overlay.md` beside the core holds madowaku paths, project
   names, and cross-references to other skills. Its frontmatter records the
   `core-pin` it was reviewed against.
-- **Portable core pending promotion** &mdash; `cswin32-interop` and `cswin32-com`
-  are generic cores reconciled here (with madowaku overlays) to be upstreamed to
-  the commons. They carry portfolio `metadata` but no `github-*` provenance and
-  use `core-pin: pending-promotion` until a separate change vendors them.
 - **Born-local** &mdash; `publish-release` is specific to madowaku's structure
   (the `KlutzyNinja.Madowaku` release-tag flow), carries no provenance, and is
   never upstreamed.
 
-All but one vendored core are pinned to the commons `v0.10.0` tag.
-`github-actions-cost-optimization` postdates that tag, so it is pinned to commit
-`85325db`; re-pin it to a release tag once the commons ships one that includes
-it. The [manage-skills](./manage-skills/SKILL.md) skill drives find / build /
-update, and [agent-files-review](./agent-files-review/SKILL.md) validates the
-resulting files.
+All 16 vendored cores are pinned to the commons `v0.11.0` tag. The
+[manage-skills](./manage-skills/SKILL.md) skill drives find / build / update,
+and [agent-files-review](./agent-files-review/SKILL.md) validates the resulting
+files.
 
 ## Disambiguation
 
@@ -96,8 +75,9 @@ Both touch CsWin32. They are mutually exclusive by **surface**:
   `HRESULT`/`BOOL`, platform and TFM guards, the `ComWrappers` polyfill, the
   public `PInvoke` owner/extender surface** &rarr; `cswin32-interop`.
 - **COM interfaces &mdash; `ComScope<T>`, `IComIID` (emitted on .NET 10 and
-  .NET Framework), `IID.Get<T>()`, manual struct-based interfaces (CLR hosting,
-  metadata, etc.), `delegate* unmanaged` vtables, `CoCreateInstance` /
+  .NET Framework), `IID.Get<T>()`, manual struct-based interfaces (Setup
+  Configuration, private / third-party APIs, etc.), `delegate* unmanaged`
+  vtables, `CoCreateInstance` /
   `CoGetClassObject`** &rarr; `cswin32-com`.
 
 If a change adds both a new P/Invoke and a new COM type, run

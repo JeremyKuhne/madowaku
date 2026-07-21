@@ -1,17 +1,17 @@
 ---
 core: cswin32-interop
-core-pin: pending-promotion
+core-pin: v0.11.0
 ---
 
 # madowaku overlay - cswin32-interop
 
 Repository-specific companion to the [cswin32-interop](SKILL.md) core. The
-`SKILL.md` and its sibling pages are a **portable core** reconciled from
-madowaku's and dotnet/msbuild's CsWin32 skills, authored here so it can be
-promoted to the shared commons. It is **not yet vendored**, so it carries no
-`github-*` provenance and `core-pin` is `pending-promotion`; the promotion change
-will vendor it and add a real pin. Keep the core generic - everything
-madowaku-specific lives here.
+`SKILL.md` and its sibling pages are a **pinned copy of the portable core** from
+[JeremyKuhne/agent-skills](https://github.com/JeremyKuhne/agent-skills) (see the
+`metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
+`gh skill update` would flag the drift. Everything madowaku-specific lives here.
+
+> **Pinned to the commons v0.11.0 tag.**
 
 ## Targeting model
 

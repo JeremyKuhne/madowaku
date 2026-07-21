@@ -6,8 +6,8 @@ metadata:
     applicability: git-github
     binding: optional-overlay
     github-path: skills/create-pr
-    github-pinned: v0.10.0
-    github-ref: refs/tags/v0.10.0
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
     github-tree-sha: dcdd58e7cad32b4907ce6a8bf0fe6bf01cb14f59
     maturity: canary
@@ -17,7 +17,6 @@ metadata:
     risk: remote-write
 name: create-pr
 ---
-
 # Create a pull request
 
 If `overlay.md` exists beside this file, read it before acting; it contains

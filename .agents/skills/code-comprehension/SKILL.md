@@ -5,8 +5,8 @@ metadata:
     applicability: universal
     binding: optional-overlay
     github-path: skills/code-comprehension
-    github-pinned: v0.10.0
-    github-ref: refs/tags/v0.10.0
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
     github-tree-sha: d2e1be7b63a31345f054a1d0785a67d5ba2aa604
     maturity: canary
@@ -16,7 +16,6 @@ metadata:
     risk: advisory
 name: code-comprehension
 ---
-
 # Code comprehension review
 
 If `overlay.md` exists beside this file, read it before acting; it contains

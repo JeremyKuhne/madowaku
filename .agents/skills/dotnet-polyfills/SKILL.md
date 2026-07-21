@@ -6,8 +6,8 @@ metadata:
     applicability: dotnet-framework
     binding: optional-overlay
     github-path: skills/dotnet-polyfills
-    github-pinned: v0.10.0
-    github-ref: refs/tags/v0.10.0
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
     github-tree-sha: ae0aa41d3c5c002298172ba4e5f7b24eb615d9db
     maturity: canary
@@ -17,7 +17,6 @@ metadata:
     risk: local-write
 name: dotnet-polyfills
 ---
-
 # .NET downlevel polyfills
 
 If `overlay.md` exists beside this file, read it before acting; it contains

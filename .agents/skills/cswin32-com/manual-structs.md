@@ -1,30 +1,32 @@
 # Manual COM structs
 
-Detail for [cswin32-com](SKILL.md). For an interface not in Win32 metadata (WMI,
-Fusion, Setup Configuration, CLR hosting / metadata), hand-write a struct that
-lays out the vtable yourself. Put each interface in its own file. Include or
-exclude that file using the same platform and target-framework decisions as the
-paired interop skill; a cross-platform assembly may compile the declaration as
-long as reachable calls remain Windows-only.
+Detail for [cswin32-com](SKILL.md). For an interface not in Win32 metadata, such
+as Setup Configuration or a private / third-party interface, hand-write a struct
+that lays out the vtable yourself. Put each interface in its own file. Include
+or exclude that file using the same platform and target-framework decisions as
+the paired interop skill; a cross-platform assembly may compile the declaration
+as long as reachable calls remain Windows-only.
 
 ## Shape
 
+Replace the placeholder with the interface's exact IID.
+
 ```csharp
-internal unsafe struct IAssemblyCache : IComIID
+internal unsafe struct IPrivateService : IComIID
 {
-    public static readonly Guid IID_IAssemblyCache = new(0xE707DCDE, ...);
+  public static readonly Guid IID_IPrivateService = new("...");
 
 #if NET
     static ref readonly Guid IComIID.Guid
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => ref Unsafe.AsRef(in IID_IAssemblyCache);
+        get => ref Unsafe.AsRef(in IID_IPrivateService);
     }
 #else
     readonly ref readonly Guid IComIID.Guid
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => ref Unsafe.AsRef(in IID_IAssemblyCache);
+        get => ref Unsafe.AsRef(in IID_IPrivateService);
     }
 #endif
 
@@ -32,8 +34,8 @@ internal unsafe struct IAssemblyCache : IComIID
 
     public HRESULT QueryInterface(Guid* riid, void** ppvObject)
     {
-        fixed (IAssemblyCache* pThis = &this)
-            return ((delegate* unmanaged[Stdcall]<IAssemblyCache*, Guid*, void**, HRESULT>)
+          fixed (IPrivateService* pThis = &this)
+              return ((delegate* unmanaged[Stdcall]<IPrivateService*, Guid*, void**, HRESULT>)
                 _lpVtbl[0])(pThis, riid, ppvObject);
     }
     // AddRef @1, Release @2, then interface methods at their slot indices.
@@ -67,7 +69,9 @@ internal unsafe struct IAssemblyCache : IComIID
 - **Platform annotations may be type- or member-level.**
   `[SupportedOSPlatform]` is valid on structs. Apply it to the whole interface
   struct when every member has the same Windows contract, or to individual
-  methods when versions differ.
+  methods when versions differ. In dual-target source, place the attribute under
+  `#if NET` unless the .NET Framework target provides a compatible source
+  polyfill; .NET Framework reference assemblies do not define it.
 
 ## Strongly-typed handle and token wrappers
 

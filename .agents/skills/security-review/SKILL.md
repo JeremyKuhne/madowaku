@@ -6,10 +6,10 @@ metadata:
     applicability: universal
     binding: optional-overlay
     github-path: skills/security-review
-    github-pinned: v0.10.0
-    github-ref: refs/tags/v0.10.0
+    github-pinned: v0.11.0
+    github-ref: refs/tags/v0.11.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
-    github-tree-sha: b5f145ccbc662182f38554418b5c8b7057c16baa
+    github-tree-sha: 883a99623b74cd6f5bfc2e0706b71a1513d1c62f
     maturity: canary
     portability: portable
     related: pre-pr-self-review, performance-testing, fuzz-testing
@@ -17,7 +17,6 @@ metadata:
     risk: local-write
 name: security-review
 ---
-
 # Security review
 
 If `overlay.md` exists beside this file, read it before acting; it contains

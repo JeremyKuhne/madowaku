@@ -1,6 +1,6 @@
 ---
 core: github-actions-cost-optimization
-core-pin: 85325dbeb5d5c3e9be39b9f7725a25d971b77d8a
+core-pin: v0.11.0
 ---
 
 # madowaku overlay - github-actions-cost-optimization
@@ -12,10 +12,7 @@ sibling pages are a **pinned copy of the portable core** from
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to an unreleased commit.** This skill postdates the commons `v0.10.0`
-> tag, so `core-pin` is the commit SHA
-> `85325dbeb5d5c3e9be39b9f7725a25d971b77d8a` rather than a release tag. Re-pin to
-> a tag once the commons ships one that includes this skill.
+> **Pinned to the commons v0.11.0 tag.**
 
 ## madowaku bindings
 
@@ -41,5 +38,4 @@ sibling pages are a **pinned copy of the portable core** from
 ## Updating
 
 Pull upstream changes with `gh skill update github-actions-cost-optimization`
-(review the diff, re-pin `core-pin`) - ideally re-pinning to a release tag once
-one includes this skill.
+(review the diff, re-pin `core-pin`).

@@ -59,6 +59,10 @@ suppressing it:
 - Use `#pragma warning disable CA1416` only as a narrow, justified last resort
   when a recognized guard or platform annotation cannot express the contract.
 
+The platform attributes are available on modern .NET but not in .NET Framework
+reference assemblies. In dual-target source, place them under `#if NET` unless
+the Framework target provides a compatible source polyfill.
+
 ## A stack-first scratch buffer
 
 Win32 string and buffer APIs often want caller-allocated storage followed by a
