@@ -17,6 +17,16 @@ GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
 GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT
 GetModuleHandleEx
 GetProcAddress
+GlobalAlloc
+GlobalFlags
+GlobalFree
+GlobalHandle
+GlobalLock
+GlobalMemoryStatus
+GlobalReAlloc
+GlobalSize
+GlobalUnlock
+GMEM_INVALID_HANDLE
 HRESULT
 IClassFactory
 IClassFactory2
