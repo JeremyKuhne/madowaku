@@ -14,7 +14,7 @@ public unsafe partial struct HGLOBAL
     /// </summary>
     /// <remarks>
     ///  <para>
-    ///   Use the result in a <c>using</c> statement to ensure the memory is unlocked when done.
+    ///   Use the result in a <see langword="using"/> statement to ensure the memory is unlocked when done.
     ///  </para>
     /// </remarks>
     public LockScope Lock() => new LockScope(this);
@@ -34,7 +34,7 @@ public unsafe partial struct HGLOBAL
     /// </summary>
     /// <remarks>
     ///  <para>
-    ///   Use in a <c>using</c> statement to ensure the memory is unlocked when done.
+    ///   Use in a <see langword="using"/> statement to ensure the memory is unlocked when done.
     ///  </para>
     /// </remarks>
     public unsafe ref struct LockScope

@@ -49,13 +49,21 @@ public static unsafe class SpanExtensions
                 Error.ThrowLastError();
             }
 
-            using var lockScope = global.Lock();
-            Span<T> destinationSpan = new Span<T>(lockScope, length);
-            span.CopyTo(destinationSpan);
-
-            if (nullTerminate)
+            try
             {
-                destinationSpan[^1] = default;
+                using var lockScope = global.Lock();
+                Span<T> destinationSpan = new Span<T>(lockScope, length);
+                span.CopyTo(destinationSpan);
+
+                if (nullTerminate)
+                {
+                    destinationSpan[^1] = default;
+                }
+            }
+            catch
+            {
+                PInvoke.GlobalFree(global);
+                throw;
             }
 
             return global;
@@ -89,6 +97,11 @@ public static unsafe class SpanExtensions
             nuint size = checked((nuint)length * (nuint)sizeofT);
 
             nuint destinationSize = PInvoke.GlobalSize(destination);
+            if (destinationSize == 0)
+            {
+                Error.ThrowLastError();
+            }
+
             if (destinationSize < size)
             {
                 throw new ArgumentException("Destination is not large enough to hold the copied data.", nameof(destination));

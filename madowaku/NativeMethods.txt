@@ -20,9 +20,7 @@ GetProcAddress
 GlobalAlloc
 GlobalFlags
 GlobalFree
-GlobalHandle
 GlobalLock
-GlobalMemoryStatus
 GlobalReAlloc
 GlobalSize
 GlobalUnlock
