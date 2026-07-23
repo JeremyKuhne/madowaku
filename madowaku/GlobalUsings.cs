@@ -27,6 +27,7 @@ global using FileNotFoundException = System.IO.FileNotFoundException;
 global using DirectoryNotFoundException = System.IO.DirectoryNotFoundException;
 global using PathTooLongException = System.IO.PathTooLongException;
 global using DriveNotFoundException = System.IO.DriveNotFoundException;
+global using IOException = System.IO.IOException;
 
 global using Marshal = System.Runtime.InteropServices.Marshal;
 global using FILETIME = Windows.Win32.Foundation.FILETIME;

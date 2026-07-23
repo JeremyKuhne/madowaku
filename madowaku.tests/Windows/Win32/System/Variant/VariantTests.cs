@@ -1251,7 +1251,7 @@ public partial class VariantTests
         ui8.GetValue(5).Should().Be(3UL);
         ui8.GetValue(6).Should().Be(6UL);
 
-        Array r4 = ConvertNonZeroLowerBoundArray(VARENUM.VT_R4, VARENUM.VT_R4, (float[])[1.25f, 2.5f]);
+        Array r4 = ConvertNonZeroLowerBoundArray(VARENUM.VT_R4, VARENUM.VT_R4, [1.25f, 2.5f]);
         r4.GetValue(5).Should().Be(1.25f);
         r4.GetValue(6).Should().Be(2.5f);
     }

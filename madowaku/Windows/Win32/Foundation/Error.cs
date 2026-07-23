@@ -1,8 +1,9 @@
-// Copyright (c) 2025 Jeremy W Kuhne
+﻿// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
 using System.ComponentModel;
+using Madowaku.Io;
 using Windows.Win32.System.Diagnostics.Debug;
 
 namespace Windows.Win32.Foundation;
@@ -118,61 +119,43 @@ public static unsafe class Error
         // There are a few defintions for '0', we'll always use ERROR_SUCCESS
         return error == WIN32_ERROR.ERROR_SUCCESS
             ? $"ERROR_SUCCESS ({(uint)error}): {message}"
-#if NETFRAMEWORK
-            : Enum.IsDefined(typeof(WIN32_ERROR), error)
-                ? $"{error} ({(uint)error}): {message}"
-                : $"Error {error}: {message}";
-#else
             : Enum.IsDefined(error)
                 ? $"{error} ({(uint)error}): {message}"
                 : $"Error {error}: {message}";
-#endif
     }
 
-    internal static Exception WindowsErrorToException(WIN32_ERROR error, string? message, string? path)
+    internal static Exception WindowsErrorToException(WIN32_ERROR error, string? message, string? path) => error switch
     {
-        switch (error)
-        {
-            case WIN32_ERROR.ERROR_FILE_NOT_FOUND:
-                return new FileNotFoundException(message, path);
-            case WIN32_ERROR.ERROR_PATH_NOT_FOUND:
-                return new DirectoryNotFoundException(message);
-            case WIN32_ERROR.ERROR_ACCESS_DENIED:
-            // Network access doesn't throw UnauthorizedAccess in .NET
-            case WIN32_ERROR.ERROR_NETWORK_ACCESS_DENIED:
-                return new UnauthorizedAccessException(message);
-            case WIN32_ERROR.ERROR_FILENAME_EXCED_RANGE:
-                return new PathTooLongException(message);
-            case WIN32_ERROR.ERROR_INVALID_DRIVE:
-                // Not available in Portable libraries
-                return new DriveNotFoundException(message);
-            case WIN32_ERROR.ERROR_OPERATION_ABORTED:
-            case WIN32_ERROR.ERROR_CANCELLED:
-                return new OperationCanceledException(message);
-            case WIN32_ERROR.ERROR_NOT_READY:
-                // Drive not ready
-                return new Win32Exception((int)error, message);
-            case WIN32_ERROR.ERROR_FILE_EXISTS:
-            case WIN32_ERROR.ERROR_ALREADY_EXISTS:
-                // File or directory already exists
-                return new Win32Exception((int)error, message);
-            case WIN32_ERROR.ERROR_INVALID_PARAMETER:
-                return new ArgumentException(message);
-            case WIN32_ERROR.ERROR_NOT_SUPPORTED:
-            case WIN32_ERROR.ERROR_NOT_SUPPORTED_IN_APPCONTAINER:
-                return new NotSupportedException(message);
-            case WIN32_ERROR.ERROR_SHARING_VIOLATION:
-            default:
-                if (error == (WIN32_ERROR)(int)HRESULT.FVE_E_LOCKED_VOLUME)
-                {
-                    // Drive locked
-                    return new Win32Exception((int)error, message);
-                }
+        WIN32_ERROR.ERROR_FILE_NOT_FOUND => new FileNotFoundException(message, path),
+        WIN32_ERROR.ERROR_PATH_NOT_FOUND => new DirectoryNotFoundException(message),
+        WIN32_ERROR.ERROR_ACCESS_DENIED or WIN32_ERROR.ERROR_NETWORK_ACCESS_DENIED => new UnauthorizedAccessException(message),
+        WIN32_ERROR.ERROR_FILENAME_EXCED_RANGE => new PathTooLongException(message),
+        // Not available in Portable libraries
+        WIN32_ERROR.ERROR_INVALID_DRIVE => new DriveNotFoundException(message),
+        WIN32_ERROR.ERROR_OPERATION_ABORTED or WIN32_ERROR.ERROR_CANCELLED => new OperationCanceledException(message),
+        WIN32_ERROR.ERROR_NOT_READY => new DriveNotReadyException(message),
+        // File or directory already exists
+        WIN32_ERROR.ERROR_FILE_EXISTS or WIN32_ERROR.ERROR_ALREADY_EXISTS => new FileExistsException(error, message),
+        WIN32_ERROR.ERROR_INVALID_PARAMETER => new ArgumentException(message),
+        WIN32_ERROR.ERROR_NOT_SUPPORTED or WIN32_ERROR.ERROR_NOT_SUPPORTED_IN_APPCONTAINER => new NotSupportedException(message),
+        _ => error == (WIN32_ERROR)(int)HRESULT.FVE_E_LOCKED_VOLUME
+            // Drive locked
+            ? new DriveLockedException(message)
+            : Win32Exception.Create(error, message),
+    };
 
-                return new Win32Exception((int)error, message);
-        }
-    }
+    /// <inheritdoc cref="FormatMessage(uint, HINSTANCE, ReadOnlySpan{string})"/>
+    public static string FormatMessage(
+        uint messageId,
+        HINSTANCE source = default,
+        params string[] args) => FormatMessage(messageId, source, args.AsSpan());
 
+    /// <summary>
+    ///  Formats a Windows error code into a string using FormatMessage.
+    /// </summary>
+    /// <param name="messageId">The message ID to format.</param>
+    /// <param name="source">The source of the message. If <see langword="null"/>, the system message table is used.</param>
+    /// <param name="args">Optional arguments to format into the message.</param>
     /// <remarks>
     ///  <para>
     ///   .NET's Win32Exception impements the error code lookup on FormatMessage using FORMAT_MESSAGE_FROM_SYSTEM.
@@ -182,14 +165,14 @@ public static unsafe class Error
     public static string FormatMessage(
         uint messageId,
         HINSTANCE source = default,
-        params string[] args)
+        params ReadOnlySpan<string> args)
     {
         FORMAT_MESSAGE_OPTIONS flags =
             // Let the API allocate the buffer
             FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_ALLOCATE_BUFFER
             | FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_FROM_SYSTEM;
 
-        if (args is null || args.Length == 0)
+        if (args.Length == 0)
         {
             flags.SetFlags(FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_IGNORE_INSERTS);
         }
@@ -213,11 +196,11 @@ public static unsafe class Error
         PWSTR buffer = default;
         uint result = PInvoke.FormatMessage(
             dwFlags: flags,
-            lpSource: (void*)source.Value,
+            lpSource: source.Value,
             dwMessageId: messageId,
             // Do the default language lookup
             dwLanguageId: 0,
-            lpBuffer: (PWSTR)(void*)(&buffer),
+            lpBuffer: (PWSTR)(char*)(&buffer),
             nSize: 0,
             Arguments: sargs);
 

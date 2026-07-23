@@ -8,6 +8,11 @@ namespace Windows.Win32.Foundation;
 ///  Helper to allow pinning an array of strings to pass to a native method that takes an
 ///  array of null-terminated UTF-16 strings.
 /// </summary>
+/// <remarks>
+///  <para>
+///   Use in a <see langword="using"/> statement to ensure the memory is unpinned when done.
+///  </para>
+/// </remarks>
 public readonly unsafe ref struct StringParameterArray
 {
     private readonly GCHandle[]? _pins;
@@ -16,21 +21,28 @@ public readonly unsafe ref struct StringParameterArray
     /// <summary>
     ///  Initializes a new instance of the <see cref="StringParameterArray"/> struct.
     /// </summary>
-    public StringParameterArray(string[]? values)
+    public StringParameterArray(params string[]? values) : this(values is null ? null : values.AsSpan())
     {
-        int length = values?.Length ?? 0;
-        if (length > 0)
-        {
-            _param = new nint[length];
-            _pins = new GCHandle[length + 1];
-            for (int i = 0; i < length; i++)
-            {
-                _pins[i] = GCHandle.Alloc(values![i], GCHandleType.Pinned);
-                _param[i] = _pins[i].AddrOfPinnedObject();
-            }
+    }
 
-            _pins[length] = GCHandle.Alloc(_param, GCHandleType.Pinned);
+    /// <inheritdoc cref="StringParameterArray(string[])"/>
+    public StringParameterArray(params ReadOnlySpan<string> values)
+    {
+        int length = values.Length;
+        if (length <= 0)
+        {
+            return;
         }
+
+        _param = new nint[length];
+        _pins = new GCHandle[length + 1];
+        for (int i = 0; i < length; i++)
+        {
+            _pins[i] = GCHandle.Alloc(values![i], GCHandleType.Pinned);
+            _param[i] = _pins[i].AddrOfPinnedObject();
+        }
+
+        _pins[length] = GCHandle.Alloc(_param, GCHandleType.Pinned);
     }
 
     /// <summary>

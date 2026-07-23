@@ -17,7 +17,7 @@ public unsafe class HGLOBALTests
 
         try
         {
-            global.Size.Should().Be((nuint)(sizeof(int) * 4));
+            global.Size.Should().Be(sizeof(int) * 4);
         }
         finally
         {
@@ -30,7 +30,7 @@ public unsafe class HGLOBALTests
     {
         HGLOBAL global = default;
 
-        global.Size.Should().Be((nuint)0);
+        global.Size.Should().Be(0);
     }
 
     [TestMethod]

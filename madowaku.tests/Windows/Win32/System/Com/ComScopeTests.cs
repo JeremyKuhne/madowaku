@@ -43,7 +43,7 @@ public class ComScopeTests
     {
         using ComScope<IUnknown> scope = new((IUnknown*)null);
         nint p = scope;
-        p.Should().Be((nint)0);
+        p.Should().Be(0);
     }
 
     [TestMethod]
