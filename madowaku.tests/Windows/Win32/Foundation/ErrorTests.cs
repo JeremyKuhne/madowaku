@@ -1,8 +1,9 @@
-// Copyright (c) 2025 Jeremy W Kuhne
+﻿// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
 using System.ComponentModel;
+using Madowaku.Io;
 
 namespace Windows.Win32.Foundation;
 
@@ -126,24 +127,24 @@ public class ErrorTests
     }
 
     [TestMethod]
-    public void GetException_NotReady_ReturnsWin32Exception()
+    public void GetException_NotReady_ReturnsDriveNotReadyException()
     {
         Exception ex = WIN32_ERROR.ERROR_NOT_READY.GetException();
-        ex.Should().BeOfType<Win32Exception>();
+        ex.Should().BeOfType<DriveNotReadyException>();
     }
 
     [TestMethod]
-    public void GetException_FileExists_ReturnsWin32Exception()
+    public void GetException_FileExists_ReturnsFileExistsException()
     {
         Exception ex = WIN32_ERROR.ERROR_FILE_EXISTS.GetException();
-        ex.Should().BeOfType<Win32Exception>();
+        ex.Should().BeOfType<FileExistsException>();
     }
 
     [TestMethod]
-    public void GetException_AlreadyExists_ReturnsWin32Exception()
+    public void GetException_AlreadyExists_ReturnsFileExistsException()
     {
         Exception ex = WIN32_ERROR.ERROR_ALREADY_EXISTS.GetException();
-        ex.Should().BeOfType<Win32Exception>();
+        ex.Should().BeOfType<FileExistsException>();
     }
 
     [TestMethod]

@@ -154,7 +154,7 @@ public static unsafe class Error
     ///  Formats a Windows error code into a string using FormatMessage.
     /// </summary>
     /// <param name="messageId">The message ID to format.</param>
-    /// <param name="source">The source of the message. If <see langword="null"/>, the system message table is used.</param>
+    /// <param name="source">The source of the message. If <see cref="HINSTANCE.Null"/>, the system message table is used.</param>
     /// <param name="args">Optional arguments to format into the message.</param>
     /// <remarks>
     ///  <para>

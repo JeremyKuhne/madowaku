@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Jeremy W Kuhne
+﻿// Copyright (c) 2025 Jeremy W Kuhne
 // SPDX-License-Identifier: MIT
 // See LICENSE file in the project root for full license information
 
@@ -43,7 +43,7 @@ public class ComScopeTests
     {
         using ComScope<IUnknown> scope = new((IUnknown*)null);
         nint p = scope;
-        p.Should().Be(0);
+        p.Should().Be((nint)0);
     }
 
     [TestMethod]
