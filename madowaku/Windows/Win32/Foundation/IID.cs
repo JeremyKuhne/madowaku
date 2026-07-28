@@ -14,6 +14,7 @@ namespace Windows.Win32.Foundation;
 
 internal static unsafe class IID
 {
+#pragma warning disable TOUKI0041 // Naming rule violation
     private static ref readonly Guid IID_NULL
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -27,6 +28,7 @@ internal static unsafe class IID
             return ref Unsafe.As<byte, Guid>(ref MemoryMarshal.GetReference(data));
         }
     }
+#pragma warning restore TOUKI0041 // Naming rule violation
 
     // We cast away the "readonly" here as there is no way to communicate that through a pointer and
     // Marshal APIs take the Guid as ref. Even though none of our usages actually change the state.

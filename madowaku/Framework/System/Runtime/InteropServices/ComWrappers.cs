@@ -28,6 +28,7 @@ internal abstract class ComWrappers
     ///  <see cref="ComWrappers"/> for why this exists and what its members
     ///  do.
     /// </summary>
+#pragma warning disable TOUKI0020 // ComInterfaceDispatch is part of the ComWrappers API shape.
     public unsafe struct ComInterfaceDispatch
     {
         /// <summary>
@@ -40,4 +41,5 @@ internal abstract class ComWrappers
             return null;
         }
     }
+#pragma warning restore TOUKI0020
 }

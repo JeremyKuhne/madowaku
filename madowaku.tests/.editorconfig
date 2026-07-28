@@ -6,3 +6,14 @@ dotnet_diagnostic.CS1591.severity = none
 
 # CA1852: Seal internal types
 dotnet_diagnostic.CA1852.severity = none
+
+# Test methods use MethodName_StateUnderTest_ExpectedBehavior.
+touki_naming_rule.test_methods_should_describe_scenario.severity = suggestion
+touki_naming_rule.test_methods_should_describe_scenario.symbols = test_methods
+touki_naming_rule.test_methods_should_describe_scenario.style = test_method_style
+
+touki_naming_symbols.test_methods.applicable_kinds = method
+touki_naming_symbols.test_methods.required_attributes = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+touki_naming_style.test_method_style.word_separator = _
+touki_naming_style.test_method_style.capitalization = pascal_case

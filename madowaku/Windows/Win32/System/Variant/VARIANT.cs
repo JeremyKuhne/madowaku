@@ -34,7 +34,9 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Gets a reference to the data union of this <see cref="VARIANT"/>.
     /// </summary>
     [UnscopedRef]
+#pragma warning disable TOUKI0041 // Naming rule violation
     public ref _Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union data => ref Anonymous.Anonymous.Anonymous;
+#pragma warning restore TOUKI0041 // Naming rule violation
 
     /// <summary>
     ///  Releases resources used by this <see cref="VARIANT"/>.
