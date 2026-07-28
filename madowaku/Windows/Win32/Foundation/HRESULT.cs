@@ -35,7 +35,7 @@ public partial struct HRESULT
         (FACILITY_CODE)((Value >> 16) & 0x1fff);
 
     // COR_* HRESULTs are .NET HRESULTs
-#pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable TOUKI0041 // Naming rule violation
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable IDE0055
     public static readonly HRESULT COR_E_ARGUMENT               = (HRESULT)unchecked((int)0x80070057);
@@ -49,7 +49,7 @@ public partial struct HRESULT
     public static readonly HRESULT COR_E_SAFEARRAYTYPEMISMATCH  = (HRESULT)unchecked((int)0x80131533);
     public static readonly HRESULT COR_E_TARGETINVOCATION       = (HRESULT)unchecked((int)0x80131604);
     public static readonly HRESULT COR_E_OBJECTDISPOSED         = (HRESULT)unchecked((int)0x80131622);
-#pragma warning restore IDE1006 // Naming Styles
+#pragma warning restore TOUKI0041 // Naming rule violation
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning restore IDE0055
 
