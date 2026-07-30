@@ -6,8 +6,8 @@ metadata:
     applicability: universal
     binding: optional-overlay
     github-path: skills/manage-skills
-    github-pinned: v0.11.0
-    github-ref: refs/tags/v0.11.0
+    github-pinned: v0.13.0
+    github-ref: refs/tags/v0.13.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
     github-tree-sha: 5b881e8d4c0a1d5e9bdf3d48cb91d515088e44d2
     maturity: canary

@@ -6,8 +6,8 @@ metadata:
     applicability: dotnet-project-gated
     binding: optional-overlay
     github-path: skills/performance-testing
-    github-pinned: v0.11.0
-    github-ref: refs/tags/v0.11.0
+    github-pinned: v0.13.0
+    github-ref: refs/tags/v0.13.0
     github-repo: https://github.com/JeremyKuhne/agent-skills
     github-tree-sha: 9cdddfa386a045ddc14a9799126929da23341e89
     maturity: canary

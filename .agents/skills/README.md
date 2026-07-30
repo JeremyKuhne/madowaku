@@ -23,7 +23,7 @@ pinned ref (also with an `overlay.md`). See
 | ----- | ---------------- |
 | [publish-release](./publish-release/SKILL.md) | "publish a new version", "release alpha.N", "ship a beta", "cut a release", "promote alpha to beta", "tag and publish" |
 
-### Vendored (commons `v0.11.0`)
+### Vendored (commons `v0.13.0`)
 
 | Skill | Trigger phrasing |
 | ----- | ---------------- |
@@ -44,6 +44,15 @@ pinned ref (also with an `overlay.md`). See
 | [engineering-baseline](./engineering-baseline/SKILL.md) | "ensure this repo follows modern engineering best practices", "audit this repository", "bring this repo up to standard" |
 | [github-actions-cost-optimization](./github-actions-cost-optimization/SKILL.md) | "reduce CI cost / spend / minutes", optimize GitHub Actions triggers, matrices, runners, caches, artifacts |
 
+### Not vendored (project-gated)
+
+The commons `v0.13.0` portfolio contains two additional skills that do not apply
+to this repository:
+
+- `fuzz-testing` requires an existing fuzz harness; madowaku has no fuzz project.
+- `roslyn-analyzers` applies when authoring a `DiagnosticAnalyzer`, code fix, or
+  suppressor; madowaku has no analyzer project.
+
 ## Vendoring model
 
 Skills are authored once as a portable **core** in the commons and shared from
@@ -60,7 +69,7 @@ core plus a thin repo-specific **overlay**:
   (the `KlutzyNinja.Madowaku` release-tag flow), carries no provenance, and is
   never upstreamed.
 
-All 16 vendored cores are pinned to the commons `v0.11.0` tag. The
+All 16 vendored cores are pinned to the commons `v0.13.0` tag. The
 [manage-skills](./manage-skills/SKILL.md) skill drives find / build / update,
 and [agent-files-review](./agent-files-review/SKILL.md) validates the resulting
 files.

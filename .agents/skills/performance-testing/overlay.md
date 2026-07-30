@@ -1,6 +1,6 @@
 ---
 core: performance-testing
-core-pin: v0.11.0
+core-pin: v0.13.0
 ---
 
 # madowaku overlay - performance-testing
@@ -13,7 +13,7 @@ skill. The `SKILL.md` and its sibling pages (`authoring.md`, `running.md`,
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift. Everything madowaku-specific lives here.
 
-> **Pinned to the commons v0.11.0 tag.** Pull later upstream changes with
+> **Pinned to the commons v0.13.0 tag.** Pull later upstream changes with
 > `gh skill update performance-testing`, review the diff, then re-pin `core-pin`.
 
 ## Concrete bindings for the core's placeholders

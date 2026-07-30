@@ -1,6 +1,6 @@
 ---
 core: manage-skills
-core-pin: v0.11.0
+core-pin: v0.13.0
 ---
 
 # madowaku overlay - manage-skills
@@ -13,12 +13,12 @@ bundled `scripts/Validate-Skills.ps1`, and `assets/overlay.md.tmpl` are a
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.11.0 tag.**
+> **Pinned to the commons v0.13.0 tag.**
 
 ## madowaku bindings
 
 - **The commons is `JeremyKuhne/agent-skills`; madowaku pins all vendored cores
-  to `v0.11.0`.**
+  to `v0.13.0`.**
 - **The catalog is** [.agents/skills/README.md](../README.md); add or update its
   inventory row and disambiguation in the same change as any vendor, tweak, or
   new skill.

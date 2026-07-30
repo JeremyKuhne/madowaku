@@ -1,6 +1,6 @@
 ---
 core: cswin32-com
-core-pin: v0.11.0
+core-pin: v0.13.0
 ---
 
 # madowaku overlay - cswin32-com
@@ -11,7 +11,7 @@ and its sibling pages are a **pinned copy of the portable core** from
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift. Madowaku specifics live here.
 
-> **Pinned to the commons v0.11.0 tag.**
+> **Pinned to the commons v0.13.0 tag.**
 
 ## madowaku uses 0.3.287+ IComIID generation
 
