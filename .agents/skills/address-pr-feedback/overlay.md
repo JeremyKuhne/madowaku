@@ -1,6 +1,6 @@
 ---
 core: address-pr-feedback
-core-pin: v0.13.0
+core-pin: v0.16.1
 ---
 
 # madowaku overlay - address-pr-feedback
@@ -11,7 +11,7 @@ skill. The `SKILL.md` is a **pinned copy of the portable core** from
 `metadata.github-*` provenance in its frontmatter). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.13.0 tag.**
+> **Pinned to the commons v0.16.1 tag.**
 
 ## madowaku bindings
 
@@ -31,6 +31,8 @@ skill. The `SKILL.md` is a **pinned copy of the portable core** from
   publish gate.
 - [`pre-pr-self-review`](../pre-pr-self-review/SKILL.md) - the checklist for the
   edits you push in a follow-up round.
+- [`technical-writing`](../technical-writing/SKILL.md) - drafts and reviews
+  commit messages and thread replies before the owning workflow publishes them.
 
 ## Updating
 

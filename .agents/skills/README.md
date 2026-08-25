@@ -23,7 +23,7 @@ pinned ref (also with an `overlay.md`). See
 | ----- | ---------------- |
 | [publish-release](./publish-release/SKILL.md) | "publish a new version", "release alpha.N", "ship a beta", "cut a release", "promote alpha to beta", "tag and publish" |
 
-### Vendored (commons `v0.13.0`)
+### Vendored (commons `v0.16.1`)
 
 | Skill | Trigger phrasing |
 | ----- | ---------------- |
@@ -36,22 +36,32 @@ pinned ref (also with an `overlay.md`). See
 | [il-copy-inspection](./il-copy-inspection/SKILL.md) | "find struct copies", "is this a defensive copy", "check for boxing in IL", "did the compiler emit a copy here" |
 | [security-review](./security-review/SKILL.md) | "do a security review", "check for ReDoS / DoS", "audit untrusted input"; any `unsafe` / `Unsafe.*` / `MemoryMarshal.*` / `Marshal.*` use |
 | [code-comprehension](./code-comprehension/SKILL.md) | "review this for readability", "is this too complex", "reduce nesting / cognitive load", reasonable method length / parameter count / nesting depth |
-| [pre-pr-self-review](./pre-pr-self-review/SKILL.md) | self-review before opening a PR, "review my draft", after a reviewer flags issues that should have been caught |
+| [technical-writing](./technical-writing/SKILL.md) | "draft this issue", "rewrite this email", "tighten this explanation", durable human-facing prose, final text review before publication |
+| [pre-pr-self-review](./pre-pr-self-review/SKILL.md) | self-review before opening a PR, "review my code change / PR candidate", after a reviewer flags issues that should have been caught |
 | [create-pr](./create-pr/SKILL.md) | "make a PR", "open a pull request", "push and PR", publish in-progress work for review |
 | [address-pr-feedback](./address-pr-feedback/SKILL.md) | "address the review", "fix the comments", "address Copilot's feedback", "fix the CI failure", post-PR follow-up |
-| [manage-skills](./manage-skills/SKILL.md) | "find a skill for X", "build a skill" / "create a skill", "update the skill", reconcile a local skill change against the commons vs a repo overlay |
+| [manage-skills](./manage-skills/SKILL.md) | find, install, build, review, update, or retire a skill; reconcile local changes against the commons vs a repo overlay |
 | [agent-files-review](./agent-files-review/SKILL.md) | review or validate changes to `AGENTS.md`, `*.instructions.md`, `*.prompt.md`, `*.agent.md`, `SKILL.md`, "fix the agent-files CI failure" |
 | [engineering-baseline](./engineering-baseline/SKILL.md) | "ensure this repo follows modern engineering best practices", "audit this repository", "bring this repo up to standard" |
 | [github-actions-cost-optimization](./github-actions-cost-optimization/SKILL.md) | "reduce CI cost / spend / minutes", optimize GitHub Actions triggers, matrices, runners, caches, artifacts |
 
-### Not vendored (project-gated)
+### Not vendored
 
-The commons `v0.13.0` portfolio contains two additional skills that do not apply
-to this repository:
+The commons `v0.16.1` portfolio contains six additional skills that do not
+belong at project scope in this repository:
 
+- `dotnet-file-creation` owns APIs that create and persist files, directories,
+  and application state. Madowaku exposes no such product API; one temporary
+  file used by a test fixture does not justify the workflow.
 - `fuzz-testing` requires an existing fuzz harness; madowaku has no fuzz project.
 - `roslyn-analyzers` applies when authoring a `DiagnosticAnalyzer`, code fix, or
   suppressor; madowaku has no analyzer project.
+- `user-voice` manages private personal profile source and user-scope
+  installation. That lifecycle must remain outside this public project.
+- `windows-acls` owns ACLs and trusted shared-state locations; madowaku has no
+  ACL or application-state surface.
+- `winui-win32-hosting` applies to applications embedding WinUI in an HWND;
+  madowaku has no UI host or Windows App SDK project.
 
 ## Vendoring model
 
@@ -69,9 +79,10 @@ core plus a thin repo-specific **overlay**:
   (the `KlutzyNinja.Madowaku` release-tag flow), carries no provenance, and is
   never upstreamed.
 
-All 16 vendored cores are pinned to the commons `v0.13.0` tag. The
-[manage-skills](./manage-skills/SKILL.md) skill drives find / build / update,
-and [agent-files-review](./agent-files-review/SKILL.md) validates the resulting
+All 17 vendored cores are pinned to the commons `v0.16.1` tag. The
+[manage-skills](./manage-skills/SKILL.md) skill drives discovery, installation,
+authoring, review, update, and retirement, while
+[agent-files-review](./agent-files-review/SKILL.md) validates the resulting
 files.
 
 ## Disambiguation
@@ -101,6 +112,19 @@ for the COM activation and per-struct partial.
 - **Cut a `KlutzyNinja.Madowaku` release tag** (a tag, not a PR) →
   `publish-release` (born-local). All three honor the same publish boundary in
   [AGENTS.md](../../AGENTS.md).
+
+### Human-facing prose
+
+- **Source-code readability and cognitive load** -> `code-comprehension`.
+- **Agent customization behavior, frontmatter, links, and Markdown correctness**
+  -> `agent-files-review`.
+- **Code, test, and diff-to-PR factual checks** -> `pre-pr-self-review`.
+- **Durable reader-facing prose and the exact final text before publication**
+  -> `technical-writing`.
+
+When several apply, settle code or customization facts first, then run
+`technical-writing`. The owning `create-pr`, `address-pr-feedback`, or
+`publish-release` workflow retains the remote-action approval gate.
 
 ### Performance cluster
 

@@ -1,24 +1,23 @@
 ---
 core: manage-skills
-core-pin: v0.13.0
+core-pin: v0.16.1
 ---
 
 # madowaku overlay - manage-skills
 
 Repository-specific companion to the vendored [manage-skills](SKILL.md) skill.
-The `SKILL.md`, its sibling pages (`find.md`, `build.md`, `update.md`), the
-bundled `scripts/Validate-Skills.ps1`, and `assets/overlay.md.tmpl` are a
+The `SKILL.md`, its sibling lifecycle pages, bundled scripts, and assets are a
 **pinned copy of the portable core** from
 [JeremyKuhne/agent-skills](https://github.com/JeremyKuhne/agent-skills) (see the
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.13.0 tag.**
+> **Pinned to the commons v0.16.1 tag.**
 
 ## madowaku bindings
 
 - **The commons is `JeremyKuhne/agent-skills`; madowaku pins all vendored cores
-  to `v0.13.0`.**
+  to `v0.16.1`.**
 - **The catalog is** [.agents/skills/README.md](../README.md); add or update its
   inventory row and disambiguation in the same change as any vendor, tweak, or
   new skill.
@@ -43,6 +42,8 @@ bundled `scripts/Validate-Skills.ps1`, and `assets/overlay.md.tmpl` are a
 
 - [`agent-files-review`](../agent-files-review/SKILL.md) - validates the syntax
   and conventions of the file you land; run it after any vendor or overlay edit.
+- [`technical-writing`](../technical-writing/SKILL.md) - reviews recommendation,
+  review, retirement, and upstream publication prose after lifecycle facts settle.
 
 ## Updating
 
