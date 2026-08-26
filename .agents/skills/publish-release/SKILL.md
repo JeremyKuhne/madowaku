@@ -2,6 +2,8 @@
 name: publish-release
 description: Publish a new version of the `KlutzyNinja.Madowaku` NuGet package by cutting a release tag. Use when asked to "publish a new version", "release alpha.N", "ship a beta", "cut a release", "promote alpha to beta", or "tag and publish". Walks through choosing the right `Major.Minor.Patch` bump, deciding whether to stay in `alpha` / `beta` / `rc` / stable, composing the `v*` tag, pushing it, and creating the matching GitHub release. Flags when an `AssemblyVersion`-changing Major bump is required (binary breaking changes vs additive/bugfix work).
 argument-hint: 'Describe the release you want to cut (channel and/or version bump) if known.'
+metadata:
+  requires: technical-writing
 ---
 
 # Publish a release
@@ -34,6 +36,12 @@ release notes. It does **not** authorize the tag push. The
 **Approval checkpoint** below is the gate. See
 [AGENTS.md](../../../AGENTS.md) section "Working with the user on changes" for
 the canonical rule.
+
+Use the required [`technical-writing`](../technical-writing/SKILL.md) skill to
+draft or revise release notes from the current tag range. Run its
+pre-publication mode on the exact title and notes after the package, version,
+and compare-link facts are current. A successful writing review does not
+authorize the tag push or GitHub release creation.
 
 ## Steps overview
 

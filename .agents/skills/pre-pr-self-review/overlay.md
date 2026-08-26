@@ -1,6 +1,6 @@
 ---
 core: pre-pr-self-review
-core-pin: v0.13.0
+core-pin: v0.16.1
 ---
 
 # madowaku overlay - pre-pr-self-review
@@ -11,7 +11,7 @@ skill. The `SKILL.md` is a **pinned copy of the portable core** from
 `metadata.github-*` provenance in its frontmatter). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.13.0 tag.**
+> **Pinned to the commons v0.16.1 tag.**
 
 ## madowaku recurring mistakes to self-check
 
@@ -36,6 +36,8 @@ skill. The `SKILL.md` is a **pinned copy of the portable core** from
 - [`security-review`](../security-review/SKILL.md) - for the unsafe / interop
   surface the review touches.
 - [`create-pr`](../create-pr/SKILL.md) - the workflow this checklist precedes.
+- [`technical-writing`](../technical-writing/SKILL.md) - reviews final
+  reader-facing PR text after this checklist establishes the underlying facts.
 
 ## Updating
 

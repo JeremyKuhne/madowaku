@@ -1,6 +1,6 @@
 ---
 core: agent-files-review
-core-pin: v0.13.0
+core-pin: v0.16.1
 ---
 
 # madowaku overlay - agent-files-review
@@ -12,7 +12,7 @@ portable core** from
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.13.0 tag.**
+> **Pinned to the commons v0.16.1 tag.**
 
 ## madowaku scaffold paths
 
@@ -42,6 +42,8 @@ portable core** from
   vendoring, and updating skills (distinct from this file-syntax review).
 - [`pre-pr-self-review`](../pre-pr-self-review/SKILL.md) - its final audit runs
   the link and validator checks before a PR.
+- [`technical-writing`](../technical-writing/SKILL.md) - reviews reader-facing
+  prose after this skill establishes customization behavior and file correctness.
 
 ## Updating
 

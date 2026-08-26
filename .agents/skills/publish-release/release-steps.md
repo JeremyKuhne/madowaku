@@ -63,6 +63,11 @@ Find the prior release first (the GitHub `get_latest_release` tool or
 `gh release view`) so the new notes can reference it. Then create via
 `gh release create` (preferred when `gh` is available and authenticated):
 
+Use [`technical-writing`](../technical-writing/SKILL.md) in draft or revise mode
+on the release title and notes. After the package is visible, the tag range is
+final, and every compatibility claim has current evidence, run its
+pre-publication mode on the exact candidate passed to GitHub.
+
 ```pwsh
 # Drop the --prerelease flag for a stable release.
 gh release create v0.1.0-alpha.4 `

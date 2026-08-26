@@ -1,6 +1,6 @@
 ---
 core: cswin32-interop
-core-pin: v0.13.0
+core-pin: v0.16.1
 ---
 
 # madowaku overlay - cswin32-interop
@@ -11,7 +11,7 @@ Repository-specific companion to the [cswin32-interop](SKILL.md) core. The
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift. Everything madowaku-specific lives here.
 
-> **Pinned to the commons v0.13.0 tag.**
+> **Pinned to the commons v0.16.1 tag.**
 
 ## Targeting model
 

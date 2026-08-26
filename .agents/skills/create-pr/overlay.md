@@ -1,6 +1,6 @@
 ---
 core: create-pr
-core-pin: v0.13.0
+core-pin: v0.16.1
 ---
 
 # madowaku overlay - create-pr
@@ -12,7 +12,7 @@ core** from
 `metadata.github-*` provenance in `SKILL.md`). Do not hand-edit the core;
 `gh skill update` would flag the drift.
 
-> **Pinned to the commons v0.13.0 tag.**
+> **Pinned to the commons v0.16.1 tag.**
 
 ## madowaku publish boundary
 
@@ -37,6 +37,8 @@ core** from
   before running this workflow.
 - [`address-pr-feedback`](../address-pr-feedback/SKILL.md) - the post-PR workflow
   for subsequent edit rounds.
+- [`technical-writing`](../technical-writing/SKILL.md) - drafts and performs the
+  final content check on the exact commit message, title, and body.
 - [`publish-release`](../publish-release/SKILL.md) - the separate,
   madowaku-specific flow for cutting a `KlutzyNinja.Madowaku` release tag (not a
   PR).
