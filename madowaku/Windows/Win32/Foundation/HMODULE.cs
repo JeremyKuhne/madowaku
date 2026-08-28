@@ -80,6 +80,9 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     /// <summary>
     ///  Loads the module from the specified file path. Throws on failure.
     /// </summary>
+    /// <param name="filePath">The path of the module to load.</param>
+    /// <param name="flags">Options that control how the module is loaded.</param>
+    /// <returns>The handle to the loaded module.</returns>
     public static HMODULE LoadModule(string filePath, LOAD_LIBRARY_FLAGS flags = default)
     {
         HMODULE module = PInvoke.LoadLibraryEx(filePath, flags);
@@ -94,6 +97,7 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     /// <summary>
     ///  Gets the dll version of the module. Throws if the module doesn't expose `DllGetVersion`.
     /// </summary>
+    /// <returns>The version reported by the module.</returns>
     public Version GetDllVersion()
     {
         FARPROC proc = PInvoke.GetProcAddress(this, DllGetVersionMethodName);
@@ -125,6 +129,8 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     /// <summary>
     ///  Gets the address of the specified procedure. Throws if the procedure can't be found.
     /// </summary>
+    /// <param name="procName">The name of the exported procedure.</param>
+    /// <returns>The address of the exported procedure.</returns>
     public FARPROC GetProcAddress(string procName)
     {
         FARPROC proc = PInvoke.GetProcAddress(this, procName);

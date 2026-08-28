@@ -30,8 +30,11 @@ public static class Win32ExceptionExtensions
         ///  Creates a <see cref="Win32Exception"/> for the given <paramref name="error"/>.
         /// </summary>
         /// <param name="error">The Windows error code.</param>
-        /// <param name="message">Optional message. If <see langword="null"/>, the system message for
-        ///  <paramref name="error"/> is used.</param>
+        /// <param name="message">
+        ///  Optional message. If <see langword="null"/>, the system message for
+        ///  <paramref name="error"/> is used.
+        /// </param>
+        /// <returns>A new exception for <paramref name="error"/>.</returns>
         public static Win32Exception Create(WIN32_ERROR error, string? message = null)
         {
             Win32Exception exception = message is null
@@ -46,8 +49,11 @@ public static class Win32ExceptionExtensions
         ///  Creates a <see cref="Win32Exception"/> for the given <paramref name="hr"/>.
         /// </summary>
         /// <param name="hr">The failing <see cref="HRESULT"/>.</param>
-        /// <param name="message">Optional message. If <see langword="null"/>, the system message for
-        ///  the native error code is used.</param>
+        /// <param name="message">
+        ///  Optional message. If <see langword="null"/>, the system message for
+        ///  the native error code is used.
+        /// </param>
+        /// <returns>A new exception for <paramref name="hr"/>.</returns>
         /// <remarks>
         ///  <para>
         ///   When <paramref name="hr"/> has the <see cref="FACILITY_CODE.FACILITY_WIN32"/> facility,

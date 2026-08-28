@@ -4,9 +4,6 @@
 
 namespace Windows.Win32.Foundation;
 
-/// <summary>
-///  Represents a pointer to a constant null-terminated UTF-16 string.
-/// </summary>
 public unsafe partial struct PCWSTR
 {
     /// <summary>

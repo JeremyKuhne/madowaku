@@ -6,11 +6,16 @@ using Windows.Win32.System.Diagnostics.Debug;
 
 namespace Windows.Win32.Foundation;
 
+/// <summary>
+///  Represents an HRESULT value.
+/// </summary>
 public partial struct HRESULT
 {
     /// <summary>
     ///  Convert a Windows error to an <see cref="HRESULT"/>. [HRESULT_FROM_WIN32]
     /// </summary>
+    /// <param name="error">The Windows error to convert.</param>
+    /// <returns>The corresponding <see cref="HRESULT"/>.</returns>
     public static explicit operator HRESULT(WIN32_ERROR error)
     {
         // https://learn.microsoft.com/windows/win32/api/winerror/nf-winerror-hresult_from_win32
@@ -36,21 +41,62 @@ public partial struct HRESULT
 
     // COR_* HRESULTs are .NET HRESULTs
 #pragma warning disable TOUKI0041 // Naming rule violation
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable IDE0055
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="ArgumentException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_ARGUMENT               = (HRESULT)unchecked((int)0x80070057);
+
+    /// <summary>
+    ///  The HRESULT indicating that a type library is not registered.
+    /// </summary>
     public static readonly HRESULT TLBX_E_LIBNOTREGISTERED      = (HRESULT)unchecked((int)0x80131165);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="MissingFieldException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_MISSINGFIELD           = (HRESULT)unchecked((int)0x80131511);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="MissingMemberException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_MISSINGMEMBER          = (HRESULT)unchecked((int)0x80131512);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="MissingMethodException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_MISSINGMETHOD          = (HRESULT)unchecked((int)0x80131513);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="NotSupportedException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_NOTSUPPORTED           = (HRESULT)unchecked((int)0x80131515);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="OverflowException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_OVERFLOW               = (HRESULT)unchecked((int)0x80131516);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="InvalidOleVariantTypeException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_INVALIDOLEVARIANTTYPE  = (HRESULT)unchecked((int)0x80131531);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="SafeArrayTypeMismatchException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_SAFEARRAYTYPEMISMATCH  = (HRESULT)unchecked((int)0x80131533);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="global::System.Reflection.TargetInvocationException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_TARGETINVOCATION       = (HRESULT)unchecked((int)0x80131604);
+
+    /// <summary>
+    ///  The HRESULT corresponding to <see cref="ObjectDisposedException"/>.
+    /// </summary>
     public static readonly HRESULT COR_E_OBJECTDISPOSED         = (HRESULT)unchecked((int)0x80131622);
 #pragma warning restore TOUKI0041 // Naming rule violation
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning restore IDE0055
 
     // The .NET runtime host uses a FACILITY_NULL facility code when failing to launch (0x8000????).
@@ -59,12 +105,15 @@ public partial struct HRESULT
     /// <summary>
     ///  Implicitly converts an <see cref="HRESULT"/> to an <see cref="Exception"/>.
     /// </summary>
+    /// <param name="result">The HRESULT to convert.</param>
+    /// <returns>The corresponding exception.</returns>
     public static implicit operator Exception(HRESULT result) =>
         Marshal.GetExceptionForHR(result) ?? new InvalidOperationException("Not a failing result.");
 
     /// <summary>
     ///  Format an <see cref="HRESULT"/> with a message.
     /// </summary>
+    /// <returns>A string containing the HRESULT value and its message.</returns>
     public string ToStringWithDescription()
     {
         bool win32error = Facility == FACILITY_CODE.FACILITY_WIN32;

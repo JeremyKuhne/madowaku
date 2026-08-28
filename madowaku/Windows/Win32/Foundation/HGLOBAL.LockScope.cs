@@ -22,6 +22,7 @@ public partial struct HGLOBAL
         /// <summary>
         ///  Constructs a new <see cref="LockScope"/> for the specified global memory handle.
         /// </summary>
+        /// <param name="global">The global memory handle to lock.</param>
         public LockScope(HGLOBAL global)
         {
             _global = global;
@@ -40,6 +41,8 @@ public partial struct HGLOBAL
         /// <summary>
         ///  Implicit converter to the pointer to the locked memory.
         /// </summary>
+        /// <param name="scope">The lock scope to convert.</param>
+        /// <returns>A pointer to the locked memory.</returns>
         public static implicit operator void*(LockScope scope) => scope.Memory;
 
         /// <inheritdoc cref="IDisposable.Dispose"/>

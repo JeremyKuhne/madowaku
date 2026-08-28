@@ -12,6 +12,7 @@ namespace Madowaku;
 /// </summary>
 public static unsafe class SpanExtensions
 {
+    /// <param name="span">The read-only span whose contents are copied to native memory.</param>
     extension<T>(ReadOnlySpan<T> span) where T : unmanaged
     {
         /// <summary>
@@ -24,9 +25,7 @@ public static unsafe class SpanExtensions
         /// <param name="flags">
         ///  The flags to pass to <see cref="PInvoke.GlobalAlloc(GLOBAL_ALLOC_FLAGS, nuint)"/>.
         /// </param>
-        /// <returns>
-        ///  A handle to the allocated global memory containing a copy of the span's data.
-        /// </returns>
+        /// <returns>A handle to the allocated global memory containing a copy of the span's data.</returns>
         /// <exception cref="System.ComponentModel.Win32Exception">
         ///  Thrown if the native allocation, lock, or unlock operation fails.
         /// </exception>
@@ -72,9 +71,7 @@ public static unsafe class SpanExtensions
         /// <summary>
         ///  Copies the contents of the span into existing global (native) memory.
         /// </summary>
-        /// <param name="destination">
-        ///  The handle to the existing global memory to copy into.
-        /// </param>
+        /// <param name="destination">The handle to the existing global memory to copy into.</param>
         /// <param name="nullTerminate">
         ///  <see langword="true"/> to write an additional default <typeparamref name="T"/>
         ///  value as a null terminator after the copied data.
@@ -118,6 +115,7 @@ public static unsafe class SpanExtensions
         }
     }
 
+    /// <param name="span">The span whose contents are copied to native memory.</param>
     extension<T>(Span<T> span) where T : unmanaged
     {
         /// <inheritdoc cref="SpanExtensions.CopyToNative{T}(ReadOnlySpan{T}, bool, GLOBAL_ALLOC_FLAGS)"/>

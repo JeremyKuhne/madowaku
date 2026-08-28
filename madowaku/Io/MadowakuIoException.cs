@@ -18,12 +18,16 @@ public class MadowakuIoException : IOException
     /// <summary>
     ///  Constructs a new <see cref="MadowakuIoException"/> with the specified error and message.
     /// </summary>
+    /// <param name="hr">The HRESULT associated with the exception.</param>
+    /// <param name="message">The message that describes the error.</param>
     public MadowakuIoException(HRESULT hr, string? message = null)
         : base(message ?? hr.ToStringWithDescription(), hresult: hr) { }
 
     /// <summary>
     ///  Constructs a new <see cref="MadowakuIoException"/> with the specified error and message.
     /// </summary>
+    /// <param name="error">The Windows error associated with the exception.</param>
+    /// <param name="message">The message that describes the error.</param>
     public MadowakuIoException(WIN32_ERROR error, string? message = null)
         : base(message ?? error.ErrorToString(), (int)error.ToHRESULT()) { }
 }

@@ -41,12 +41,14 @@ public partial struct NTSTATUS
     ///  Converts an NT status to its corresponding exception.
     /// </summary>
     /// <param name="result">The status to convert.</param>
+    /// <returns>The exception corresponding to <paramref name="result"/>.</returns>
     public static implicit operator Exception(NTSTATUS result) => result.GetException();
 
     /// <summary>
     ///  Converts an NT status to its corresponding Win32 error.
     /// </summary>
     /// <param name="status">The status to convert.</param>
+    /// <returns>The Win32 error corresponding to <paramref name="status"/>.</returns>
     public static explicit operator WIN32_ERROR(NTSTATUS status)
         => (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
 }

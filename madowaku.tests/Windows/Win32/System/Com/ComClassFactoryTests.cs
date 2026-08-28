@@ -20,6 +20,17 @@ public class ComClassFactoryTests
     }
 
     [TestMethod]
+    public void Dispose_MultipleCalls_DoesNotThrow()
+    {
+        using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);
+
+        factory.Dispose();
+        Action disposeAgain = factory.Dispose;
+
+        disposeAgain.Should().NotThrow();
+    }
+
+    [TestMethod]
     public unsafe void TryCreateInstance_ReturnsSuccess()
     {
         using ComClassFactory factory = new(CLSID.StdGlobalInterfaceTable);

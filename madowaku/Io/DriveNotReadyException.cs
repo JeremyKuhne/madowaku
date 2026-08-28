@@ -7,6 +7,7 @@ namespace Madowaku.Io;
 /// <summary>
 ///  Thrown when a drive is not ready for access.
 /// </summary>
+/// <param name="message">The message that describes the error.</param>
 public class DriveNotReadyException(string? message = null) : MadowakuIoException(WIN32_ERROR.ERROR_NOT_READY, message)
 {
 }

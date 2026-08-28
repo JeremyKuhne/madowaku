@@ -41,6 +41,7 @@ public unsafe class AgileComPointer<TInterface> : IComPointer
     /// <summary>
     ///  Gets the default interface.
     /// </summary>
+    /// <returns>A scope containing the default interface.</returns>
     public ComScope<TInterface> GetInterface()
     {
         var scope = GlobalInterfaceTable.GetInterface<TInterface>(_cookie, out HRESULT hr);

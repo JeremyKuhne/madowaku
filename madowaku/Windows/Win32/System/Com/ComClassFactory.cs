@@ -12,7 +12,7 @@ namespace Windows.Win32.System.Com;
 /// <summary>
 ///  Wraps an <see cref="IClassFactory"/> from a dynamically loaded assembly.
 /// </summary>
-public sealed unsafe class ComClassFactory : IDisposable
+public sealed unsafe class ComClassFactory : DisposableBase
 {
     private readonly HMODULE _module;
     private readonly bool _unloadModule;
@@ -26,8 +26,10 @@ public sealed unsafe class ComClassFactory : IDisposable
     private const string ExportMethodName = "DllGetClassObject";
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ComClassFactory"/> class.
+    ///  Initializes a new instance of the <see cref="ComClassFactory"/> class.
     /// </summary>
+    /// <param name="filePath">The path of the module that exports <c>DllGetClassObject</c>.</param>
+    /// <param name="classId">The class identifier to request from the module.</param>
     public ComClassFactory(
         string filePath,
         Guid classId) : this(HMODULE.LoadModule(filePath), classId)
@@ -38,6 +40,8 @@ public sealed unsafe class ComClassFactory : IDisposable
     /// <summary>
     ///  Initializes a new instance of the <see cref="ComClassFactory"/> class.
     /// </summary>
+    /// <param name="module">The loaded module that exports <c>DllGetClassObject</c>.</param>
+    /// <param name="classId">The class identifier to request from the module.</param>
     public ComClassFactory(
         HMODULE module,
         Guid classId)
@@ -81,6 +85,7 @@ public sealed unsafe class ComClassFactory : IDisposable
     /// <summary>
     ///  Creates a class factory for a registered COM class with the given class ID.
     /// </summary>
+    /// <param name="classId">The registered COM class identifier.</param>
     public ComClassFactory(Guid classId)
     {
         IClassFactory* classFactory;
@@ -99,6 +104,7 @@ public sealed unsafe class ComClassFactory : IDisposable
     /// <summary>
     ///  Tries to create an instance of the given <typeparamref name="TInterface"/>. Throws if unsuccessful.
     /// </summary>
+    /// <returns>A scope containing the created interface.</returns>
     public ComScope<TInterface> CreateInstance<TInterface>()
         where TInterface : unmanaged, IComIID
     {
@@ -110,6 +116,8 @@ public sealed unsafe class ComClassFactory : IDisposable
     /// <summary>
     ///  Tries to create the interface for the given <typeparamref name="TInterface"/>.
     /// </summary>
+    /// <param name="result">The result of the COM activation.</param>
+    /// <returns>A scope containing the created interface, or an empty scope when activation fails.</returns>
     public ComScope<TInterface> TryCreateInstance<TInterface>(out HRESULT result)
         where TInterface : unmanaged, IComIID
     {
@@ -118,8 +126,8 @@ public sealed unsafe class ComClassFactory : IDisposable
         return scope;
     }
 
-    /// <inheritdoc cref="IDisposable.Dispose"/>
-    public void Dispose()
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
     {
         _classFactory->Release();
         if (_unloadModule && !_module.IsNull)
