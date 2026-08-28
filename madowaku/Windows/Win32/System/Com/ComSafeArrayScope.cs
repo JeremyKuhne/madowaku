@@ -107,9 +107,9 @@ public readonly unsafe ref struct ComSafeArrayScope<T> where T : unmanaged, ICom
     }
 
     /// <summary>
-    ///  Implicitly converts a <see cref="SafeArrayScope{T}"/> to a pointer to a <see cref="SAFEARRAY"/> pointer.
+    ///  Implicitly converts a <see cref="ComSafeArrayScope{T}"/> to a pointer to a <see cref="SAFEARRAY"/> pointer.
     /// </summary>
-    /// <param name="scope">The <see cref="SafeArrayScope{T}"/> to convert.</param>
+    /// <param name="scope">The <see cref="ComSafeArrayScope{T}"/> to convert.</param>
     /// <returns>A pointer to the wrapped <see cref="SAFEARRAY"/> pointer.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SAFEARRAY**(in ComSafeArrayScope<T> scope) =>
