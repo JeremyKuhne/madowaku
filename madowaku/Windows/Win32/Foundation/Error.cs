@@ -22,6 +22,7 @@ public static unsafe class Error
     /// <summary>
     ///  Throws the specified error code as an exception.
     /// </summary>
+    /// <param name="error">The Windows error to throw.</param>
     /// <param name="path">Optional path or other input detail.</param>
     [MethodImpl(MethodImplOptions.NoInlining)]
     [DoesNotReturn]
@@ -30,6 +31,7 @@ public static unsafe class Error
     /// <summary>
     ///  Throws the specified error code as an exception if it is not <see cref="WIN32_ERROR.ERROR_SUCCESS"/>.
     /// </summary>
+    /// <param name="error">The Windows error to check.</param>
     /// <param name="path">Optional path or other input detail.</param>
     public static void ThrowIfFailed(this WIN32_ERROR error, string? path = null)
     {
@@ -73,6 +75,7 @@ public static unsafe class Error
     /// <summary>
     ///  Throw the last error code from Windows if it isn't <paramref name="error"/>.
     /// </summary>
+    /// <param name="error">The expected Windows error.</param>
     /// <param name="path">Optional path or other input detail.</param>
     public static void ThrowIfLastErrorNot(WIN32_ERROR error, string? path = null)
     {
@@ -86,6 +89,8 @@ public static unsafe class Error
     /// <summary>
     ///  Convert a Windows error to an HRESULT. [HRESULT_FROM_WIN32]
     /// </summary>
+    /// <param name="error">The Windows error to convert.</param>
+    /// <returns>The corresponding <see cref="HRESULT"/>.</returns>
     public static HRESULT ToHRESULT(this WIN32_ERROR error)
     {
         // https://learn.microsoft.com/windows/win32/api/winerror/nf-winerror-hresult_from_win32
@@ -96,6 +101,9 @@ public static unsafe class Error
     /// <summary>
     ///  Turns Windows errors into the appropriate exception (that maps with existing .NET behavior as much as possible).
     /// </summary>
+    /// <param name="error">The Windows error to convert.</param>
+    /// <param name="path">Optional path or other input detail.</param>
+    /// <returns>The exception corresponding to <paramref name="error"/>.</returns>
     public static Exception GetException(this WIN32_ERROR error, string? path = null)
     {
         // http://referencesource.microsoft.com/#mscorlib/system/io/__error.cs,142
@@ -110,6 +118,8 @@ public static unsafe class Error
     /// <summary>
     ///  Create a descriptive string for the error.
     /// </summary>
+    /// <param name="error">The Windows error to describe.</param>
+    /// <returns>A description of <paramref name="error"/>.</returns>
     public static string ErrorToString(this WIN32_ERROR error)
     {
         string message = FormatMessage(
@@ -154,8 +164,11 @@ public static unsafe class Error
     ///  Formats a Windows error code into a string using FormatMessage.
     /// </summary>
     /// <param name="messageId">The message ID to format.</param>
-    /// <param name="source">The source of the message. If <see cref="HINSTANCE.Null"/>, the system message table is used.</param>
+    /// <param name="source">
+    ///  The source of the message. If <see cref="HINSTANCE.Null"/>, the system message table is used.
+    /// </param>
     /// <param name="args">Optional arguments to format into the message.</param>
+    /// <returns>The formatted message.</returns>
     /// <remarks>
     ///  <para>
     ///   .NET's Win32Exception impements the error code lookup on FormatMessage using FORMAT_MESSAGE_FROM_SYSTEM.

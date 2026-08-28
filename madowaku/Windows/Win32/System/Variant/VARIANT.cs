@@ -84,7 +84,10 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="VARIANT"/> to a <see cref="decimal"/>.
     /// </summary>
     /// <param name="value">The <see cref="VARIANT"/> to convert.</param>
-    /// <exception cref="InvalidCastException">Thrown if the <see cref="VARIANT"/> does not contain a decimal value.</exception>
+    /// <returns>The decimal value stored in <paramref name="value"/>.</returns>
+    /// <exception cref="InvalidCastException">
+    ///  Thrown if the <see cref="VARIANT"/> does not contain a decimal value.
+    /// </exception>
     public static explicit operator decimal(VARIANT value)
         => value.vt == VT_DECIMAL ? value.Anonymous.decVal : ThrowInvalidCast<decimal>();
 
@@ -92,7 +95,10 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="VARIANT"/> to an <see cref="int"/>.
     /// </summary>
     /// <param name="value">The <see cref="VARIANT"/> to convert.</param>
-    /// <exception cref="InvalidCastException">Thrown if the <see cref="VARIANT"/> does not contain an int value.</exception>
+    /// <returns>The integer value stored in <paramref name="value"/>.</returns>
+    /// <exception cref="InvalidCastException">
+    ///  Thrown if the <see cref="VARIANT"/> does not contain an int value.
+    /// </exception>
     public static explicit operator int(VARIANT value)
         => value.vt is VT_I4 or VT_INT ? value.data.intVal : ThrowInvalidCast<int>();
 
@@ -100,6 +106,7 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="int"/> to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The int value to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
     public static explicit operator VARIANT(int value)
         => new()
         {
@@ -111,7 +118,10 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="VARIANT"/> to a <see cref="uint"/>.
     /// </summary>
     /// <param name="value">The <see cref="VARIANT"/> to convert.</param>
-    /// <exception cref="InvalidCastException">Thrown if the <see cref="VARIANT"/> does not contain a uint value.</exception>
+    /// <returns>The unsigned integer value stored in <paramref name="value"/>.</returns>
+    /// <exception cref="InvalidCastException">
+    ///  Thrown if the <see cref="VARIANT"/> does not contain a uint value.
+    /// </exception>
     public static explicit operator uint(VARIANT value)
         => value.vt is VT_UI4 or VT_UINT ? value.data.uintVal : ThrowInvalidCast<uint>();
 
@@ -119,6 +129,7 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="uint"/> to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The uint value to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
     public static explicit operator VARIANT(uint value)
         => new()
         {
@@ -130,7 +141,10 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="VARIANT"/> to a <see cref="bool"/>.
     /// </summary>
     /// <param name="value">The <see cref="VARIANT"/> to convert.</param>
-    /// <exception cref="InvalidCastException">Thrown if the <see cref="VARIANT"/> does not contain a bool value.</exception>
+    /// <returns>The Boolean value stored in <paramref name="value"/>.</returns>
+    /// <exception cref="InvalidCastException">
+    ///  Thrown if the <see cref="VARIANT"/> does not contain a bool value.
+    /// </exception>
     public static explicit operator bool(VARIANT value)
         => value.vt == VT_BOOL ? value.data.boolVal != VARIANT_BOOL.VARIANT_FALSE : ThrowInvalidCast<bool>();
 
@@ -138,6 +152,7 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="bool"/> to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The bool value to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
     public static explicit operator VARIANT(bool value)
         => new()
         {
@@ -149,7 +164,10 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="VARIANT"/> to an <see cref="IDispatch"/> pointer.
     /// </summary>
     /// <param name="value">The <see cref="VARIANT"/> to convert.</param>
-    /// <exception cref="InvalidCastException">Thrown if the <see cref="VARIANT"/> does not contain an IDispatch pointer.</exception>
+    /// <returns>The <see cref="IDispatch"/> pointer stored in <paramref name="value"/>.</returns>
+    /// <exception cref="InvalidCastException">
+    ///  Thrown if the <see cref="VARIANT"/> does not contain an IDispatch pointer.
+    /// </exception>
     public static explicit operator IDispatch*(VARIANT value)
         => value.vt == VT_DISPATCH ? value.data.pdispVal : ThrowInvalidPointerCast<IDispatch>();
 
@@ -157,6 +175,7 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="IDispatch"/> pointer to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The IDispatch pointer to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
     public static explicit operator VARIANT(IDispatch* value)
         => new()
         {
@@ -168,6 +187,7 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="BSTR"/> to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The <see cref="BSTR"/> to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
     public static explicit operator VARIANT(BSTR value)
         => new()
         {
@@ -179,7 +199,10 @@ public unsafe partial struct VARIANT : IDisposable
     ///  Converts the specified <see cref="VARIANT"/> to a <see cref="string"/>.
     /// </summary>
     /// <param name="value">The <see cref="VARIANT"/> to convert.</param>
-    /// <exception cref="InvalidCastException">Thrown if the <see cref="VARIANT"/> does not contain a string value.</exception>
+    /// <returns>The string stored in <paramref name="value"/>.</returns>
+    /// <exception cref="InvalidCastException">
+    ///  Thrown if the <see cref="VARIANT"/> does not contain a string value.
+    /// </exception>
     public static explicit operator string(VARIANT value) => value.vt switch
     {
         VT_BSTR => value.data.bstrVal.ToString(),
@@ -196,14 +219,18 @@ public unsafe partial struct VARIANT : IDisposable
     /// <summary>
     ///  Returns the managed type returned from <see cref="ToObject()"/>.
     /// </summary>
-    /// <returns>The managed <see cref="Type"/> corresponding to this <see cref="VARIANT"/>, or <c>null</c> if unknown or empty.</returns>
+    /// <returns>
+    ///  The managed <see cref="Type"/> corresponding to this <see cref="VARIANT"/>, or <c>null</c> if unknown or empty.
+    /// </returns>
     public Type? GetManagedType() => IsEmpty ? null : GetManagedType(Type);
 
     /// <summary>
     ///  Returns the managed type returned from <see cref="ToObject()"/> for the given <paramref name="type"/>.
     /// </summary>
     /// <param name="type">The <see cref="VARENUM"/> type to get the managed type for.</param>
-    /// <returns>The managed <see cref="Type"/> corresponding to the specified <paramref name="type"/>, or <c>null</c> if unknown.</returns>
+    /// <returns>
+    ///  The managed <see cref="Type"/> corresponding to the specified <paramref name="type"/>, or <c>null</c> if unknown.
+    /// </returns>
     public static Type? GetManagedType(VARENUM type)
     {
         return type switch
@@ -292,8 +319,10 @@ public unsafe partial struct VARIANT : IDisposable
     }
 
     /// <summary>
-    ///  Conversion operator to convert a <see cref="VARIANT"/> to a <see cref="string"/> value.
+    ///  Converts the specified <see cref="string"/> to a <see cref="VARIANT"/>.
     /// </summary>
+    /// <param name="value">The string to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator VARIANT(string value) => new()
     {
@@ -303,8 +332,10 @@ public unsafe partial struct VARIANT : IDisposable
     };
 
     /// <summary>
-    ///  Conversion operator to convert a <see cref="VARIANT"/> to a <see cref="double"/> value.
+    ///  Converts the specified <see cref="double"/> to a <see cref="VARIANT"/>.
     /// </summary>
+    /// <param name="value">The double-precision value to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static explicit operator VARIANT(double value) => new()
     {
@@ -315,6 +346,8 @@ public unsafe partial struct VARIANT : IDisposable
     /// <summary>
     ///  Converts the given object to <see cref="VARIANT"/>.
     /// </summary>
+    /// <param name="value">The managed value to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
     public static VARIANT FromObject(object? value)
     {
         if (value is null)

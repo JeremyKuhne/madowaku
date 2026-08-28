@@ -23,6 +23,7 @@ public unsafe partial struct VARIANT
     /// <summary>
     ///  Converts the <see cref="VARIANT"/> to a managed object.
     /// </summary>
+    /// <returns>The managed representation of the value, or <see langword="null"/> when appropriate.</returns>
     public object? ToObject()
     {
         // VT_DECIMAL stores its payload directly in the VARIANT, including bytes that overlap

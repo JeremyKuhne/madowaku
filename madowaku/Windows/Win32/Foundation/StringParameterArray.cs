@@ -21,6 +21,7 @@ public readonly unsafe ref struct StringParameterArray
     /// <summary>
     ///  Initializes a new instance of the <see cref="StringParameterArray"/> struct.
     /// </summary>
+    /// <param name="values">The strings to pin.</param>
     public StringParameterArray(params string[]? values) : this(values is null ? null : values.AsSpan())
     {
     }
@@ -48,6 +49,8 @@ public readonly unsafe ref struct StringParameterArray
     /// <summary>
     ///  Converts the <see cref="StringParameterArray"/> to a pointer to an array of null-terminated UTF-16 strings.
     /// </summary>
+    /// <param name="array">The string parameter array to convert.</param>
+    /// <returns>A pointer to the array of null-terminated UTF-16 strings.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator char**(in StringParameterArray array)
         => array._param is null ? null : (char**)Unsafe.AsPointer(ref Unsafe.AsRef(in array._param[0]));
@@ -55,7 +58,8 @@ public readonly unsafe ref struct StringParameterArray
     /// <summary>
     ///  Converts the <see cref="StringParameterArray"/> to a pointer to an array of null-terminated UTF-8 strings.
     /// </summary>
-    /// <param name="array"></param>
+    /// <param name="array">The string parameter array to convert.</param>
+    /// <returns>A pointer to the array of null-terminated UTF-8 strings.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator sbyte**(in StringParameterArray array)
         => array._param is null ? null : (sbyte**)Unsafe.AsPointer(ref Unsafe.AsRef(in array._param[0]));

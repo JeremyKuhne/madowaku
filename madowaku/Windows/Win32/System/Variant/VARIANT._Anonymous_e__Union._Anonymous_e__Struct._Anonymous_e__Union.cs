@@ -10,16 +10,23 @@ public unsafe partial struct VARIANT
 {
     // Add other data types from PROPVARIANT
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable TOUKI0041 // Naming rule violation
+    /// <summary>
+    ///  Contains the overlapping fields of a <see cref="VARIANT"/>.
+    /// </summary>
     public partial struct _Anonymous_e__Union
     {
+        /// <summary>
+        ///  Contains the value fields of a <see cref="VARIANT"/>.
+        /// </summary>
         public partial struct _Anonymous_e__Struct
         {
+            /// <summary>
+            ///  Contains the overlapping value storage of a <see cref="VARIANT"/>.
+            /// </summary>
             public partial struct _Anonymous_e__Union
             {
 #pragma warning restore TOUKI0041 // Naming rule violation
-#pragma warning restore CS1591
                 /// <inheritdoc cref="PROPVARIANT._Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union.puuid"/>
                 [FieldOffset(0)]
                 public Guid* puuid;

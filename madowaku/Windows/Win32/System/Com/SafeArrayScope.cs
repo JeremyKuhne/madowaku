@@ -308,6 +308,7 @@ public readonly unsafe ref struct SafeArrayScope<T>
     ///  Explicitly converts a <see cref="SafeArrayScope{T}"/> to a <see cref="VARIANT"/> containing a <see cref="SAFEARRAY"/>.
     /// </summary>
     /// <param name="scope">The <see cref="SafeArrayScope{T}"/> to convert.</param>
+    /// <returns>A <see cref="VARIANT"/> that references the wrapped <see cref="SAFEARRAY"/>.</returns>
     public static explicit operator VARIANT(in SafeArrayScope<T> scope) => new()
     {
         vt = VARENUM.VT_ARRAY | scope.Value->VarType,
@@ -318,18 +319,21 @@ public readonly unsafe ref struct SafeArrayScope<T>
     ///  Implicitly converts a <see cref="SafeArrayScope{T}"/> to a <see cref="SAFEARRAY"/> pointer.
     /// </summary>
     /// <param name="scope">The <see cref="SafeArrayScope{T}"/> to convert.</param>
+    /// <returns>The wrapped <see cref="SAFEARRAY"/> pointer.</returns>
     public static implicit operator SAFEARRAY*(in SafeArrayScope<T> scope) => (SAFEARRAY*)scope._value;
 
     /// <summary>
     ///  Implicitly converts a <see cref="SafeArrayScope{T}"/> to a native integer representing the <see cref="SAFEARRAY"/> pointer.
     /// </summary>
     /// <param name="scope">The <see cref="SafeArrayScope{T}"/> to convert.</param>
+    /// <returns>The native integer value of the wrapped <see cref="SAFEARRAY"/> pointer.</returns>
     public static implicit operator nint(in SafeArrayScope<T> scope) => scope._value;
 
     /// <summary>
     ///  Implicitly converts a <see cref="SafeArrayScope{T}"/> to a pointer to a <see cref="SAFEARRAY"/> pointer.
     /// </summary>
     /// <param name="scope">The <see cref="SafeArrayScope{T}"/> to convert.</param>
+    /// <returns>A pointer to the wrapped <see cref="SAFEARRAY"/> pointer.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator SAFEARRAY**(in SafeArrayScope<T> scope) => (SAFEARRAY**)Unsafe.AsPointer(ref Unsafe.AsRef(in scope._value));
 
@@ -337,6 +341,7 @@ public readonly unsafe ref struct SafeArrayScope<T>
     ///  Implicitly converts a <see cref="SafeArrayScope{T}"/> to a pointer to a void pointer.
     /// </summary>
     /// <param name="scope">The <see cref="SafeArrayScope{T}"/> to convert.</param>
+    /// <returns>A pointer to the wrapped <see cref="SAFEARRAY"/> pointer.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator void**(in SafeArrayScope<T> scope) => (void**)Unsafe.AsPointer(ref Unsafe.AsRef(in scope._value));
 }

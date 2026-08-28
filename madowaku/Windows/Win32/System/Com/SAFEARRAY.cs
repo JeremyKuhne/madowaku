@@ -21,6 +21,8 @@ public unsafe partial struct SAFEARRAY
     /// <summary>
     ///  Gets the <see cref="SAFEARRAYBOUND"/> of the <paramref name="dimension"/>.
     /// </summary>
+    /// <param name="dimension">The zero-based dimension index.</param>
+    /// <returns>The bounds for the specified dimension.</returns>
     public SAFEARRAYBOUND GetBounds(int dimension = 0)
     {
         fixed (void* b = &rgsabound)

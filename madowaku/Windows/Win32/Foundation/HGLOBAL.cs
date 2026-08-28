@@ -17,6 +17,7 @@ public unsafe partial struct HGLOBAL
     ///   Use the result in a <see langword="using"/> statement to ensure the memory is unlocked when done.
     ///  </para>
     /// </remarks>
+    /// <returns>A scope that exposes the locked memory and unlocks it when disposed.</returns>
     public LockScope Lock() => new LockScope(this);
 
     /// <summary>

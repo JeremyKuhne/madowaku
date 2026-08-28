@@ -4,6 +4,18 @@
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = none
 
+# TOUKI0024: Format XML documentation as nested XML
+dotnet_diagnostic.TOUKI0024.severity = none
+
+# TOUKI0025: Document types
+dotnet_diagnostic.TOUKI0025.severity = none
+
+# TOUKI0026: Document members
+dotnet_diagnostic.TOUKI0026.severity = none
+
+# Keep one-type-per-file enforcement for top-level types without splitting nested test helpers.
+dotnet_code_quality.TOUKI0020.exclude_nested_types = true
+
 # CA1852: Seal internal types
 dotnet_diagnostic.CA1852.severity = none
 

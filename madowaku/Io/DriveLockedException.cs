@@ -7,6 +7,7 @@ namespace Madowaku.Io;
 /// <summary>
 ///  Thrown when a drive is locked.
 /// </summary>
+/// <param name="message">The message that describes the error.</param>
 public class DriveLockedException(string? message = null) : MadowakuIoException(HRESULT.FVE_E_LOCKED_VOLUME, message)
 {
 }

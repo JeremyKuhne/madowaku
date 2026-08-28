@@ -7,6 +7,8 @@ namespace Madowaku.Io;
 /// <summary>
 ///  Thrown when a file already exists.
 /// </summary>
+/// <param name="error">The Windows error that indicates the file or directory already exists.</param>
+/// <param name="message">The message that describes the error.</param>
 public class FileExistsException(WIN32_ERROR error, string? message = null) : MadowakuIoException(error, message)
 {
 }
