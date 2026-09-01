@@ -41,7 +41,7 @@ For full patterns and recipes, consult:
   hierarchy under `Framework/` mirrors the namespace:
   `Framework/System/Runtime/InteropServices/ComWrappers.cs` &rarr;
   `namespace System.Runtime.InteropServices;`.
-- **`IComIID` needs no polyfill.** CsWin32 (0.3.298, pinned in
+- **`IComIID` needs no polyfill.** CsWin32 (0.3.321, pinned in
   `Directory.Packages.props`) emits `IComIID` on every TFM and attaches it to
   each generated COM struct, so there is no hand-authored `IComIID` interface or
   per-struct partial. Only a **manual** COM struct (an interface not in Win32

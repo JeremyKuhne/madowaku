@@ -88,7 +88,7 @@ not prove the dependency can be consumed externally.
 
 ## Generation mode: keep the source generator
 
-CsWin32 0.3.298 supports `<CsWin32RunAsBuildTask>true</CsWin32RunAsBuildTask>`,
+CsWin32 supports `<CsWin32RunAsBuildTask>true</CsWin32RunAsBuildTask>`,
 but an alternating three-library-TFM Release spike on 2026-07-11 averaged 2.51
 seconds for clean source-generator builds and 4.37 seconds for build-task mode
 (+1.86 seconds, roughly 74%); incremental builds were effectively equal (1.59
