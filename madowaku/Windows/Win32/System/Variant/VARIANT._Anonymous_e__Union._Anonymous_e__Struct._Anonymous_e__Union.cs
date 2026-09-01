@@ -27,15 +27,21 @@ public unsafe partial struct VARIANT
             public partial struct _Anonymous_e__Union
             {
 #pragma warning restore TOUKI0041 // Naming rule violation
-                /// <inheritdoc cref="PROPVARIANT._Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union.puuid"/>
+                /// <summary>
+                ///  A pointer to a <see cref="Guid"/> value.
+                /// </summary>
                 [FieldOffset(0)]
                 public Guid* puuid;
 
-                /// <inheritdoc cref="PROPVARIANT._Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union.filetime"/>
+                /// <summary>
+                ///  A file time value.
+                /// </summary>
                 [FieldOffset(0)]
                 public FILETIME filetime;
 
-                /// <inheritdoc cref="PROPVARIANT._Anonymous_e__Union._Anonymous_e__Struct._Anonymous_e__Union.cabool"/>
+                /// <summary>
+                ///  A counted array value.
+                /// </summary>
                 /// <remarks>
                 ///  <para>
                 ///   Any of the CA* types are valid

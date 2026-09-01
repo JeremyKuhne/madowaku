@@ -39,6 +39,7 @@ internal static unsafe class GlobalInterfaceTable
     ///  Registers the given <paramref name="interface"/> in the global interface table. This decrements the
     ///  ref count so that the entry in the table will "own" the interface (as it increments the ref count).
     /// </summary>
+    /// <param name="interface">The interface to register.</param>
     /// <returns>The cookie used to refer to the interface in the table.</returns>
     public static uint RegisterInterface<TInterface>(TInterface* @interface)
         where TInterface : unmanaged, IComIID
@@ -56,10 +57,13 @@ internal static unsafe class GlobalInterfaceTable
     ///  Gets an agile interface for the <paramref name="cookie"/> that was given back by
     ///  <see cref="RegisterInterface{TInterface}(TInterface*)"/>
     /// </summary>
+    /// <param name="cookie">The cookie identifying the registered interface.</param>
+    /// <param name="result">Receives the result of retrieving the interface.</param>
+    /// <returns>A scope containing the retrieved interface.</returns>
     public static ComScope<TInterface> GetInterface<TInterface>(uint cookie, out HRESULT result)
         where TInterface : unmanaged, IComIID
     {
-        ComScope<TInterface> @interface = new(null);
+        ComScope<TInterface> @interface = new(value: null);
         result = s_globalInterfaceTable->GetInterfaceFromGlobal(cookie, IID.Get<TInterface>(), (void**)&@interface);
         return @interface;
     }
@@ -68,6 +72,8 @@ internal static unsafe class GlobalInterfaceTable
     ///  Revokes the interface registered with <see cref="RegisterInterface{TInterface}(TInterface*)"/>.
     ///  This will decrement the ref count for the interface.
     /// </summary>
+    /// <param name="cookie">The cookie identifying the registered interface.</param>
+    /// <returns>The result of revoking the interface.</returns>
     public static HRESULT RevokeInterface(uint cookie)
     {
         HRESULT hr = s_globalInterfaceTable->RevokeInterfaceFromGlobal(cookie);

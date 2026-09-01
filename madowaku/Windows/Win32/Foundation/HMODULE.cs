@@ -19,13 +19,17 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     object? IHandle<HMODULE>.Wrapper => null;
 
     /// <inheritdoc cref="FromAddress(void*, bool)"/>
-    public static HMODULE FromAddress(nint address, bool incrementRefCount = false)
-        => FromAddress((void*)address, incrementRefCount);
+    public static HMODULE FromAddress(nint address, bool incrementRefCount = false) =>
+        FromAddress((void*)address, incrementRefCount);
 
     /// <summary>
     ///  Gets the module that the specified memory address is in, if any.  Do not release this handle unless
     ///  <paramref name="incrementRefCount"/> is <see langword="true"/>.
     /// </summary>
+    /// <param name="address">An address within the module.</param>
+    /// <param name="incrementRefCount">
+    ///  <see langword="true"/> to increment the module reference count; otherwise, <see langword="false"/>.
+    /// </param>
     /// <returns>The found instance or <see cref="Null"/>.</returns>
     /// <inheritdoc cref="PInvoke.GetModuleHandleEx(uint, PCWSTR, HMODULE*)"/>
     public static HMODULE FromAddress(void* address, bool incrementRefCount = false)
@@ -50,7 +54,7 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
         HMODULE hmodule;
         PInvoke.GetModuleHandleEx(
             PInvoke.GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-            (PCWSTR)null,
+            lpModuleName: (PCWSTR)null,
             &hmodule);
 
         return hmodule;
@@ -60,6 +64,10 @@ public unsafe partial struct HMODULE : IHandle<HMODULE>
     ///  Gets the module for the launching executable. Do not release this handle unless
     ///  <paramref name="incrementRefCount"/> is <see langword="true"/>.
     /// </summary>
+    /// <param name="name">The module name.</param>
+    /// <param name="incrementRefCount">
+    ///  <see langword="true"/> to increment the module reference count; otherwise, <see langword="false"/>.
+    /// </param>
     /// <returns>The found instance or <see cref="Null"/>.</returns>
     /// <inheritdoc cref="PInvoke.GetModuleHandleEx(uint, PCWSTR, HMODULE*)"/>
     public static HMODULE FromName(string name, bool incrementRefCount = false)

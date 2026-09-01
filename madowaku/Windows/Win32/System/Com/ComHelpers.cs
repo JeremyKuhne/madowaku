@@ -12,6 +12,8 @@ public static unsafe partial class ComHelpers
 {
     static partial void PopulateIUnknownImpl<TComInterface>(System.Com.IUnknown.Vtbl* vtable)
         where TComInterface : unmanaged
-        => IUnknownVtableProvider.Populate(vtable);
+    {
+        IUnknownVtableProvider.Populate(vtable);
+    }
 }
 #endif

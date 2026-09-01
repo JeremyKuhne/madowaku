@@ -94,7 +94,7 @@ public sealed unsafe class ComClassFactory : DisposableBase
         PInvoke.CoGetClassObject(
             &classId,
             CLSCTX.CLSCTX_INPROC_SERVER,
-            (void*)null,
+            pvReserved: (void*)null,
             &iid,
             (void**)&classFactory).ThrowOnFailure();
 
@@ -122,7 +122,7 @@ public sealed unsafe class ComClassFactory : DisposableBase
         where TInterface : unmanaged, IComIID
     {
         ComScope<TInterface> scope = default;
-        result = _classFactory->CreateInstance(null, IID.Get<TInterface>(), scope);
+        result = _classFactory->CreateInstance(pUnkOuter: null, IID.Get<TInterface>(), scope);
         return scope;
     }
 

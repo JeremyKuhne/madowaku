@@ -12,7 +12,7 @@ public class ComSafeArrayScopeTests
     [TestMethod]
     public unsafe void Constructor_NullSafearrayPointer_IsNullTrue()
     {
-        using ComSafeArrayScope<IUnknown> scope = new((SAFEARRAY*)null);
+        using ComSafeArrayScope<IUnknown> scope = new(value: (SAFEARRAY*)null);
         scope.IsNull.Should().BeTrue();
     }
 

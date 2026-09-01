@@ -50,6 +50,12 @@ dotnet_style_predefined_type_for_member_access = true:warning
 dotnet_diagnostic.TOUKI0012.severity = warning
 dotnet_diagnostic.TOUKI0022.severity = warning
 dotnet_diagnostic.TOUKI0024.severity = warning
+dotnet_diagnostic.TOUKI0027.severity = warning
+dotnet_diagnostic.TOUKI0028.severity = warning
+dotnet_diagnostic.TOUKI0029.severity = warning
+
+# Match the repository's hard line-length boundary for single-line blocks.
+dotnet_code_quality.TOUKI0027.max_line_length = 150
 
 # Public APIs require XML documentation; internal implementation details do not.
 dotnet_code_quality.TOUKI0025.api_surface = public

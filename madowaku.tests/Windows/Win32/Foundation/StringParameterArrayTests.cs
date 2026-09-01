@@ -10,7 +10,7 @@ public class StringParameterArrayTests
     [TestMethod]
     public unsafe void Constructor_NullArray_ProducesNullPointer()
     {
-        using StringParameterArray array = new(null);
+        using StringParameterArray array = new(values: null);
         char** ptr = array;
         (ptr is null).Should().BeTrue();
     }
@@ -50,7 +50,7 @@ public class StringParameterArrayTests
     [TestMethod]
     public unsafe void ImplicitOperator_SbyteDoublePointer_NullForEmpty()
     {
-        using StringParameterArray array = new(null);
+        using StringParameterArray array = new(values: null);
         sbyte** ptr = array;
         (ptr is null).Should().BeTrue();
     }
@@ -58,7 +58,7 @@ public class StringParameterArrayTests
     [TestMethod]
     public void Dispose_NullArray_DoesNotThrow()
     {
-        StringParameterArray array = new(null);
+        StringParameterArray array = new(values: null);
         array.Dispose();
     }
 }

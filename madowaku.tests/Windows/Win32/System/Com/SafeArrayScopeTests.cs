@@ -67,13 +67,14 @@ public class SafeArrayScopeTests
     {
         ArgumentException ex = FluentActions.Invoking(() => new SafeArrayScope<nint>(1))
             .Should().Throw<ArgumentException>().Which;
+
         ex.Message.Should().Contain("ComSafeArrayScope");
     }
 
     [TestMethod]
     public unsafe void Constructor_NullSafearrayPointer_ValueIsNull()
     {
-        using SafeArrayScope<int> array = new((SAFEARRAY*)null);
+        using SafeArrayScope<int> array = new(value: (SAFEARRAY*)null);
         (array.Value is null).Should().BeTrue();
     }
 
@@ -98,6 +99,7 @@ public class SafeArrayScopeTests
         SAFEARRAY* ptr = source.Value;
         ArgumentException ex = FluentActions.Invoking(() => new SafeArrayScope<int>(ptr))
             .Should().Throw<ArgumentException>().Which;
+
         ex.Message.Should().Contain("VarType=");
     }
 
@@ -141,7 +143,7 @@ public class SafeArrayScopeTests
     [TestMethod]
     public unsafe void IsNull_DefaultConstructed_ReturnsTrue()
     {
-        using SafeArrayScope<int> array = new((SAFEARRAY*)null);
+        using SafeArrayScope<int> array = new(value: (SAFEARRAY*)null);
         array.IsNull.Should().BeTrue();
     }
 
