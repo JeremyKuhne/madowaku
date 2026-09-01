@@ -15,7 +15,7 @@ and its sibling pages are a **pinned copy of the portable core** from
 
 ## madowaku uses 0.3.287+ IComIID generation
 
-madowaku pins **CsWin32 0.3.298** (see
+madowaku pins **CsWin32 0.3.321** (see
 [Directory.Packages.props](../../../Directory.Packages.props)), which is **past
 0.3.287**, so the generator emits `IComIID` on all three madowaku library TFMs
 and attaches it to every generated COM struct automatically - the 0.3.287+ path
