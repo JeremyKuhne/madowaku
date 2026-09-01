@@ -183,7 +183,7 @@ public static unsafe class Error
         FORMAT_MESSAGE_OPTIONS flags =
             // Let the API allocate the buffer
             FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_ALLOCATE_BUFFER
-            | FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_FROM_SYSTEM;
+                | FORMAT_MESSAGE_OPTIONS.FORMAT_MESSAGE_FROM_SYSTEM;
 
         if (args.Length == 0)
         {

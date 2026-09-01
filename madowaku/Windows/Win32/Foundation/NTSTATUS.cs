@@ -49,6 +49,6 @@ public partial struct NTSTATUS
     /// </summary>
     /// <param name="status">The status to convert.</param>
     /// <returns>The Win32 error corresponding to <paramref name="status"/>.</returns>
-    public static explicit operator WIN32_ERROR(NTSTATUS status)
-        => (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
+    public static explicit operator WIN32_ERROR(NTSTATUS status) =>
+        (WIN32_ERROR)PInvoke.LsaNtStatusToWinError(status);
 }

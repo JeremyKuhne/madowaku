@@ -44,7 +44,7 @@ public class BSTRTests
     {
         using BSTR bstr = new("abc");
         Span<char> buffer = stackalloc char[8];
-        bool result = bstr.TryFormat(buffer, out int written, default, null);
+        bool result = bstr.TryFormat(buffer, out int written, format: default, provider: null);
         result.Should().BeTrue();
         written.Should().Be(3);
         buffer[..written].ToString().Should().Be("abc");
@@ -55,7 +55,7 @@ public class BSTRTests
     {
         using BSTR bstr = new("abcdef");
         Span<char> buffer = stackalloc char[3];
-        bool result = bstr.TryFormat(buffer, out int written, default, null);
+        bool result = bstr.TryFormat(buffer, out int written, format: default, provider: null);
         result.Should().BeFalse();
         written.Should().Be(0);
     }
@@ -64,6 +64,6 @@ public class BSTRTests
     public void ToStringWithFormat_IgnoresFormatAndProvider()
     {
         using BSTR bstr = new("value");
-        bstr.ToString("X", null).Should().Be("value");
+        bstr.ToString("X", formatProvider: null).Should().Be("value");
     }
 }

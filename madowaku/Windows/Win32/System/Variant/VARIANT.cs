@@ -88,8 +88,8 @@ public unsafe partial struct VARIANT : IDisposable
     /// <exception cref="InvalidCastException">
     ///  Thrown if the <see cref="VARIANT"/> does not contain a decimal value.
     /// </exception>
-    public static explicit operator decimal(VARIANT value)
-        => value.vt == VT_DECIMAL ? value.Anonymous.decVal : ThrowInvalidCast<decimal>();
+    public static explicit operator decimal(VARIANT value) =>
+        value.vt == VT_DECIMAL ? value.Anonymous.decVal : ThrowInvalidCast<decimal>();
 
     /// <summary>
     ///  Converts the specified <see cref="VARIANT"/> to an <see cref="int"/>.
@@ -99,16 +99,16 @@ public unsafe partial struct VARIANT : IDisposable
     /// <exception cref="InvalidCastException">
     ///  Thrown if the <see cref="VARIANT"/> does not contain an int value.
     /// </exception>
-    public static explicit operator int(VARIANT value)
-        => value.vt is VT_I4 or VT_INT ? value.data.intVal : ThrowInvalidCast<int>();
+    public static explicit operator int(VARIANT value) =>
+        value.vt is VT_I4 or VT_INT ? value.data.intVal : ThrowInvalidCast<int>();
 
     /// <summary>
     ///  Converts the specified <see cref="int"/> to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The int value to convert.</param>
     /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
-    public static explicit operator VARIANT(int value)
-        => new()
+    public static explicit operator VARIANT(int value) =>
+        new()
         {
             vt = VT_I4,
             data = new() { intVal = value }
@@ -122,16 +122,16 @@ public unsafe partial struct VARIANT : IDisposable
     /// <exception cref="InvalidCastException">
     ///  Thrown if the <see cref="VARIANT"/> does not contain a uint value.
     /// </exception>
-    public static explicit operator uint(VARIANT value)
-        => value.vt is VT_UI4 or VT_UINT ? value.data.uintVal : ThrowInvalidCast<uint>();
+    public static explicit operator uint(VARIANT value) =>
+        value.vt is VT_UI4 or VT_UINT ? value.data.uintVal : ThrowInvalidCast<uint>();
 
     /// <summary>
     ///  Converts the specified <see cref="uint"/> to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The uint value to convert.</param>
     /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
-    public static explicit operator VARIANT(uint value)
-        => new()
+    public static explicit operator VARIANT(uint value) =>
+        new()
         {
             vt = VT_UI4,
             data = new() { uintVal = value }
@@ -145,16 +145,16 @@ public unsafe partial struct VARIANT : IDisposable
     /// <exception cref="InvalidCastException">
     ///  Thrown if the <see cref="VARIANT"/> does not contain a bool value.
     /// </exception>
-    public static explicit operator bool(VARIANT value)
-        => value.vt == VT_BOOL ? value.data.boolVal != VARIANT_BOOL.VARIANT_FALSE : ThrowInvalidCast<bool>();
+    public static explicit operator bool(VARIANT value) =>
+        value.vt == VT_BOOL ? value.data.boolVal != VARIANT_BOOL.VARIANT_FALSE : ThrowInvalidCast<bool>();
 
     /// <summary>
     ///  Converts the specified <see cref="bool"/> to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The bool value to convert.</param>
     /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
-    public static explicit operator VARIANT(bool value)
-        => new()
+    public static explicit operator VARIANT(bool value) =>
+        new()
         {
             vt = VT_BOOL,
             data = new() { boolVal = value ? VARIANT_BOOL.VARIANT_TRUE : VARIANT_BOOL.VARIANT_FALSE }
@@ -168,16 +168,16 @@ public unsafe partial struct VARIANT : IDisposable
     /// <exception cref="InvalidCastException">
     ///  Thrown if the <see cref="VARIANT"/> does not contain an IDispatch pointer.
     /// </exception>
-    public static explicit operator IDispatch*(VARIANT value)
-        => value.vt == VT_DISPATCH ? value.data.pdispVal : ThrowInvalidPointerCast<IDispatch>();
+    public static explicit operator IDispatch*(VARIANT value) =>
+        value.vt == VT_DISPATCH ? value.data.pdispVal : ThrowInvalidPointerCast<IDispatch>();
 
     /// <summary>
     ///  Converts the specified <see cref="IDispatch"/> pointer to a <see cref="VARIANT"/>.
     /// </summary>
     /// <param name="value">The IDispatch pointer to convert.</param>
     /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
-    public static explicit operator VARIANT(IDispatch* value)
-        => new()
+    public static explicit operator VARIANT(IDispatch* value) =>
+        new()
         {
             vt = VT_DISPATCH,
             data = new() { pdispVal = value }
@@ -188,8 +188,8 @@ public unsafe partial struct VARIANT : IDisposable
     /// </summary>
     /// <param name="value">The <see cref="BSTR"/> to convert.</param>
     /// <returns>A <see cref="VARIANT"/> containing <paramref name="value"/>.</returns>
-    public static explicit operator VARIANT(BSTR value)
-        => new()
+    public static explicit operator VARIANT(BSTR value) =>
+        new()
         {
             vt = VT_BSTR,
             data = new() { bstrVal = value }

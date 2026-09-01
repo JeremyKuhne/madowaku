@@ -15,7 +15,7 @@ internal static class TestHelper
             "Finalize",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
-        finalizerMethod?.Invoke(@object, null);
+        finalizerMethod?.Invoke(@object, parameters: null);
     }
 
 }

@@ -27,6 +27,6 @@ public unsafe partial struct FILETIME
     /// </summary>
     /// <param name="value">The <see cref="FILETIME"/> structure to convert.</param>
     /// <returns>A <see cref="DateTime"/> value representing the specified <see cref="FILETIME"/>.</returns>
-    public static explicit operator DateTime(FILETIME value)
-        => DateTime.FromFileTime(((long)value.dwHighDateTime << 32) + value.dwLowDateTime);
+    public static explicit operator DateTime(FILETIME value) =>
+        DateTime.FromFileTime(((long)value.dwHighDateTime << 32) + value.dwLowDateTime);
 }

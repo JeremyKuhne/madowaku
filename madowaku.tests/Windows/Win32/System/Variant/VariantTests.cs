@@ -136,7 +136,7 @@ public partial class VariantTests
     [TestMethod]
     public void FromObject_Null_ReturnsEmpty()
     {
-        VARIANT v = VARIANT.FromObject(null);
+        VARIANT v = VARIANT.FromObject(value: null);
         v.IsEmpty.Should().BeTrue();
     }
 
@@ -178,7 +178,7 @@ public partial class VariantTests
     [TestMethod]
     public void FromObject_Bool_ReturnsBoolVariant()
     {
-        VARIANT v = VARIANT.FromObject(true);
+        VARIANT v = VARIANT.FromObject(value: true);
         v.vt.Should().Be(VARENUM.VT_BOOL);
         ((bool)v).Should().BeTrue();
     }
@@ -225,7 +225,7 @@ public partial class VariantTests
     public void ToObject_Bool_ReturnsBool()
     {
         VARIANT v = (VARIANT)true;
-        v.ToObject().Should().Be(true);
+        v.ToObject().Should().Be(expected: true);
     }
 
     [TestMethod]
@@ -520,7 +520,7 @@ public partial class VariantTests
         VARIANT_BOOL b = VARIANT_BOOL.VARIANT_TRUE;
         VARIANT v = new() { vt = VARENUM.VT_BOOL | VARENUM.VT_BYREF };
         v.data.pboolVal = &b;
-        v.ToObject().Should().Be(true);
+        v.ToObject().Should().Be(expected: true);
     }
 
     [TestMethod]

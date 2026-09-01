@@ -229,7 +229,7 @@ public unsafe partial struct VARIANT
                 case VT_RECORD:
                     throw new NotImplementedException();
                 default:
-                    throw new ArgumentException(null, nameof(vt));
+                    throw new ArgumentException(message: null, nameof(vt));
             }
         }
         finally
@@ -463,7 +463,7 @@ public unsafe partial struct VARIANT
                     IntPtr data = psa->GetValue<IntPtr>(indices);
                     if (data == IntPtr.Zero)
                     {
-                        SetValueObject<object?>(array, null, indices, lowerBounds);
+                        SetValueObject<object?>(array, value: null, indices, lowerBounds);
                     }
                     else
                     {
@@ -483,7 +483,7 @@ public unsafe partial struct VARIANT
             case VT_RECORD:
                 throw new NotImplementedException();
             default:
-                throw new ArgumentException(null, nameof(arrayType));
+                throw new ArgumentException(message: null, nameof(arrayType));
         }
     }
 
@@ -497,7 +497,7 @@ public unsafe partial struct VARIANT
 
         if (vt == VT_RECORD)
         {
-            using ComScope<IRecordInfo> record = new(null);
+            using ComScope<IRecordInfo> record = new(value: null);
             PInvoke.SafeArrayGetRecordInfo(psa, record).ThrowOnFailure();
             elementType = GetRecordElementType(record);
         }
@@ -541,7 +541,7 @@ public unsafe partial struct VARIANT
             VT_DATE => typeof(DateTime),
             VT_BSTR => typeof(string),
             VT_DISPATCH or VT_UNKNOWN or VT_VARIANT => typeof(object),
-            _ => throw new ArgumentException(null, nameof(vt)),
+            _ => throw new ArgumentException(message: null, nameof(vt)),
         };
 
         if (psa->cDims == 1 && psa->GetBounds().lLbound == 0)
@@ -871,7 +871,7 @@ public unsafe partial struct VARIANT
                 // System use only.
             default:
                 // Documentation does not specify any other types that are supported.
-                throw new ArgumentException(null, nameof(vectorType));
+                throw new ArgumentException(message: null, nameof(vectorType));
         }
     }
 

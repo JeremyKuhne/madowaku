@@ -63,8 +63,8 @@ public unsafe class AgileComPointer<TInterface> : IComPointer
     /// </summary>
     /// <param name="hr">The <see cref="HRESULT"/> from the operation.</param>
     /// <returns>A scope containing the interface.</returns>
-    public ComScope<TInterface> TryGetInterface(out HRESULT hr)
-        => GlobalInterfaceTable.GetInterface<TInterface>(_cookie, out hr);
+    public ComScope<TInterface> TryGetInterface(out HRESULT hr) =>
+        GlobalInterfaceTable.GetInterface<TInterface>(_cookie, out hr);
 
     /// <inheritdoc cref="IComPointer.TryGetInterface{TAsInterface}(out HRESULT)"/>
     public ComScope<TAsInterface> TryGetInterface<TAsInterface>(out HRESULT hr)

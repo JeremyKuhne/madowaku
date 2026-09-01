@@ -36,6 +36,7 @@ internal static unsafe class IID
     /// <summary>
     ///  Gets a pointer to the IID <see cref="Guid"/> for the given <typeparamref name="T"/>.
     /// </summary>
+    /// <returns>A pointer to the IID.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Guid* Get<T>() where T : unmanaged, IComIID
     {
@@ -49,6 +50,7 @@ internal static unsafe class IID
     /// <summary>
     ///  Gets a reference to the IID <see cref="Guid"/> for the given <typeparamref name="T"/>.
     /// </summary>
+    /// <returns>A reference to the IID.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref readonly Guid GetRef<T>() where T : unmanaged, IComIID
     {
@@ -62,5 +64,6 @@ internal static unsafe class IID
     /// <summary>
     ///  Empty <see cref="Guid"/> (GUID_NULL in docs).
     /// </summary>
+    /// <returns>A pointer to the empty <see cref="Guid"/>.</returns>
     public static Guid* NULL() => (Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in IID_NULL));
 }
