@@ -77,13 +77,13 @@ jobs:
         dotnet-version: '10.0.x'
         dotnet-quality: 'ga'
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore madowaku/madowaku.csproj
     - name: Build x64
-      run: dotnet build -c Release --no-restore -p:Platform=x64
+      run: dotnet build madowaku/madowaku.csproj -c Release --no-restore -p:Platform=x64
     - name: Build ARM64
-      run: dotnet build -c Release --no-restore -p:Platform=ARM64
+      run: dotnet build madowaku/madowaku.csproj -c Release --no-restore -p:Platform=ARM64
     - name: Pack
-      run: dotnet pack -c Release --no-build -o ./artifacts
+      run: dotnet pack madowaku/madowaku.csproj -c Release --no-build -o ./artifacts
     - name: Validate architecture package
       shell: pwsh
       run: |

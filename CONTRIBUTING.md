@@ -32,6 +32,10 @@ cache and does not publish or change the global NuGet cache.
 The validation also publishes RID-specific test applications for both architectures and
 executes the one matching the host. ARM64 execution is covered by the ARM64 CI runner.
 
+The publish workflow restores, builds, and packs only the library; it does not cross-build
+the solution's test and benchmark executables. The build workflow tests both architectures,
+and the publish workflow validates the architecture-specific package before uploading it.
+
 ### Pull requests are welcome!
 
 By submitting a PR you:
