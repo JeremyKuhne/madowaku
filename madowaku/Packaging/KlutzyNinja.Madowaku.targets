@@ -1,0 +1,40 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)..\buildTransitive\KlutzyNinja.Madowaku.props"
+          Condition="'$(_MadowakuFrameworksImported)' != 'true'" />
+
+  <PropertyGroup>
+    <_MadowakuPackageRoot>$(MSBuildThisFileDirectory)..\</_MadowakuPackageRoot>
+  </PropertyGroup>
+
+  <!-- There is deliberately no architecture-neutral compiler reference: CsWin32 emits target-specific types. -->
+  <Target Name="SelectMadowakuAssembly" BeforeTargets="ResolveAssemblyReferences">
+    <PropertyGroup>
+      <_MadowakuArchitecture>$(PlatformTarget.ToLowerInvariant())</_MadowakuArchitecture>
+      <_MadowakuFramework>$(_MadowakuNetFramework)</_MadowakuFramework>
+      <_MadowakuFramework Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(_MadowakuDesktopFramework)</_MadowakuFramework>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'
+                              AND '$(TargetPlatformIdentifier)' == 'Windows'
+                              AND '$(TargetPlatformVersion)' != ''
+                              AND $([MSBuild]::VersionGreaterThanOrEquals('$(TargetPlatformVersion)', '$(_MadowakuWindowsVersion)'))">
+      <_MadowakuFramework>$(_MadowakuWindowsFramework)</_MadowakuFramework>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <_MadowakuAssembly>$(_MadowakuPackageRoot)runtimes\win-$(_MadowakuArchitecture)\lib\$(_MadowakuFramework)\madowaku.dll</_MadowakuAssembly>
+    </PropertyGroup>
+
+    <Error Condition="'$(_MadowakuArchitecture)' != 'x64' AND '$(_MadowakuArchitecture)' != 'arm64'"
+           Text="KlutzyNinja.Madowaku requires PlatformTarget=x64 or PlatformTarget=ARM64. AnyCPU and x86 are not supported." />
+    <Error Condition="!Exists('$(_MadowakuAssembly)')"
+           Text="Missing Madowaku assembly for $(TargetFramework) / $(PlatformTarget): $(_MadowakuAssembly)." />
+
+    <ItemGroup>
+      <Reference Include="madowaku">
+        <HintPath>$(_MadowakuAssembly)</HintPath>
+        <Private>true</Private>
+      </Reference>
+    </ItemGroup>
+  </Target>
+</Project>

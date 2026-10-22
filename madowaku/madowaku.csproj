@@ -75,4 +75,6 @@
     <PackageReference Include="Microsoft.Bcl.Memory" />
   </ItemGroup>
 
+  <Import Project="Packaging\ArchitecturePack.targets" />
+
 </Project>

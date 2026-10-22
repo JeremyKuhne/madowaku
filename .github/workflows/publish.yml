@@ -78,10 +78,17 @@ jobs:
         dotnet-quality: 'ga'
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build -c Release --no-restore
+    - name: Build x64
+      run: dotnet build -c Release --no-restore -p:Platform=x64
+    - name: Build ARM64
+      run: dotnet build -c Release --no-restore -p:Platform=ARM64
     - name: Pack
       run: dotnet pack -c Release --no-build -o ./artifacts
+    - name: Validate architecture package
+      shell: pwsh
+      run: |
+        $package = Get-ChildItem artifacts -Filter '*.nupkg' | Select-Object -First 1
+        ./tools/Test-ArchitecturePackage.ps1 -PackagePath $package.FullName
     - name: NuGet login
       id: login
       uses: NuGet/login@v1

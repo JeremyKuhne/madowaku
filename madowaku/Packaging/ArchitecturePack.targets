@@ -1,0 +1,61 @@
+<Project>
+  <PropertyGroup>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);CollectMadowakuAssets</TargetsForTfmSpecificContentInPackage>
+    <_MadowakuFrameworksFile>$(BaseIntermediateOutputPath)package\KlutzyNinja.Madowaku.props</_MadowakuFrameworksFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)KlutzyNinja.Madowaku.targets"
+          Pack="true" PackagePath="build\;buildTransitive\" />
+    <None Include="$(_MadowakuFrameworksFile)"
+          Pack="true" PackagePath="buildTransitive" Visible="false" />
+  </ItemGroup>
+
+  <Target Name="PrepareMadowakuPackageFrameworks" BeforeTargets="_GetPackageFiles">
+    <PropertyGroup>
+      <_MadowakuFrameworksContent>&lt;Project&gt;
+  &lt;PropertyGroup&gt;
+    &lt;_MadowakuFrameworksImported&gt;true&lt;/_MadowakuFrameworksImported&gt;
+    &lt;_MadowakuNetFramework&gt;$(DotNetCoreVersion)&lt;/_MadowakuNetFramework&gt;
+    &lt;_MadowakuWindowsFramework&gt;$(DotNetCoreVersion)-$(WindowsPlatformVersion)&lt;/_MadowakuWindowsFramework&gt;
+    &lt;_MadowakuDesktopFramework&gt;$(DotNetFrameworkVersion)&lt;/_MadowakuDesktopFramework&gt;
+    &lt;_MadowakuWindowsVersion&gt;$(WindowsPlatformVersion.Substring(7))&lt;/_MadowakuWindowsVersion&gt;
+  &lt;/PropertyGroup&gt;
+&lt;/Project&gt;</_MadowakuFrameworksContent>
+    </PropertyGroup>
+
+    <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(_MadowakuFrameworksFile)'))" />
+    <WriteLinesToFile File="$(_MadowakuFrameworksFile)" Lines="$(_MadowakuFrameworksContent)"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" />
+  </Target>
+
+  <Target Name="CollectMadowakuAssets">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build"
+             Properties="Configuration=$(Configuration);Platform=x64;PlatformTarget=x64;TargetFramework=$(TargetFramework)"
+             Condition="'$(NoBuild)' != 'true'" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build"
+             Properties="Configuration=$(Configuration);Platform=ARM64;PlatformTarget=arm64;TargetFramework=$(TargetFramework)"
+             Condition="'$(NoBuild)' != 'true'" />
+
+    <PropertyGroup>
+      <_MadowakuX64Output>$(BaseOutputPath)x64\$(Configuration)\$(MSBuildProjectName)\$(TargetFramework)\</_MadowakuX64Output>
+      <_MadowakuArm64Output>$(BaseOutputPath)ARM64\$(Configuration)\$(MSBuildProjectName)\$(TargetFramework)\</_MadowakuArm64Output>
+    </PropertyGroup>
+
+    <Error Condition="!Exists('$(_MadowakuX64Output)$(TargetFileName)') OR !Exists('$(_MadowakuArm64Output)$(TargetFileName)')"
+           Text="Packing Madowaku requires both x64 and ARM64 outputs for $(TargetFramework). Build both platforms before using --no-build." />
+
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(_MadowakuX64Output)$(TargetFileName);$(_MadowakuX64Output)$(AssemblyName).xml">
+        <PackagePath>runtimes\win-x64\lib\$(TargetFramework)\</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="$(_MadowakuArm64Output)$(TargetFileName);$(_MadowakuArm64Output)$(AssemblyName).xml">
+        <PackagePath>runtimes\win-arm64\lib\$(TargetFramework)\</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)_._">
+        <PackagePath>lib\$(TargetFramework)\</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
+</Project>

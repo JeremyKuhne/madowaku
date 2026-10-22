@@ -6,6 +6,22 @@
 
 Provides useful Win32 functionality based on both for .NET and .NET Framework applications.
 
+## Supported architectures
+
+Madowaku supports **x64** and **ARM64**, with separately compiled CsWin32 interop for each.
+AnyCPU and x86 builds are not supported. Set the application's compiler target explicitly:
+
+```xml
+<PropertyGroup>
+  <PlatformTarget>ARM64</PlatformTarget>
+</PropertyGroup>
+```
+
+Use `x64` for an x64 application. The single `KlutzyNinja.Madowaku` package includes both
+architectures for all three target frameworks; its build targets select the matching compiler
+reference and runtime assembly. There is no architecture-neutral reference assembly.
+ARM64 applications using the .NET Framework build require the ARM64 .NET Framework 4.8.1 runtime.
+
 Madowaku (窓枠) is the Japanese word for "window frame". This library provides extensions on top of CsWin32
 to make it easier to create Win32 applications in .NET and .NET Framework.
 

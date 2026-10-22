@@ -1,0 +1,10 @@
+<Project>
+  <Target Name="ValidateMadowakuPlatform" BeforeTargets="BeforeBuild">
+    <Error Condition="'$(Platform)' != 'x64' AND '$(Platform)' != 'ARM64'"
+           Text="Madowaku supports only x64 and ARM64; Platform='$(Platform)'." />
+    <Error Condition="'$(PlatformTarget)' != '$(Platform)'"
+           Text="PlatformTarget='$(PlatformTarget)' must match Platform='$(Platform)'; AnyCPU builds are not supported." />
+    <Error Condition="'$(_RuntimeArchitecture)' != '' AND '$(_RuntimeArchitecture)' != '$(PlatformTarget)'"
+           Text="RuntimeIdentifier='$(RuntimeIdentifier)' must match PlatformTarget='$(PlatformTarget)'." />
+  </Target>
+</Project>

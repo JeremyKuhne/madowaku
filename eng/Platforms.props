@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup Condition="'$(BuildArchitecture)' == ''">
+    <BuildArchitecture>$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant())</BuildArchitecture>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_RuntimeArchitecture>$([System.Text.RegularExpressions.Regex]::Replace('$(RuntimeIdentifier)', '^.*-', ''))</_RuntimeArchitecture>
+    <Platforms>x64;ARM64</Platforms>
+    <Platform Condition="'$(Platform)' == '' AND '$(_RuntimeArchitecture)' == 'arm64'">ARM64</Platform>
+    <Platform Condition="'$(Platform)' == '' AND '$(_RuntimeArchitecture)' == 'x64'">x64</Platform>
+    <Platform Condition="'$(Platform)' == '' AND '$(BuildArchitecture)' == 'arm64'">ARM64</Platform>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">$(Platform.ToLowerInvariant())</PlatformTarget>
+  </PropertyGroup>
+</Project>
