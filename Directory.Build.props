@@ -5,6 +5,8 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="'$(ImportCommonProps)' == 'true' and Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
 
+  <Import Project="$(MSBuildThisFileDirectory)eng\Platforms.props" />
+
   <PropertyGroup>
     <!--
       Cross-platform targetting in .NET
@@ -49,6 +51,7 @@
     -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+    <MSBuildWarningsAsErrors>$(MSBuildWarningsAsErrors);MSB3270</MSBuildWarningsAsErrors>
   </PropertyGroup>
 
   <!-- Common repo directories -->
@@ -66,8 +69,6 @@
 
   <!-- Set default Configuration and Platform -->
   <PropertyGroup>
-    <Platforms Condition="'$(Platforms)'==''">x64</Platforms>
-    <Platform Condition="'$(Platform)'==''">x64</Platform>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
   </PropertyGroup>
 
@@ -85,11 +86,7 @@
     <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Platform)' == 'x86'">
-    <DefineConstants>TARGET_32BIT;$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Platform)' != 'x86'">
+  <PropertyGroup>
     <DefineConstants>TARGET_64BIT;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 

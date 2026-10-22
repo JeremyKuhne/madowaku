@@ -1,6 +1,7 @@
 <Solution>
   <Configurations>
     <Platform Name="x64" />
+    <Platform Name="ARM64" />
   </Configurations>
   <Folder Name="/Solution Items/" Id="299a9593-f1c0-4e2b-aaf1-8df1555b51eb">
     <File Path=".editorconfig" />
@@ -9,6 +10,8 @@
     <File Path=".gitignore" />
     <File Path="CONTRIBUTING.md" />
     <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Solution.props" />
     <File Path="Directory.Packages.props" />
     <File Path="LICENSE" />
     <File Path="README.md" />
@@ -20,12 +23,15 @@
     <File Path=".github/workflows/publish.yml" />
   </Folder>
   <Project Path="madowaku.perf/madowaku.perf.csproj">
-    <Platform Project="x64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="madowaku.tests/madowaku.tests.csproj" Id="3cc6b747-dfb7-40c7-82ca-ca4d3c0c28a9">
-    <Platform Project="x64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="madowaku/madowaku.csproj">
-    <Platform Project="x64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
 </Solution>

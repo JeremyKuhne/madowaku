@@ -10,9 +10,17 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    name: ".NET / build"
-    runs-on: windows-latest
+  build-platforms:
+    name: ".NET / ${{ matrix.platform }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: x64
+          - os: windows-11-arm
+            platform: ARM64
 
     steps:
     - uses: actions/checkout@v5
@@ -22,17 +30,24 @@ jobs:
         dotnet-version: '10.0.x'
         dotnet-quality: 'ga'
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore -p:Platform=${{ matrix.platform }}
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -p:Platform=${{ matrix.platform }}
     - name: Build release
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build --configuration Release --no-restore -p:Platform=${{ matrix.platform }}
+    - name: Validate architecture package
+      shell: pwsh
+      run: |
+        dotnet pack madowaku/madowaku.csproj -c Release -o artifacts/packages -p:Platform=${{ matrix.platform }}
+        if ($LASTEXITCODE -ne 0) { throw 'Packing failed.' }
+        $package = Get-ChildItem artifacts/packages -Filter '*.nupkg' | Select-Object -First 1
+        ./tools/Test-ArchitecturePackage.ps1 -PackagePath $package.FullName
     - name: Test
       run: |
         $resultsDir = Join-Path $PWD.Path 'artifacts/test-results/debug'
         New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
 
-        dotnet test --no-build `
+        dotnet test --no-build -p:Platform=${{ matrix.platform }} `
           --results-directory "$resultsDir" `
           --report-trx `
           --output Detailed
@@ -41,7 +56,7 @@ jobs:
         $resultsDir = Join-Path $PWD.Path 'artifacts/test-results/release'
         New-Item -ItemType Directory -Force -Path $resultsDir | Out-Null
 
-        dotnet test -c Release --no-build `
+        dotnet test -c Release --no-build -p:Platform=${{ matrix.platform }} `
           --results-directory "$resultsDir" `
           --report-trx `
           --output Detailed `
@@ -89,7 +104,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report
+        name: coverage-report-${{ matrix.platform }}
         path: artifacts/coverage
         if-no-files-found: warn
         retention-days: 14
@@ -110,8 +125,19 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: mtp-logs
+        name: mtp-logs-${{ matrix.platform }}
         path: |
           artifacts/test-results/**/*.trx
         if-no-files-found: warn
         retention-days: 14
+
+  build:
+    name: ".NET / build"
+    needs: build-platforms
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - name: Require both platform builds
+      env:
+        PLATFORM_BUILD_RESULT: ${{ needs.build-platforms.result }}
+      run: test "$PLATFORM_BUILD_RESULT" = success
